@@ -3604,8 +3604,8 @@ a:hover {
 
 /* ---------- Donker thema: geen gloed ----------
    In het donker geen gloed, halo's of gekleurde schaduwen; in het lichte thema blijven ze zoals ze zijn.
-   De productbeelden hebben eigen donkere versies met alleen het voorwerp, zonder waas en sokkel
-   (public/assets/prod/*-donker.png); het API-label hoort bij de weggelaten kaart van Connect. */
+   De productbeelden zijn in het donker vectoren uit de ontwerp-overdracht (components/ProductArtDark.tsx),
+   zonder wazige schaduw; Connect heeft het API-label daar in de tekening zelf. */
 :root[data-theme='dark'] *,
 :root[data-theme='dark'] *::before,
 :root[data-theme='dark'] *::after {

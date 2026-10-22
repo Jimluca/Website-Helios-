@@ -1,4 +1,5 @@
 import type { CSSProperties } from "react";
+import ProductArtDark from "./ProductArtDark";
 
 type Product = {
   id: string;
@@ -98,8 +99,7 @@ export default function Products() {
             <div className="product-inner">
               {/* eslint-disable-next-line @next/next/no-img-element -- vaste illustratie, schaalt mee met de kaart */}
               <img className="product-art only-light" src={`/assets/prod/${p.id}.png`} alt="" width={400} height={232} />
-              {/* eslint-disable-next-line @next/next/no-img-element -- dezelfde illustratie voor het donkere thema */}
-              <img className="product-art only-dark" src={`/assets/prod/${p.id}-donker.png`} alt="" width={400} height={232} />
+              <ProductArtDark id={p.id} />
               {p.api && (
                 <span className="product-api" aria-hidden="true">
                   API
