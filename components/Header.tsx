@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import { LOGIN_URL, SIGNUP_URL } from "@/lib/app-links";
 import ThemeToggle from "./ThemeToggle";
 
 const ITEMS = [
@@ -183,10 +184,10 @@ export default function Header() {
 
         <div className="hdr-actions">
           <ThemeToggle />
-          <a className="hdr-login" href="#">
+          <a className="hdr-login" href={LOGIN_URL}>
             Inloggen
           </a>
-          <a className="hdr-cta" href="#">
+          <a className="hdr-cta" href={SIGNUP_URL}>
             <span className="hdr-cta-sheen" aria-hidden="true" />
             <span className="hdr-cta-label">Aanmelden</span>
             <Arrow size={18} />
@@ -209,10 +210,10 @@ export default function Header() {
             </a>
           ))}
           <div className="hdr-mobile-actions">
-            <a className="hdr-mobile-login" href="#" tabIndex={mobileOpen ? 0 : -1}>
+            <a className="hdr-mobile-login" href={LOGIN_URL} tabIndex={mobileOpen ? 0 : -1}>
               Inloggen
             </a>
-            <a className="hdr-mobile-cta" href="#" tabIndex={mobileOpen ? 0 : -1}>
+            <a className="hdr-mobile-cta" href={SIGNUP_URL} tabIndex={mobileOpen ? 0 : -1}>
               Aanmelden <Arrow size={16} />
             </a>
           </div>

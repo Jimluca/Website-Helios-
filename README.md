@@ -11,6 +11,8 @@ npm run dev
 
 Open daarna http://localhost:3000.
 
+**Koppeling met het platform.** Inloggen, Aanmelden en "Maak de gratis studiekeuzetest" gaan naar het Helios-platform (`/login` en `/aanmelden`). Het adres staat in `NEXT_PUBLIC_APP_URL` (zie `.env.example`; lokaal de Docker-app op http://localhost:8800). Zet het op de server waar de website wordt gebouwd op het echte adres van het platform: het wordt bij `npm run build` in de pagina gezet.
+
 ## Opbouw
 
 - `app/layout.tsx`: html-basis, metadata en de fonts (Inter 400–600 en Inter Tight 700/800 via de Google Fonts-stylesheet; `next/font/google` faalt onder Turbopack in Next 16.4).

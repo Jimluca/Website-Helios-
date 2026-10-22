@@ -1,5 +1,6 @@
 import type { CSSProperties, ReactNode } from "react";
 import HeroVisual from "./HeroVisual";
+import { SIGNUP_URL } from "@/lib/app-links";
 
 // Vier snelle ingangen onder de knoppen. De links volgen zodra de pagina's er zijn.
 const TOOLS: { title: string; body: string; href: string; color: string; bg: string; icon: ReactNode }[] = [
@@ -91,7 +92,7 @@ export default function Hero() {
         </p>
 
         <div className="hero-actions">
-          <a className="btn btn-primary" href="#">
+          <a className="btn btn-primary" href={SIGNUP_URL}>
             Maak de gratis studiekeuzetest
             <ArrowIcon />
           </a>
