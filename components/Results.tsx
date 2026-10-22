@@ -21,7 +21,7 @@ function IconCircle({ left, top, bg, shadow, children }: { left: number; top: nu
 }
 
 function Blob({ left, top, width, height, color }: { left: number; top: number; width: number; height: number; color: string }) {
-  return <div style={box(left, top, width, height, { borderRadius: "50%", background: `radial-gradient(closest-side, ${color} 0%, ${color}99 60%, ${color}00 100%)` })} />;
+  return <div className="res-blob" style={box(left, top, width, height, { borderRadius: "50%", background: `radial-gradient(closest-side, ${color} 0%, ${color}99 60%, ${color}00 100%)` })} />;
 }
 
 // Lines: op desktop elk een eigen regel, op mobiel lopen ze door.

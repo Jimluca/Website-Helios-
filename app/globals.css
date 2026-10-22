@@ -3600,3 +3600,64 @@ a:hover {
     background: linear-gradient(180deg, rgba(255, 255, 255, .14) 0%, rgba(255, 255, 255, 0) 100%);
 }
 
+
+/* ---------- Donker thema: geen gloed ----------
+   In het donker geen gloed, halo's of gekleurde schaduwen; in het lichte thema blijven ze zoals ze zijn.
+   De productbeelden hebben eigen donkere versies met alleen het voorwerp, zonder waas en sokkel
+   (public/assets/prod/*-dark.png); het API-label hoort bij de weggelaten kaart van Connect. */
+:root[data-theme='dark'] *,
+:root[data-theme='dark'] *::before,
+:root[data-theme='dark'] *::after {
+    box-shadow: none !important;
+    text-shadow: none !important;
+}
+
+:root[data-theme='dark'] .licht,
+:root[data-theme='dark'] .licht:hover,
+:root[data-theme='dark'] .licht-text,
+:root[data-theme='dark'] .hv-glass:hover {
+    filter: none !important;
+}
+
+:root[data-theme='dark'] .licht-glow,
+:root[data-theme='dark'] .hdr-accent,
+:root[data-theme='dark'] .product-api,
+:root[data-theme='dark'] .product-btn-glow,
+:root[data-theme='dark'] .wwd-blob,
+:root[data-theme='dark'] .wwd-pulse-glow,
+:root[data-theme='dark'] .wwd-node-glow,
+:root[data-theme='dark'] .wave-glow,
+:root[data-theme='dark'] .wave-ribbon,
+:root[data-theme='dark'] .wave-divider-glow,
+:root[data-theme='dark'] .res-blob,
+:root[data-theme='dark'] .ft-demo-cloud,
+:root[data-theme='dark'] .hero-scene [style*='background:radial-gradient'] {
+    display: none;
+}
+
+/* De glazen bollen in de hero: alleen de bol, zonder de lichte rand eromheen. */
+:root[data-theme='dark'] .hv-glass > div {
+    -webkit-mask-image: radial-gradient(closest-side, #000 64%, transparent 70%) !important;
+    mask-image: radial-gradient(closest-side, #000 64%, transparent 70%) !important;
+}
+
+/* Effen achtergronden in plaats van zachte lichtvlekken. */
+:root[data-theme='dark'] .hero-stage {
+    background: var(--d-page-2);
+}
+
+:root[data-theme='dark'] .products {
+    background: linear-gradient(180deg, rgb(var(--d-glass) / 0) 55%, var(--d-page) 100%), var(--d-tint-1);
+}
+
+@media (max-width: 1099px) {
+    :root[data-theme='dark'] .hero {
+        background: var(--d-page-2);
+    }
+
+    :root[data-theme='dark'] .wwd,
+    :root[data-theme='dark'] .res,
+    :root[data-theme='dark'] .ft {
+        background: var(--d-page);
+    }
+}
