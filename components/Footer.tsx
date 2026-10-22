@@ -86,10 +86,20 @@ export default function Footer() {
 
         <Link className="ft-logo" href="/" aria-label="Helios">
           <Image
+            className="only-light"
             src="/assets/logo-helios.png"
             alt="Helios"
             width={234}
             height={73}
+            loading="eager"
+          />
+          <Image
+            className="only-dark"
+            src="/assets/logo-helios-dark.png"
+            alt="Helios"
+            width={234}
+            height={73}
+            loading="eager"
           />
         </Link>
 

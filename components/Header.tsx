@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import ThemeToggle from "./ThemeToggle";
 
 const ITEMS = [
   { label: "Product", href: "/#producten", menu: true },
@@ -137,7 +138,8 @@ export default function Header() {
         <span className="hdr-accent" aria-hidden="true" />
 
         <Link className="hdr-logo" href="/" aria-label="Helios – home">
-          <Image src="/assets/logo-helios.png" alt="Helios" width={128} height={40} priority />
+          <Image className="only-light" src="/assets/logo-helios.png" alt="Helios" width={128} height={40} priority />
+          <Image className="only-dark" src="/assets/logo-helios-dark.png" alt="Helios" width={128} height={40} priority />
         </Link>
 
         <div className="hdr-list" ref={listRef} onMouseLeave={leave}>
@@ -180,6 +182,7 @@ export default function Header() {
         </div>
 
         <div className="hdr-actions">
+          <ThemeToggle />
           <a className="hdr-login" href="#">
             Inloggen
           </a>
@@ -192,6 +195,7 @@ export default function Header() {
 
         {/* Mobiel */}
         <span className="hdr-spacer" />
+        <ThemeToggle className="theme-toggle-mobile" />
         <button type="button" className={`hdr-burger${mobileOpen ? " is-open" : ""}`} aria-label="Menu" aria-expanded={mobileOpen} onClick={() => setMobileOpen((o) => !o)}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true">
             <path d={mobileOpen ? "M6 6l12 12" : "M4 9h16"} />

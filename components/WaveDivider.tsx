@@ -13,7 +13,7 @@ const NODES = [
 
 function Cloud({ transform, id }: { transform: string; id: (name: string) => string }) {
   return (
-    <g transform={transform}>
+    <g className="wave-cloud" transform={transform}>
       <g filter={`url(#${id("CloudS")})`} opacity=".55" transform="translate(0 14)">
         <ellipse cx="0" cy="18" rx="150" ry="26" fill="#C9BEF6" />
         <ellipse cx="-30" cy="0" rx="70" ry="38" fill="#C9BEF6" />
@@ -125,24 +125,25 @@ export default function WaveDivider({
 
         <g mask={url("Mask")} opacity={opacity}>
           {/* Heuvels en zachte gloed */}
-          <path d="M0 182 C 110 185, 200 220, 250 250 L 250 560 L 0 560 Z" fill={url("Hill")} />
+          <path d="M0 182 C 110 185, 200 220, 250 250 L 250 560 L 0 560 Z" className="wave-hill" fill={url("Hill")} />
           <path
             d="M190 228 C 300 190, 400 165, 480 167 C 640 172, 790 280, 930 360 C 1000 398, 1060 410, 1110 410 C 1180 410, 1240 345, 1320 338 C 1420 330, 1520 340, 1640 300 C 1760 260, 1870 245, 1930 240 L 1930 560 L 190 560 Z"
+            className="wave-hill"
             fill={url("Hill")}
           />
-          <path d="M1930 242 C 2000 200, 2080 180, 2167 180 L 2167 560 L 1930 560 Z" fill={url("Hill")} />
-          <ellipse cx="520" cy="420" rx="520" ry="110" fill="#E3E0FB" opacity=".55" filter={url("Blur20")} />
-          <ellipse cx="1300" cy="470" rx="420" ry="70" fill="#DCE4FC" opacity=".55" filter={url("Blur20")} />
-          <ellipse cx="1930" cy="420" rx="280" ry="90" fill="#F0D3EE" opacity=".6" filter={url("Blur20")} />
-          <path d="M1360 520 C 1550 470, 1750 390, 1900 370 C 2000 360, 2100 420, 2167 470 L 2167 600 L 1360 600 Z" fill="#F6E6F3" opacity=".5" filter={url("Blur8")} />
+          <path d="M1930 242 C 2000 200, 2080 180, 2167 180 L 2167 560 L 1930 560 Z" className="wave-hill" fill={url("Hill")} />
+          <ellipse cx="520" cy="420" rx="520" ry="110" className="wave-glow" fill="#E3E0FB" opacity=".55" filter={url("Blur20")} />
+          <ellipse cx="1300" cy="470" rx="420" ry="70" className="wave-glow" fill="#DCE4FC" opacity=".55" filter={url("Blur20")} />
+          <ellipse cx="1930" cy="420" rx="280" ry="90" className="wave-glow" fill="#F0D3EE" opacity=".6" filter={url("Blur20")} />
+          <path d="M1360 520 C 1550 470, 1750 390, 1900 370 C 2000 360, 2100 420, 2167 470 L 2167 600 L 1360 600 Z" className="wave-glow" fill="#F6E6F3" opacity=".5" filter={url("Blur8")} />
 
           <Cloud transform="translate(715 330) scale(0.82)" id={id} />
           <Cloud transform="translate(1440 370) scale(1.05)" id={id} />
 
           {/* Lint, gekleurde lijn en witte glanslijn */}
-          <path d={RIBBON} stroke={url("Ribbon")} strokeWidth="64" fill="none" opacity=".55" filter={url("Blur3")} />
+          <path className="wave-ribbon" d={RIBBON} stroke={url("Ribbon")} strokeWidth="64" fill="none" opacity=".55" filter={url("Blur3")} />
           <path d={LINE} stroke={url("Line")} strokeWidth="5" fill="none" strokeLinecap="round" />
-          <path d={SHINE} stroke="#FFFFFF" strokeWidth="7" fill="none" strokeLinecap="round" />
+          <path className="wave-shine" d={SHINE} stroke="#FFFFFF" strokeWidth="7" fill="none" strokeLinecap="round" />
 
           {NODES.map((n) => (
             <circle
