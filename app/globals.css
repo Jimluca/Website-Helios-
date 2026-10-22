@@ -3584,27 +3584,28 @@ a:hover {
     filter: invert(1) hue-rotate(180deg);
 }
 
-/* De knoppen op de productkaarten: donker glas in de kleur van de kaart, met lichte tekst. */
+/* De knoppen op de productkaarten: effen in de kleur van de kaart, met lichte tekst. */
 :root[data-theme='dark'] .product-btn {
     color: #F3F1FF;
-    background: linear-gradient(180deg, rgba(var(--rgb), .30) 0%, rgba(var(--rgb), .16) 100%);
+    background: rgba(var(--rgb), .22);
     border-color: rgba(var(--rgb), .45);
-    box-shadow: 0 8px 18px -8px rgba(var(--rgb), .45), inset 0 1px 0 rgba(255, 255, 255, .12);
 }
 
 :root[data-theme='dark'] .product-btn:hover {
     color: #FFFFFF;
 }
 
-:root[data-theme='dark'] .product-btn-highlight {
-    background: linear-gradient(180deg, rgba(255, 255, 255, .14) 0%, rgba(255, 255, 255, 0) 100%);
+/* Effen, zonder glanslaag of lichtstreep. */
+:root[data-theme='dark'] .product-btn-highlight,
+:root[data-theme='dark'] .product-btn-sheen {
+    display: none;
 }
 
 
 /* ---------- Donker thema: geen gloed ----------
    In het donker geen gloed, halo's of gekleurde schaduwen; in het lichte thema blijven ze zoals ze zijn.
    De productbeelden hebben eigen donkere versies met alleen het voorwerp, zonder waas en sokkel
-   (public/assets/prod/*-dark.png); het API-label hoort bij de weggelaten kaart van Connect. */
+   (public/assets/prod/*-donker.png); het API-label hoort bij de weggelaten kaart van Connect. */
 :root[data-theme='dark'] *,
 :root[data-theme='dark'] *::before,
 :root[data-theme='dark'] *::after {

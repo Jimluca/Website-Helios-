@@ -99,7 +99,7 @@ export default function Products() {
               {/* eslint-disable-next-line @next/next/no-img-element -- vaste illustratie, schaalt mee met de kaart */}
               <img className="product-art only-light" src={`/assets/prod/${p.id}.png`} alt="" width={400} height={232} />
               {/* eslint-disable-next-line @next/next/no-img-element -- dezelfde illustratie voor het donkere thema */}
-              <img className="product-art only-dark" src={`/assets/prod/${p.id}-dark.png`} alt="" width={400} height={232} />
+              <img className="product-art only-dark" src={`/assets/prod/${p.id}-donker.png`} alt="" width={400} height={232} />
               {p.api && (
                 <span className="product-api" aria-hidden="true">
                   API
