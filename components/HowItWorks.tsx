@@ -35,17 +35,17 @@ const STEPS: { title: string; body: string; shots: Shot[] }[] = [
     body: "Bekijk per cliënt de uitslagen en bepaal zelf wat je deelt. Zo voer je een goed onderbouwd gesprek.",
     shots: [
       {
-        src: "/assets/screens/04-uitslag-bekende-beroepen.png",
-        alt: "De uitslag Jouw beroepen in Helios: bekende beroepen zoals politiemedewerker, scheidsrechter en winkelsurveillant met een matchpercentage, en uitleg over politiemedewerker",
+        src: "/assets/screens/04-beroepen.png",
+        alt: "De uitslag Jouw beroepen in Helios: beroepen zoals tandarts, orthodontist en mondhygiënist met een matchpercentage, en uitleg over de tandarts",
         label: "Beroepen",
       },
       {
-        src: "/assets/screens/04-uitslag-opleidingen.png",
-        alt: "De uitslag Jouw opleidingen in Helios: passende opleidingen met een matchpercentage en uitleg per opleiding",
+        src: "/assets/screens/04-opleidingen-hbo.png",
+        alt: "De uitslag Jouw opleidingen in Helios, gefilterd op hbo-bachelor: oefentherapie, mondzorgkunde en ergotherapie met een matchpercentage",
         label: "Opleidingen",
       },
       {
-        src: "/assets/screens/04-uitslag-loopbaanwaarden.png",
+        src: "/assets/screens/04-loopbaanwaarden.png",
         alt: "De uitslag Jouw loopbaanwaarden in Helios: twintig waarden op volgorde en de loopbaancirkel",
         label: "Loopbaanwaarden",
       },
