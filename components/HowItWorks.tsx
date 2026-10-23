@@ -1,35 +1,65 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
 
 const SLIDE_MS = 5000;
+// Een stap met meerdere schermen (de uitslagen) toont elk scherm zo lang.
+const SHOT_MS = 2400;
 
-const STEPS = [
+type Shot = { src: string; alt: string; label?: string };
+
+const STEPS: { title: string; body: string; shots: Shot[] }[] = [
   {
     title: "Nodig je cliënten uit",
     body: "Stuur een uitnodiging per e-mail. Je cliënt maakt zelf een account aan en kan direct beginnen.",
-    src: "/assets/screens/02-clienten-uitnodigen.png",
-    alt: "Het venster Nieuwe cliënt uitnodigen in Helios, met voornaam, achternaam en e-mailadres ingevuld",
+    shots: [
+      {
+        src: "/assets/screens/02-clienten-uitnodigen.png",
+        alt: "Het venster Nieuwe cliënt uitnodigen in Helios, met voornaam, achternaam en e-mailadres ingevuld",
+      },
+    ],
   },
   {
     title: "Volg de voortgang",
-    body: "Je cliënt maakt de testen online, op elk apparaat en in zijn eigen tempo. In je overzicht zie je direct wie waar staat.",
-    src: "/assets/screens/03-voortgang-volgen.png",
-    alt: "Het cliëntenoverzicht in Helios met per cliënt de status, zoals actief, uitgenodigd of in afwachting",
+    body: "Je cliënt ziet in een eigen dashboard welke testen klaarstaan en wat al af is. Jij ziet in je overzicht direct wie waar staat.",
+    shots: [
+      {
+        src: "/assets/screens/03-client-dashboard.png",
+        alt: "Het dashboard van een cliënt in Helios: de testen waarvoor de cliënt is uitgenodigd, de voortgang en de recente uitslagen",
+      },
+    ],
   },
   {
     title: "Bespreek de resultaten",
-    body: "Bekijk per cliënt alle resultaten en rapporten. Jij bepaalt wat je deelt en voert een goed onderbouwd gesprek.",
-    src: "/assets/screens/04-resultaten-bespreken.png",
-    alt: "De pagina van een cliënt in Helios met testresultaten per instrument en rapportages die je kunt delen",
+    body: "Bekijk per cliënt de uitslagen: passende beroepen, opleidingen, loopbaanwaarden en meer. Jij bepaalt wat je deelt en voert een goed onderbouwd gesprek.",
+    shots: [
+      {
+        src: "/assets/screens/04-uitslag-beroepen.png",
+        alt: "De uitslag Jouw beroepen in Helios: passende beroepen met een matchpercentage en uitleg per beroep",
+        label: "Beroepen",
+      },
+      {
+        src: "/assets/screens/04-uitslag-opleidingen.png",
+        alt: "De uitslag Jouw opleidingen in Helios: passende opleidingen met een matchpercentage en uitleg per opleiding",
+        label: "Opleidingen",
+      },
+      {
+        src: "/assets/screens/04-uitslag-loopbaanwaarden.png",
+        alt: "De uitslag Jouw loopbaanwaarden in Helios: twintig waarden op volgorde en de loopbaancirkel",
+        label: "Loopbaanwaarden",
+      },
+    ],
   },
 ];
 
+const duration = (i: number) => (STEPS[i].shots.length > 1 ? SHOT_MS * STEPS[i].shots.length : SLIDE_MS);
+
 // Sectie "Hoe het werkt": drie stappen met een slideshow van echte schermen uit het platform.
-// De slideshow loopt vanzelf door; klikken kiest een stap, hover pauzeert.
+// De slideshow loopt vanzelf door; klikken kiest een stap (of een uitslag), hover pauzeert.
 export default function HowItWorks() {
   const [active, setActive] = useState(0);
+  const [shot, setShot] = useState(0);
   const [paused, setPaused] = useState(false);
   const [reduced, setReduced] = useState(false);
 
@@ -43,9 +73,27 @@ export default function HowItWorks() {
 
   useEffect(() => {
     if (paused || reduced) return;
-    const timer = window.setTimeout(() => setActive((i) => (i + 1) % STEPS.length), SLIDE_MS);
+    const shots = STEPS[active].shots.length;
+    const timer = window.setTimeout(
+      () => {
+        if (shot < shots - 1) {
+          setShot(shot + 1);
+        } else {
+          setActive((active + 1) % STEPS.length);
+          setShot(0);
+        }
+      },
+      shots > 1 ? SHOT_MS : SLIDE_MS,
+    );
     return () => clearTimeout(timer);
-  }, [active, paused, reduced]);
+  }, [active, shot, paused, reduced]);
+
+  const choose = (i: number) => {
+    setActive(i);
+    setShot(0);
+  };
+
+  const labels = STEPS[active].shots.filter((s) => s.label);
 
   return (
     <section className="how" id="hoe-het-werkt" aria-labelledby="how-title">
@@ -69,7 +117,7 @@ export default function HowItWorks() {
                   type="button"
                   className={`how-step${i === active ? " is-active" : ""}`}
                   aria-current={i === active ? "step" : undefined}
-                  onClick={() => setActive(i)}
+                  onClick={() => choose(i)}
                 >
                   <span className="how-step-num" aria-hidden="true">
                     {i + 1}
@@ -79,32 +127,48 @@ export default function HowItWorks() {
                     <span className="how-step-desc">{s.body}</span>
                   </span>
                   {/* Voortgangsbalk; loopt gelijk op met de timer en begint opnieuw na een pauze. */}
-                  {i === active && !paused && !reduced && <span key={active} className="how-step-progress" aria-hidden="true" />}
+                  {i === active && !paused && !reduced && (
+                    <span key={active} className="how-step-progress" style={{ animationDuration: `${duration(i)}ms` } as CSSProperties} aria-hidden="true" />
+                  )}
                 </button>
               </li>
             ))}
           </ol>
 
           <div className="how-frame">
-            <div className="how-frame-bar" aria-hidden="true">
-              <span />
-              <span />
-              <span />
+            <div className="how-frame-bar">
+              <span aria-hidden="true" />
+              <span aria-hidden="true" />
+              <span aria-hidden="true" />
+              {labels.length > 0 && (
+                <div className="how-tabs" role="group" aria-label="Uitslagen">
+                  {labels.map((s, j) => (
+                    <button key={s.src} type="button" className={`how-tab${j === shot ? " is-active" : ""}`} aria-pressed={j === shot} onClick={() => setShot(j)}>
+                      {s.label}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
             <div className="how-slides">
-              {STEPS.map((s, i) => (
-                <Image
-                  key={s.src}
-                  className={`how-slide${i === active ? " is-active" : ""}`}
-                  src={s.src}
-                  alt={s.alt}
-                  width={3200}
-                  height={2000}
-                  sizes="(max-width: 1099px) 100vw, 60vw"
-                  priority={i === 0}
-                  aria-hidden={i !== active}
-                />
-              ))}
+              {STEPS.flatMap((s, i) =>
+                s.shots.map((sh, j) => {
+                  const on = i === active && j === shot;
+                  return (
+                    <Image
+                      key={sh.src}
+                      className={`how-slide${on ? " is-active" : ""}`}
+                      src={sh.src}
+                      alt={sh.alt}
+                      width={3200}
+                      height={2000}
+                      sizes="(max-width: 1099px) 100vw, 60vw"
+                      priority={i === 0}
+                      aria-hidden={!on}
+                    />
+                  );
+                }),
+              )}
             </div>
           </div>
         </div>

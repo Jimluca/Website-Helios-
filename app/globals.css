@@ -3885,3 +3885,178 @@ a:hover {
     border-color: rgb(255 255 255 / .24);
     color: #FFFFFF;
 }
+
+/* ---------- Premium afwerking ----------
+   Rustiger en verfijnder: scherpe letters, een fijne korrel over grote vlakken, haarlijnranden met een lichte
+   bovenkant aan de kaarten, glazen labels boven de secties en kaarten die zacht in beeld komen. */
+html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+}
+
+::selection {
+    background: rgb(102 57 236 / .18);
+}
+
+body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    pointer-events: none;
+    opacity: .05;
+    mix-blend-mode: soft-light;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 .55 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+}
+
+:root[data-theme='dark'] body::after {
+    opacity: .09;
+}
+
+.product-inner,
+.wwd-step,
+.res-card,
+.res-panel,
+.hero-tool,
+.ft-demo,
+.how-frame,
+.how-step.is-active {
+    border-color: rgb(40 24 120 / .07);
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / .9), 0 1px 1px rgb(20 10 60 / .03), 0 3px 8px -4px rgb(20 10 60 / .05), 0 30px 60px -34px rgb(60 40 160 / .3);
+}
+
+:root[data-theme='dark'] .product-inner,
+:root[data-theme='dark'] .wwd-step,
+:root[data-theme='dark'] .res-card,
+:root[data-theme='dark'] .res-panel,
+:root[data-theme='dark'] .hero-tool,
+:root[data-theme='dark'] .ft-demo,
+:root[data-theme='dark'] .how-frame,
+:root[data-theme='dark'] .how-step.is-active {
+    border-color: rgb(255 255 255 / .08);
+}
+
+.wwd-eyebrow,
+.how-eyebrow,
+.res-eyebrow,
+.res-panel-eyebrow {
+    background:
+        radial-gradient(120% 90% at 50% 0%, rgb(255 255 255 / .9) 0%, rgb(255 255 255 / 0) 65%),
+        color-mix(in srgb, #6639EC 7%, rgb(255 255 255 / .6));
+    border: 1px solid rgb(102 57 236 / .14);
+    -webkit-backdrop-filter: blur(12px) saturate(170%);
+    backdrop-filter: blur(12px) saturate(170%);
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / .95), 0 6px 16px -10px rgb(60 40 160 / .3);
+}
+
+:root[data-theme='dark'] .wwd-eyebrow,
+:root[data-theme='dark'] .how-eyebrow,
+:root[data-theme='dark'] .res-eyebrow,
+:root[data-theme='dark'] .res-panel-eyebrow {
+    background:
+        radial-gradient(120% 90% at 50% 0%, rgb(255 255 255 / .12) 0%, rgb(255 255 255 / 0) 65%),
+        rgb(255 255 255 / .05);
+    border-color: rgb(255 255 255 / .12);
+}
+
+/* De uitslagen in stap 3 van Hoe het werkt: kleine glazen tabs in de vensterbalk. */
+.how-tabs {
+    display: flex;
+    gap: 6px;
+    margin-left: auto;
+}
+
+.how-tab {
+    height: 26px;
+    padding: 0 12px;
+    border-radius: 999px;
+    border: 1px solid color-mix(in srgb, #6639EC 14%, #FFFFFF);
+    background:
+        radial-gradient(120% 80% at 50% 0%, #FFFFFF 0%, rgb(255 255 255 / 0) 60%),
+        rgb(255 255 255 / .6);
+    box-shadow: inset 0 1px 0 #FFFFFF, 0 4px 10px -6px rgb(60 40 160 / .35);
+    font: 500 12.5px/1 var(--font-inter), sans-serif;
+    color: var(--d-text, #3A3D57);
+    cursor: pointer;
+    transition: background .3s var(--ease), color .3s var(--ease), border-color .3s var(--ease);
+}
+
+.how-tab:hover {
+    color: var(--d-link, #4B2BF0);
+}
+
+.how-tab.is-active {
+    border-color: rgb(255 255 255 / .3);
+    background:
+        radial-gradient(120% 80% at 50% -10%, rgb(255 255 255 / .42) 0%, rgb(255 255 255 / 0) 58%),
+        linear-gradient(180deg, color-mix(in srgb, #5B2EE0 80%, #FFFFFF), #5B2EE0);
+    color: #FFFFFF;
+}
+
+:root[data-theme='dark'] .how-tab {
+    border-color: rgb(255 255 255 / .12);
+    background:
+        radial-gradient(120% 80% at 50% 0%, rgb(255 255 255 / .14) 0%, rgb(255 255 255 / 0) 60%),
+        rgb(255 255 255 / .05);
+    color: #C9C6E4;
+}
+
+:root[data-theme='dark'] .how-tab.is-active {
+    border-color: rgb(255 255 255 / .22);
+    background:
+        radial-gradient(120% 80% at 50% -10%, rgb(255 255 255 / .3) 0%, rgb(255 255 255 / 0) 58%),
+        linear-gradient(180deg, color-mix(in srgb, #5B2EE0 85%, #FFFFFF), #5B2EE0);
+    color: #FFFFFF;
+}
+
+@media (max-width: 560px) {
+    .how-tab {
+        padding: 0 9px;
+        font-size: 11.5px;
+    }
+}
+
+/* Kaarten en stappen komen zacht in beeld tijdens het scrollen: alleen CSS (scroll-driven animation), dus de
+   HTML verandert niet. Met translate in plaats van transform, zodat de hover-effecten blijven werken.
+   Browsers zonder ondersteuning, en wie minder beweging wil, zien alles direct. */
+@keyframes reveal {
+    from {
+        opacity: 0;
+        translate: 0 28px;
+    }
+    to {
+        opacity: 1;
+        translate: 0 0;
+    }
+}
+
+@supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+        .product-card,
+        .wwd-step,
+        .how-step,
+        .how-frame,
+        .res-card,
+        .res-panel,
+        .ft-demo {
+            animation: reveal linear both;
+            animation-timeline: view();
+            animation-range: entry 0% entry 40%;
+        }
+
+        .product-card:nth-child(2),
+        .res-card:nth-child(2) {
+            animation-range: entry 6% entry 46%;
+        }
+
+        .product-card:nth-child(3),
+        .res-card:nth-child(3) {
+            animation-range: entry 12% entry 52%;
+        }
+
+        .product-card:nth-child(4) {
+            animation-range: entry 18% entry 58%;
+        }
+    }
+}

@@ -135,8 +135,8 @@ export default function Header() {
         <span className="hdr-accent" aria-hidden="true" />
 
         <Link className="hdr-logo" href="/" aria-label="Helios – home">
-          <Image className="only-light" src="/assets/logo-helios.png" alt="Helios" width={128} height={40} priority />
-          <Image className="only-dark" src="/assets/logo-helios-dark.png" alt="Helios" width={128} height={40} priority />
+          <Image className="only-light" src="/assets/logo-helios.png" alt="Helios" width={128} height={41} loading="eager" />
+          <Image className="only-dark" src="/assets/logo-helios-dark.png" alt="Helios" width={128} height={41} loading="eager" />
         </Link>
 
         <div className="hdr-list" ref={listRef} onMouseLeave={leave}>
