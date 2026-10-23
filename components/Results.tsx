@@ -38,7 +38,7 @@ const iconSize = (n: number) => ({ width: u(n), height: u(n) });
 
 // Stap 1: kaart met drie resultaatregels
 function ArtResult() {
-  const rows = ["#6A3CF5", "#8F86F5", "#8FA0F7"];
+  const rows = ["#4A1FC9", "#7350EF", "#9C82FF"];
   return (
     <>
       <Blob left={0} top={30} width={250} height={180} color="#EEEAFD" />
@@ -70,8 +70,8 @@ function ArtResult() {
           </div>
         ))}
       </div>
-      <IconCircle left={170} top={1} bg="#EDE9FD" shadow="0 10px 24px -8px rgba(106,44,245,.35)">
-        <svg style={iconSize(34)} viewBox="0 0 24 24" fill="none" stroke="#6A2CF5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <IconCircle left={170} top={1} bg="#EDE7FF" shadow="0 10px 24px -8px rgba(74,31,201,.35)">
+        <svg style={iconSize(34)} viewBox="0 0 24 24" fill="none" stroke="#4A1FC9" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z" />
           <path d="M9 11h6" />
           <path d="M9 15h6" />
@@ -85,10 +85,10 @@ function ArtResult() {
 
 // Stap 2: kaarten met afstudeerhoed, koffertje en lampje
 function ArtInsight() {
-  const backCard: CSSProperties = { borderRadius: u(12), background: "#F3F5FC", boxShadow: "0 10px 22px -12px rgba(60,90,200,.25)" };
+  const backCard: CSSProperties = { borderRadius: u(12), background: "#F4F1FD", boxShadow: "0 10px 22px -12px rgba(102,57,236,.25)" };
   return (
     <>
-      <Blob left={0} top={22} width={235} height={180} color="#E3EBFD" />
+      <Blob left={0} top={22} width={235} height={180} color="#ECE6FE" />
       <div style={box(30, 92, 90, 78, { ...backCard, transform: "rotate(-8deg)" })} />
       <div
         style={box(150, 88, 68, 80, {
@@ -101,15 +101,15 @@ function ArtInsight() {
           boxSizing: "border-box",
         })}
       >
-        <Bar w={42} color="#DFE5F7" />
-        <Bar w={32} color="#DFE5F7" />
+        <Bar w={42} color="#E4DDFA" />
+        <Bar w={32} color="#E4DDFA" />
       </div>
       <div
         style={box(66, 57, 100, 117, {
           boxSizing: "border-box",
           borderRadius: u(14),
           background: "#FFFFFF",
-          boxShadow: "0 18px 34px -14px rgba(50,90,220,.30)",
+          boxShadow: "0 18px 34px -14px rgba(102,57,236,.30)",
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
@@ -117,32 +117,32 @@ function ArtInsight() {
           gap: u(9),
         })}
       >
-        <svg style={{ width: u(44), height: u(40) }} viewBox="0 0 24 24" fill="#2F6FF0">
+        <svg style={{ width: u(44), height: u(40) }} viewBox="0 0 24 24" fill="#6639EC">
           <path d="M21.42 10.92a1 1 0 0 0-.02-1.84L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.83l8.57 3.91a2 2 0 0 0 1.66 0z" />
           <path d="M6 12.6V16c0 1.66 2.7 3 6 3s6-1.34 6-3v-3.4l-5.2 2.4a2 2 0 0 1-1.6 0z" />
-          <path d="M21.2 10v5.5" stroke="#2F6FF0" strokeWidth="1.6" strokeLinecap="round" />
+          <path d="M21.2 10v5.5" stroke="#6639EC" strokeWidth="1.6" strokeLinecap="round" />
         </svg>
-        <Bar w={62} color="#D6DFFA" />
-        <Bar w={62} color="#D6DFFA" />
-        <Bar w={44} color="#E3E9FB" />
+        <Bar w={62} color="#DDD3FB" />
+        <Bar w={62} color="#DDD3FB" />
+        <Bar w={44} color="#E8E2FC" />
       </div>
       <div
         style={box(16, 135, 47, 45, {
           borderRadius: u(11),
           background: "#FFFFFF",
-          boxShadow: "0 10px 22px -10px rgba(50,90,220,.35)",
+          boxShadow: "0 10px 22px -10px rgba(102,57,236,.35)",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
         })}
       >
-        <svg style={iconSize(30)} viewBox="0 0 24 24" fill="#2F6FF0">
+        <svg style={iconSize(30)} viewBox="0 0 24 24" fill="#6639EC">
           <path d="M9 4h6a2 2 0 0 1 2 2v1h2.5A2.5 2.5 0 0 1 22 9.5v8A2.5 2.5 0 0 1 19.5 20h-15A2.5 2.5 0 0 1 2 17.5v-8A2.5 2.5 0 0 1 4.5 7H7V6a2 2 0 0 1 2-2zm0 3h6V6H9z" />
           <path d="M2 12.5h20" stroke="#FFFFFF" strokeWidth="1.6" />
         </svg>
       </div>
-      <IconCircle left={173} top={3} bg="#E1EBFE" shadow="0 10px 24px -8px rgba(47,111,240,.35)">
-        <svg style={iconSize(34)} viewBox="0 0 24 24" fill="none" stroke="#1F68F0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <IconCircle left={173} top={3} bg="#EFEAFF" shadow="0 10px 24px -8px rgba(102,57,236,.35)">
+        <svg style={iconSize(34)} viewBox="0 0 24 24" fill="none" stroke="#6639EC" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5" />
           <path d="M9 18h6" />
           <path d="M10 22h4" />
@@ -156,7 +156,7 @@ function ArtInsight() {
 function ArtTalk() {
   return (
     <>
-      <Blob left={5} top={28} width={265} height={185} color="#FDE6DF" />
+      <Blob left={5} top={28} width={265} height={185} color="#F1ECFE" />
       <div
         style={box(108, 118, 96, 58, {
           borderRadius: u(13),
@@ -201,8 +201,8 @@ function ArtTalk() {
       <svg style={box(76, 139, 22, 18)} viewBox="0 0 22 18">
         <path d="M2 0 H20 L 4 16 Z" fill="#FFFFFF" />
       </svg>
-      <IconCircle left={195} top={24} bg="#FFE4D6" shadow="0 10px 24px -8px rgba(242,102,42,.35)">
-        <svg style={iconSize(34)} viewBox="0 0 24 24" fill="none" stroke="#F2662A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <IconCircle left={195} top={24} bg="#F2EEFF" shadow="0 10px 24px -8px rgba(135,104,246,.35)">
+        <svg style={iconSize(34)} viewBox="0 0 24 24" fill="none" stroke="#7B5CF0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
           <circle cx="9" cy="7" r="4" />
           <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
@@ -222,9 +222,9 @@ const CARDS = [
     icon: [26, 52],
     text: 151,
     rgb: "107, 53, 242",
-    bg: "#ECE8FD",
+    bg: "#EDE7FF",
     svg: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="#6A2CF5" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#4A1FC9" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
         <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" />
         <path d="m9 12 2 2 4-4" />
       </svg>
@@ -238,9 +238,9 @@ const CARDS = [
     icon: [24, 54],
     text: 150,
     rgb: "47, 111, 240",
-    bg: "#E4ECFD",
+    bg: "#EFEAFF",
     svg: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="#1F68F0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#6639EC" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <circle cx="12" cy="12" r="9.5" />
         <path d="M12 6.5V12l3.5 2.5" />
       </svg>
@@ -254,9 +254,9 @@ const CARDS = [
     icon: [26, 52],
     text: 153,
     rgb: "245, 106, 44",
-    bg: "#FFE7DC",
+    bg: "#F2EEFF",
     svg: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="#F2662A" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#7B5CF0" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
         <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
         <circle cx="9" cy="7" r="4" />
         <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
@@ -273,8 +273,8 @@ const STEPS = [
     // Illustratie (positie en breedte in het paneel) en de plek van het label ten opzichte daarvan.
     art: [480, 20, 260],
     label: [13, 204, 18],
-    numBg: "#ECE8FD",
-    numColor: "#5A2DF0",
+    numBg: "#EDE7FF",
+    numColor: "#4A1FC9",
     Art: ArtResult,
   },
   {
@@ -282,8 +282,8 @@ const STEPS = [
     body: ["Passende opleidingen, beroepen", "en mogelijkheden."],
     art: [795, 20, 260],
     label: [-4, 204, 18],
-    numBg: "#E1EBFE",
-    numColor: "#1F68F0",
+    numBg: "#EFEAFF",
+    numColor: "#6639EC",
     Art: ArtInsight,
   },
   {
@@ -291,8 +291,8 @@ const STEPS = [
     body: ["Een goed onderbouwd", "adviesgesprek en vervolgstappen."],
     art: [1115, 20, 280],
     label: [-15, 204, 16],
-    numBg: "#FFE4D6",
-    numColor: "#F2662A",
+    numBg: "#F2EEFF",
+    numColor: "#7B5CF0",
     Art: ArtTalk,
   },
 ];
@@ -383,7 +383,7 @@ export default function Results() {
               <stop offset="1" stopColor="#8A6CF5" />
             </linearGradient>
             <linearGradient id="rbA2" x1="0" x2="1">
-              <stop offset="0" stopColor="#F4A9D8" stopOpacity=".25" />
+              <stop offset="0" stopColor="#C9BEF8" stopOpacity=".25" />
               <stop offset="1" stopColor="#A76CF2" />
             </linearGradient>
           </defs>

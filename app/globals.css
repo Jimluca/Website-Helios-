@@ -9,6 +9,8 @@
     --primary: #4B3CF0;
     --primary-hover: #3A2BD6;
     --accent: #5B4BEA;
+    /* Gekleurde koppen: tinten paars van donker naar licht (in het donker lichter, zodat ze leesbaar blijven). */
+    --purple-text: linear-gradient(90deg, #3E17B4 0%, #6639EC 45%, #A68FFA 100%);
     --heading: #0D0E24;
     --text: #3A3D57;
     --text-intro: #4A4D66;
@@ -19,6 +21,7 @@
    variabelen een waarde, zodat het lichte ontwerp precies blijft zoals het was. */
 :root[data-theme='dark'] {
     color-scheme: dark;
+    --purple-text: linear-gradient(90deg, #8F6EFF 0%, #B19CFF 50%, #D6CCFF 100%);
     --heading: #F3F1FF;
     --text: #C9C6E4;
     --text-intro: #BDBADA;
@@ -194,7 +197,7 @@ a:hover {
 }
 
 .licht:hover {
-    filter: drop-shadow(0 0 .256em rgba(255, 196, 120, .75));
+    filter: drop-shadow(0 0 .256em rgba(190, 170, 255, .75));
 }
 
 .licht-glow {
@@ -205,7 +208,7 @@ a:hover {
     bottom: -.256em;
     z-index: -1;
     border-radius: 50%;
-    background: radial-gradient(closest-side, rgba(255, 210, 140, .8), rgba(255, 190, 200, .45) 45%, rgba(170, 150, 255, .3) 70%, rgba(170, 150, 255, 0) 100%);
+    background: radial-gradient(closest-side, rgba(214, 200, 255, .8), rgba(196, 178, 255, .45) 45%, rgba(170, 150, 255, .3) 70%, rgba(170, 150, 255, 0) 100%);
     filter: blur(.07em);
 }
 
@@ -571,7 +574,22 @@ a:hover {
     box-shadow: 0 40px 70px rgb(var(--d-shadow, 60 50 160) / .22), 0 12px 26px rgb(var(--d-shadow, 60 50 160) / .10) !important;
 }
 
+/* De drie zwevende icoontjes (studie, grafiek, kompas) staan doorzichtig achter het dashboard. */
+.hero-scene > div:has(.hv-glass) {
+    z-index: 0;
+}
+
+.hero-scene > div:has(#dashboard-window) {
+    z-index: 1;
+}
+
+.hv-glass {
+    opacity: .45;
+    transition: transform .4s var(--ease), filter .4s, opacity .4s !important;
+}
+
 .hv-glass:hover {
+    opacity: .8;
     transform: translateY(-6px) scale(1.06) rotate(-2deg) !important;
     filter: drop-shadow(0 20px 26px rgba(70, 55, 190, .25)) !important;
     z-index: 5 !important;
@@ -647,17 +665,6 @@ a:hover {
     transition: transform .7s var(--ease);
 }
 
-.product-api {
-    position: absolute;
-    left: calc(var(--c) * 241);
-    top: calc(var(--c) * 56);
-    font-family: var(--font-inter-tight), sans-serif;
-    font-size: calc(var(--c) * 15);
-    font-weight: 800;
-    letter-spacing: .06em;
-    color: var(--d-link, #6A52F0);
-    transition: transform .7s var(--ease);
-}
 
 .product-tile {
     position: absolute;
@@ -804,8 +811,7 @@ a:hover {
     box-shadow: 0 46px 80px -18px rgba(var(--rgb), .30), 0 20px 36px -12px rgba(var(--rgb), .16), 0 2px 6px rgb(var(--d-shadow, 30 20 90) / .04);
 }
 
-.product-card:hover .product-art,
-.product-card:hover .product-api {
+.product-card:hover .product-art {
     transform: translateY(-6px) scale(1.03);
 }
 
@@ -829,7 +835,6 @@ a:hover {
 @media (prefers-reduced-motion: reduce) {
     .product-card:hover,
     .product-card:hover .product-art,
-    .product-card:hover .product-api,
     .product-card:hover .product-btn,
     .product-card:hover .product-btn svg {
         transform: none;
@@ -974,7 +979,7 @@ a:hover {
     align-self: flex-start;
     padding-bottom: calc(var(--u) * 10);
     margin-bottom: calc(var(--u) * -10);
-    background: linear-gradient(90deg, #6E2CF2 0%, #B23BE6 35%, #F0479A 68%, #FF7E3A 100%);
+    background: var(--purple-text);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
@@ -1330,7 +1335,7 @@ a:hover {
         bottom: 40px;
         width: 3px;
         border-radius: 2px;
-        background: linear-gradient(180deg, #B8A6F7 0%, #A9B9F7 33%, #C6B2F2 55%, #BFAEF6 100%);
+        background: linear-gradient(180deg, #B8A6F7 0%, #C2B3F8 33%, #C6B2F2 55%, #BFAEF6 100%);
         animation: wwd-breathe 3.2s cubic-bezier(.45, 0, .55, 1) infinite;
     }
 
@@ -1552,7 +1557,7 @@ a:hover {
     display: inline-block;
     padding-bottom: .12em;
     margin-bottom: -.12em;
-    background: linear-gradient(90deg, #6E2CF2 0%, #B23BE6 35%, #F0479A 68%, #FF7E3A 100%);
+    background: var(--purple-text);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
@@ -1668,7 +1673,7 @@ a:hover {
     bottom: 0;
     height: 3px;
     border-radius: 3px;
-    background: linear-gradient(90deg, #7B4DFF 0%, #B23BE6 100%);
+    background: linear-gradient(90deg, #4A1FC9 0%, #A68FFA 100%);
     transform-origin: left center;
     animation: how-progress 5s linear forwards;
 }
@@ -1992,7 +1997,7 @@ a:hover {
 .res-title-accent {
     padding-bottom: calc(var(--u) * 10);
     margin-bottom: calc(var(--u) * -10);
-    background: linear-gradient(90deg, #5B2BF2 0%, #8A33EC 24%, #C33DDE 48%, #F04A8A 74%, #FF7A3A 100%);
+    background: var(--purple-text);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
@@ -2142,7 +2147,7 @@ a:hover {
     align-self: flex-start;
     padding-bottom: calc(var(--u) * 6);
     margin-bottom: calc(var(--u) * -6);
-    background: linear-gradient(90deg, #6A2CF2 0%, #B33DE2 40%, #F04A8A 72%, #FF7A3A 100%);
+    background: var(--purple-text);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
@@ -3163,7 +3168,7 @@ a:hover {
     right: 25%;
     bottom: -1px;
     height: 1px;
-    background: linear-gradient(90deg, rgba(123, 77, 255, 0), rgba(123, 77, 255, .45), rgba(255, 122, 58, .35), rgba(255, 122, 58, 0));
+    background: linear-gradient(90deg, rgba(74, 31, 201, 0), rgba(74, 31, 201, .45), rgba(166, 143, 250, .35), rgba(166, 143, 250, 0));
     pointer-events: none;
 }
 
@@ -3604,8 +3609,7 @@ a:hover {
 
 /* ---------- Donker thema: geen gloed ----------
    In het donker geen gloed, halo's of gekleurde schaduwen; in het lichte thema blijven ze zoals ze zijn.
-   De productbeelden zijn in het donker vectoren uit de ontwerp-overdracht (components/ProductArtDark.tsx),
-   zonder wazige schaduw; Connect heeft het API-label daar in de tekening zelf. */
+   De productbeelden (components/ProductArt.tsx) verliezen in het donker hun wazige grondschaduw. */
 :root[data-theme='dark'] *,
 :root[data-theme='dark'] *::before,
 :root[data-theme='dark'] *::after {
@@ -3622,7 +3626,7 @@ a:hover {
 
 :root[data-theme='dark'] .licht-glow,
 :root[data-theme='dark'] .hdr-accent,
-:root[data-theme='dark'] .product-api,
+:root[data-theme='dark'] .product-art-shadow,
 :root[data-theme='dark'] .product-btn-glow,
 :root[data-theme='dark'] .wwd-blob,
 :root[data-theme='dark'] .wwd-pulse-glow,

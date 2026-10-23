@@ -8,8 +8,8 @@ const TOOLS: { title: string; body: string; href: string; color: string; bg: str
     title: "Zoek per school",
     body: "Ontdek opleidingen binnen een organisatie",
     href: "#",
-    color: "#5B4BEA",
-    bg: "#ECEAFE",
+    color: "#4A1FC9",
+    bg: "#EDE7FF",
     icon: (
       <>
         <path d="M3 21h18" />
@@ -23,8 +23,8 @@ const TOOLS: { title: string; body: string; href: string; color: string; bg: str
     title: "Opleidingen swiper",
     body: "Swipe door opleidingen die bij jou passen",
     href: "#",
-    color: "#2F6FEB",
-    bg: "#E6EFFE",
+    color: "#6639EC",
+    bg: "#EFEAFF",
     icon: (
       <>
         <rect x="7" y="3" width="10" height="15" rx="2" />
@@ -38,8 +38,8 @@ const TOOLS: { title: string; body: string; href: string; color: string; bg: str
     title: "Zoek per sector",
     body: "Ontdek welke opleidingen bij favoriete sectoren passen",
     href: "#",
-    color: "#F08A24",
-    bg: "#FEF0E2",
+    color: "#7B5CF0",
+    bg: "#F2EEFF",
     icon: (
       <>
         <path d="M16 20V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
@@ -51,8 +51,8 @@ const TOOLS: { title: string; body: string; href: string; color: string; bg: str
     title: "Populaire testen",
     body: "Bekijk de testen die het meest gemaakt worden",
     href: "#",
-    color: "#1FA97A",
-    bg: "#E3F6EF",
+    color: "#8F74F5",
+    bg: "#F5F2FF",
     icon: <path d="M11.5 2.8a.6.6 0 0 1 1 0l2.6 5.3 5.8.8a.6.6 0 0 1 .3 1l-4.2 4.1 1 5.8a.6.6 0 0 1-.9.6L12 17.6l-5.2 2.8a.6.6 0 0 1-.9-.6l1-5.8-4.2-4.1a.6.6 0 0 1 .3-1l5.8-.8z" />,
   },
 ];

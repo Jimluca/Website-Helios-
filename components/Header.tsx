@@ -20,8 +20,8 @@ const PRODUCTS = [
     title: "Helios Coach",
     sub: "Voor loopbaanprofessionals en re-integratie",
     href: "/#product-coach",
-    tile: "linear-gradient(145deg,#7A4DFF,#5426F6)",
-    shadow: "rgba(112,72,240,.45)",
+    tile: "linear-gradient(145deg,#5B2EE0,#3E17B4)",
+    shadow: "rgba(74,31,201,.45)",
     icon: (
       <>
         <circle cx="12" cy="12" r="9" />
@@ -33,8 +33,8 @@ const PRODUCTS = [
     title: "Helios Next",
     sub: "Voor studiekeuze in vo, mbo en hbo",
     href: "/#product-next",
-    tile: "linear-gradient(145deg,#3F86FF,#1F5CF5)",
-    shadow: "rgba(46,109,255,.45)",
+    tile: "linear-gradient(145deg,#7B52FA,#5A2FE4)",
+    shadow: "rgba(102,57,236,.45)",
     icon: (
       <>
         <path d="M22 10 12 5 2 10l10 5 10-5z" />
@@ -46,8 +46,8 @@ const PRODUCTS = [
     title: "Helios Horizon",
     sub: "Voor LOB en burgerschap",
     href: "/#product-horizon",
-    tile: "linear-gradient(145deg,#FF8A4C,#F55A1E)",
-    shadow: "rgba(253,109,51,.45)",
+    tile: "linear-gradient(145deg,#9C82FF,#7B5CF0)",
+    shadow: "rgba(135,104,246,.45)",
     icon: (
       <>
         <path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2z" />
@@ -60,8 +60,8 @@ const PRODUCTS = [
     title: "Helios Connect",
     sub: "Voor koppeling met je eigen systemen",
     href: "/#product-connect",
-    tile: "linear-gradient(145deg,#6E48FF,#4A22F5)",
-    shadow: "rgba(87,50,254,.45)",
+    tile: "linear-gradient(145deg,#B8A6FF,#977EF6)",
+    shadow: "rgba(166,143,250,.45)",
     icon: (
       <>
         <path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7" />

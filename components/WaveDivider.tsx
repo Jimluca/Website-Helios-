@@ -6,9 +6,9 @@ const SHINE = "M0 304 C 120 280, 250 270, 337 272 C 520 276, 760 402, 1047 474 C
 const RIBBON = "M0 330 C 120 305, 250 296, 337 298 C 520 302, 760 428, 1047 500 C 1300 528, 1550 448, 1800 359 C 1950 313, 2080 296, 2167 308";
 
 const NODES = [
-  { x: 337, y: 271, color: "#6A2CF5", glow: "GP", delay: 0.9 },
-  { x: 1047, y: 472, color: "#3478F6", glow: "GB", delay: 3.4 },
-  { x: 1800, y: 331, color: "#F4733A", glow: "GO", delay: 5.8 },
+  { x: 337, y: 271, color: "#4A1FC9", glow: "GP", delay: 0.9 },
+  { x: 1047, y: 472, color: "#7350EF", glow: "GB", delay: 3.4 },
+  { x: 1800, y: 331, color: "#A68FFA", glow: "GO", delay: 5.8 },
 ];
 
 function Cloud({ transform, id }: { transform: string; id: (name: string) => string }) {
@@ -80,19 +80,17 @@ export default function WaveDivider({
             <stop offset="1" stopColor="#F3F2FD" stopOpacity="0" />
           </linearGradient>
           <linearGradient id={id("Ribbon")} x1="0" y1="0" x2="2167" y2="0" gradientUnits="userSpaceOnUse">
-            <stop offset="0" stopColor="#D9D3FB" />
-            <stop offset=".35" stopColor="#CFCBFA" />
-            <stop offset=".55" stopColor="#C9D6FB" />
-            <stop offset=".78" stopColor="#E9D9F6" />
-            <stop offset=".86" stopColor="#FBD9CB" />
-            <stop offset="1" stopColor="#DCCBFA" />
+            <stop offset="0" stopColor="#CBBEF9" />
+            <stop offset=".35" stopColor="#D3C8FA" />
+            <stop offset=".55" stopColor="#DAD1FB" />
+            <stop offset=".78" stopColor="#E2DBFC" />
+            <stop offset="1" stopColor="#E9E3FD" />
           </linearGradient>
           <linearGradient id={id("Line")} x1="0" y1="0" x2="2167" y2="0" gradientUnits="userSpaceOnUse">
-            <stop offset="0" stopColor="#A98FF7" />
-            <stop offset=".45" stopColor="#9DB2F8" />
-            <stop offset=".72" stopColor="#B49BF2" />
-            <stop offset=".84" stopColor="#F7A07A" />
-            <stop offset="1" stopColor="#B9A2F6" />
+            <stop offset="0" stopColor="#4A1FC9" />
+            <stop offset=".45" stopColor="#7350EF" />
+            <stop offset=".8" stopColor="#A68FFA" />
+            <stop offset="1" stopColor="#C2B3FB" />
           </linearGradient>
           <filter id={id("CloudF")} x="-30%" y="-60%" width="160%" height="220%">
             <feTurbulence type="fractalNoise" baseFrequency="0.011 0.018" numOctaves={5} seed={7} result="noise" />
@@ -114,12 +112,12 @@ export default function WaveDivider({
             <stop offset="1" stopColor="#A27CFF" stopOpacity="0" />
           </radialGradient>
           <radialGradient id={id("GB")}>
-            <stop offset="0" stopColor="#5E9BFF" stopOpacity=".55" />
-            <stop offset="1" stopColor="#5E9BFF" stopOpacity="0" />
+            <stop offset="0" stopColor="#8E6EFF" stopOpacity=".55" />
+            <stop offset="1" stopColor="#8E6EFF" stopOpacity="0" />
           </radialGradient>
           <radialGradient id={id("GO")}>
-            <stop offset="0" stopColor="#FF8A4D" stopOpacity=".6" />
-            <stop offset="1" stopColor="#FF8A4D" stopOpacity="0" />
+            <stop offset="0" stopColor="#B19CFF" stopOpacity=".6" />
+            <stop offset="1" stopColor="#B19CFF" stopOpacity="0" />
           </radialGradient>
         </defs>
 
@@ -133,9 +131,9 @@ export default function WaveDivider({
           />
           <path d="M1930 242 C 2000 200, 2080 180, 2167 180 L 2167 560 L 1930 560 Z" className="wave-hill" fill={url("Hill")} />
           <ellipse cx="520" cy="420" rx="520" ry="110" className="wave-glow" fill="#E3E0FB" opacity=".55" filter={url("Blur20")} />
-          <ellipse cx="1300" cy="470" rx="420" ry="70" className="wave-glow" fill="#DCE4FC" opacity=".55" filter={url("Blur20")} />
-          <ellipse cx="1930" cy="420" rx="280" ry="90" className="wave-glow" fill="#F0D3EE" opacity=".6" filter={url("Blur20")} />
-          <path d="M1360 520 C 1550 470, 1750 390, 1900 370 C 2000 360, 2100 420, 2167 470 L 2167 600 L 1360 600 Z" className="wave-glow" fill="#F6E6F3" opacity=".5" filter={url("Blur8")} />
+          <ellipse cx="1300" cy="470" rx="420" ry="70" className="wave-glow" fill="#E3DEFB" opacity=".55" filter={url("Blur20")} />
+          <ellipse cx="1930" cy="420" rx="280" ry="90" className="wave-glow" fill="#EAE2FC" opacity=".6" filter={url("Blur20")} />
+          <path d="M1360 520 C 1550 470, 1750 390, 1900 370 C 2000 360, 2100 420, 2167 470 L 2167 600 L 1360 600 Z" className="wave-glow" fill="#F1ECFD" opacity=".5" filter={url("Blur8")} />
 
           <Cloud transform="translate(715 330) scale(0.82)" id={id} />
           <Cloud transform="translate(1440 370) scale(1.05)" id={id} />

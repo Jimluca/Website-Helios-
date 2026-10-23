@@ -5,10 +5,10 @@ const PATH =
   "M858 177 C 790 210, 770 270, 790 310 C 810 350, 860 360, 897 370 C 950 384, 965 440, 920 470 C 885 492, 820 482, 779 496 C 735 512, 715 570, 742 615 C 775 670, 860 700, 907 762 C 920 778, 930 790, 937 800";
 
 const NODES = [
-  { x: 858, y: 177, r: 28, color: "#6B35F2", glow: "wwd-glow-p" },
-  { x: 897, y: 370, r: 28, color: "#2F7BF5", glow: "wwd-glow-b" },
-  { x: 779, y: 496, r: 32, color: "#F56A2C", glow: "wwd-glow-o" },
-  { x: 907, y: 762, r: 28, color: "#7A35EE", glow: "wwd-glow-p" },
+  { x: 858, y: 177, r: 28, color: "#4A1FC9", glow: "wwd-glow-1" },
+  { x: 897, y: 370, r: 28, color: "#6639EC", glow: "wwd-glow-2" },
+  { x: 779, y: 496, r: 32, color: "#8768F6", glow: "wwd-glow-3" },
+  { x: 907, y: 762, r: 28, color: "#A68FFA", glow: "wwd-glow-3" },
 ];
 
 type Step = {
@@ -34,11 +34,11 @@ const STEPS: Step[] = [
     id: "testen",
     title: "Betrouwbare testen",
     body: ["Wetenschappelijk onderbouwde", "instrumenten voor studie- en loopbaankeuze.", "Je cliënt ontdekt zijn interesses, talenten,", "persoonlijkheid en waarden."],
-    rgb: "107, 53, 242",
-    color: "#6B35F2",
-    iconBg: "#ECE8FD",
-    badgeBg: "#E9E5FD",
-    badgeColor: "#5A2DF0",
+    rgb: "74, 31, 201",
+    color: "#4A1FC9",
+    iconBg: "#EDE7FF",
+    badgeBg: "#EAE3FF",
+    badgeColor: "#4A1FC9",
     box: [875, 105, 585, 192],
     icon: [60, 46, 52],
     badge: [143, 14],
@@ -59,11 +59,11 @@ const STEPS: Step[] = [
     id: "inzicht",
     title: "Helder inzicht",
     body: ["Overzichtelijke resultaten en rapporten,", "voor de cliënt én voor jou. Je ziet in één", "oogopslag wat iemand kan, wil en wat", "bij hem past."],
-    rgb: "47, 123, 245",
-    color: "#2F6FF0",
-    iconBg: "#E4ECFD",
-    badgeBg: "#E1EBFE",
-    badgeColor: "#2F6FF0",
+    rgb: "102, 57, 236",
+    color: "#6639EC",
+    iconBg: "#EFEAFF",
+    badgeBg: "#ECE6FF",
+    badgeColor: "#6639EC",
     box: [955, 335, 522, 188],
     icon: [40, 33, 48],
     badge: [124, 3],
@@ -81,11 +81,11 @@ const STEPS: Step[] = [
     id: "begeleiding",
     title: "Persoonlijke begeleiding",
     body: ["Een eigen omgeving waarin je cliënten", "uitnodigt, hun voortgang volgt en resultaten", "samen bespreekt. Zo heb je altijd een goed", "onderbouwd gesprek."],
-    rgb: "245, 106, 44",
-    color: "#F2662A",
-    iconBg: "#FFE7DC",
-    badgeBg: "#FFE4D6",
-    badgeColor: "#F2662A",
+    rgb: "135, 104, 246",
+    color: "#8768F6",
+    iconBg: "#F2EEFF",
+    badgeBg: "#EFEAFF",
+    badgeColor: "#7B5CF0",
     box: [775, 537, 563, 168],
     icon: [35, 25, 50],
     badge: [119, -3],
@@ -104,11 +104,11 @@ const STEPS: Step[] = [
     id: "advies",
     title: "Van test tot advies",
     body: ["Alle stappen in het keuzeproces", "in één samenhangende omgeving.", "Van de eerste oriëntatie tot het", "adviesgesprek."],
-    rgb: "122, 53, 238",
-    color: "#6B35F2",
-    iconBg: "#ECE8FD",
-    badgeBg: "#E9E5FD",
-    badgeColor: "#5A2DF0",
+    rgb: "148, 121, 247",
+    color: "#9479F7",
+    iconBg: "#F5F2FF",
+    badgeBg: "#F2EEFF",
+    badgeColor: "#8768F6",
     box: [936, 738, 510, 195],
     icon: [46, 44, 50],
     badge: [129, 14],
@@ -204,21 +204,21 @@ export default function WhatWeDo() {
         <defs>
           <linearGradient id="wwd-path-grad" x1="0" y1="177" x2="0" y2="800" gradientUnits="userSpaceOnUse">
             <stop offset="0" stopColor="#B8A6F7" />
-            <stop offset=".33" stopColor="#A9B9F7" />
+            <stop offset=".33" stopColor="#C2B3F8" />
             <stop offset=".55" stopColor="#C6B2F2" />
             <stop offset="1" stopColor="#BFAEF6" />
           </linearGradient>
-          <radialGradient id="wwd-glow-p">
+          <radialGradient id="wwd-glow-1">
             <stop offset="0" stopColor="#A27CFF" stopOpacity=".55" />
             <stop offset="1" stopColor="#A27CFF" stopOpacity="0" />
           </radialGradient>
-          <radialGradient id="wwd-glow-b">
-            <stop offset="0" stopColor="#5E9BFF" stopOpacity=".5" />
-            <stop offset="1" stopColor="#5E9BFF" stopOpacity="0" />
+          <radialGradient id="wwd-glow-2">
+            <stop offset="0" stopColor="#8E6EFF" stopOpacity=".5" />
+            <stop offset="1" stopColor="#8E6EFF" stopOpacity="0" />
           </radialGradient>
-          <radialGradient id="wwd-glow-o">
-            <stop offset="0" stopColor="#FF8A4D" stopOpacity=".6" />
-            <stop offset="1" stopColor="#FF8A4D" stopOpacity="0" />
+          <radialGradient id="wwd-glow-3">
+            <stop offset="0" stopColor="#B19CFF" stopOpacity=".6" />
+            <stop offset="1" stopColor="#B19CFF" stopOpacity="0" />
           </radialGradient>
         </defs>
         <path className="wwd-path-line" d={PATH} stroke="url(#wwd-path-grad)" strokeWidth="3.2" strokeLinecap="round" />

@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react";
-import ProductArtDark from "./ProductArtDark";
+import ProductArt from "./ProductArt";
 
 type Product = {
   id: string;
@@ -15,9 +15,9 @@ type Product = {
   border: string;
   icon: string[];
   circle?: boolean;
-  api?: boolean;
 };
 
+// In tinten paars: Coach het donkerst, naar rechts steeds lichter (illustratie, icoon en knop).
 const PRODUCTS: Product[] = [
   {
     id: "coach",
@@ -26,10 +26,10 @@ const PRODUCTS: Product[] = [
     body: ["Breng samen met je cliënt in beeld", "wat hij kan en wil. Met betrouwbare", "loopbaantesten, heldere rapporten", "en een eigen omgeving om cliënten", "te begeleiden."],
     cta: "Ontdek Helios Coach",
     href: "#",
-    rgb: "112, 72, 240",
-    tile: ["#7A4DFF", "#5426F6"],
-    tint: ["#F6F0FF", "#ECE2FF"],
-    border: "#DCCBFE",
+    rgb: "74, 31, 201",
+    tile: ["#5B2EE0", "#3E17B4"],
+    tint: ["#F3EEFF", "#E6DCFF"],
+    border: "#CFC0FB",
     icon: ["m15.5 8.5-2 5-5 2 2-5z", "M5.5 18.5l13-13"],
     circle: true,
   },
@@ -40,10 +40,10 @@ const PRODUCTS: Product[] = [
     body: ["Helpt leerlingen en studenten", "een opleiding te kiezen die bij ze past.", "Ze ontdekken hun interesses en", "talenten en zien direct welke", "opleidingen aansluiten."],
     cta: "Ontdek Helios Next",
     href: "#",
-    rgb: "46, 109, 255",
-    tile: ["#3F86FF", "#1F5CF5"],
-    tint: ["#F1F6FF", "#E2ECFF"],
-    border: "#C9DAFE",
+    rgb: "102, 57, 236",
+    tile: ["#7B52FA", "#5A2FE4"],
+    tint: ["#F5F1FF", "#EAE2FF"],
+    border: "#D7CAFD",
     icon: ["M22 10 12 5 2 10l10 5 10-5z", "M6 12v5c3 2 9 2 12 0v-5"],
   },
   {
@@ -53,10 +53,10 @@ const PRODUCTS: Product[] = [
     body: ["Een doorlopende leerlijn waarmee", "leerlingen ontdekken wie ze zijn en", "wat ze willen. Met kant-en-klare", "LOB-opdrachten, burgerschapslessen", "en overzicht per klas voor de mentor."],
     cta: "Ontdek Helios Horizon",
     href: "#",
-    rgb: "253, 109, 51",
-    tile: ["#FF8A4C", "#F55A1E"],
-    tint: ["#FFF5F0", "#FFE7DD"],
-    border: "#FCD3C2",
+    rgb: "135, 104, 246",
+    tile: ["#9C82FF", "#7B5CF0"],
+    tint: ["#F7F4FF", "#EEE8FF"],
+    border: "#DED4FE",
     icon: ["M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2z", "M9 4v14", "M15 6v14"],
   },
   {
@@ -66,12 +66,11 @@ const PRODUCTS: Product[] = [
     body: ["Zet de testen van Helios in je eigen", "website, portaal of leerlingvolgsysteem.", "Via een API, in je eigen huisstijl, zonder", "dat gebruikers apart hoeven in te", "loggen."],
     cta: "Ontdek Helios Connect",
     href: "#",
-    rgb: "87, 50, 254",
-    tile: ["#6E48FF", "#4A22F5"],
-    tint: ["#F5F0FF", "#EBE3FF"],
-    border: "#D8CCFE",
+    rgb: "166, 143, 250",
+    tile: ["#B8A6FF", "#977EF6"],
+    tint: ["#F9F7FF", "#F2EDFF"],
+    border: "#E5DDFF",
     icon: ["M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7", "M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"],
-    api: true,
   },
 ];
 
@@ -97,14 +96,7 @@ export default function Products() {
             }
           >
             <div className="product-inner">
-              {/* eslint-disable-next-line @next/next/no-img-element -- vaste illustratie, schaalt mee met de kaart */}
-              <img className="product-art only-light" src={`/assets/prod/${p.id}.png`} alt="" width={400} height={232} />
-              <ProductArtDark id={p.id} />
-              {p.api && (
-                <span className="product-api" aria-hidden="true">
-                  API
-                </span>
-              )}
+              <ProductArt id={p.id} />
 
               <div className="product-tile" aria-hidden="true">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
