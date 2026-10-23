@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { LOGIN_URL, SIGNUP_URL } from "@/lib/app-links";
 import ThemeToggle from "./ThemeToggle";
 
@@ -20,8 +20,7 @@ const PRODUCTS = [
     title: "Helios Coach",
     sub: "Voor loopbaanprofessionals en re-integratie",
     href: "/#product-coach",
-    tile: "linear-gradient(145deg,#5B2EE0,#3E17B4)",
-    shadow: "rgba(74,31,201,.45)",
+    tint: "#3E17B4",
     icon: (
       <>
         <circle cx="12" cy="12" r="9" />
@@ -33,8 +32,7 @@ const PRODUCTS = [
     title: "Helios Next",
     sub: "Voor studiekeuze in vo, mbo en hbo",
     href: "/#product-next",
-    tile: "linear-gradient(145deg,#7B52FA,#5A2FE4)",
-    shadow: "rgba(102,57,236,.45)",
+    tint: "#5A2FE4",
     icon: (
       <>
         <path d="M22 10 12 5 2 10l10 5 10-5z" />
@@ -46,8 +44,7 @@ const PRODUCTS = [
     title: "Helios Horizon",
     sub: "Voor LOB en burgerschap",
     href: "/#product-horizon",
-    tile: "linear-gradient(145deg,#9C82FF,#7B5CF0)",
-    shadow: "rgba(135,104,246,.45)",
+    tint: "#7B5CF0",
     icon: (
       <>
         <path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2z" />
@@ -60,8 +57,7 @@ const PRODUCTS = [
     title: "Helios Connect",
     sub: "Voor koppeling met je eigen systemen",
     href: "/#product-connect",
-    tile: "linear-gradient(145deg,#B8A6FF,#977EF6)",
-    shadow: "rgba(166,143,250,.45)",
+    tint: "#977EF6",
     icon: (
       <>
         <path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7" />
@@ -168,7 +164,7 @@ export default function Header() {
           <div className={`hdr-menu${menuOpen ? " is-open" : ""}`} onMouseEnter={() => clearTimeout(closeTimer.current)}>
             {PRODUCTS.map((p) => (
               <a key={p.title} className="hdr-product" href={p.href} tabIndex={menuOpen ? 0 : -1}>
-                <span className="hdr-product-tile" style={{ background: p.tile, boxShadow: `0 8px 16px -6px ${p.shadow}` }} aria-hidden="true">
+                <span className="hdr-product-tile" style={{ "--tint": p.tint } as CSSProperties} aria-hidden="true">
                   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     {p.icon}
                   </svg>
