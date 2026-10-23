@@ -3960,61 +3960,103 @@ body::after {
     border-color: rgb(255 255 255 / .12);
 }
 
-/* De uitslagen in stap 3 van Hoe het werkt: kleine glazen tabs in de vensterbalk. */
-.how-tabs {
+/* Stap 3 van Hoe het werkt: drie puntjes (beroepen, opleidingen, loopbaanwaarden) onder in de kaart. Het actieve
+   puntje is het scherm dat je ziet; klikken kiest een uitslag. Ze staan los van de stapknop (geen knop in een knop). */
+.how-step-item {
+    position: relative;
+}
+
+.how-step.has-points {
+    padding-bottom: 116px;
+}
+
+.how-points {
+    position: absolute;
+    left: 82px;
+    bottom: 22px;
     display: flex;
-    gap: 6px;
-    margin-left: auto;
+    flex-direction: column;
+    gap: 4px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
 }
 
-.how-tab {
+.how-point {
+    display: inline-flex;
+    align-items: center;
+    gap: 11px;
     height: 26px;
-    padding: 0 12px;
+    padding: 0 10px 0 4px;
+    border: 0;
     border-radius: 999px;
-    border: 1px solid color-mix(in srgb, #6639EC 14%, #FFFFFF);
-    background:
-        radial-gradient(120% 80% at 50% 0%, #FFFFFF 0%, rgb(255 255 255 / 0) 60%),
-        rgb(255 255 255 / .6);
-    box-shadow: inset 0 1px 0 #FFFFFF, 0 4px 10px -6px rgb(60 40 160 / .35);
-    font: 500 12.5px/1 var(--font-inter), sans-serif;
-    color: var(--d-text, #3A3D57);
+    background: transparent;
+    font: 500 15px/1 var(--font-inter), sans-serif;
+    color: var(--d-muted, #6A6B95);
     cursor: pointer;
-    transition: background .3s var(--ease), color .3s var(--ease), border-color .3s var(--ease);
+    transition: color .3s var(--ease), background .3s var(--ease);
 }
 
-.how-tab:hover {
+.how-point:hover {
     color: var(--d-link, #4B2BF0);
 }
 
-.how-tab.is-active {
-    border-color: rgb(255 255 255 / .3);
+.how-point:focus-visible {
+    outline: 2px solid var(--d-link, #4B2BF0);
+    outline-offset: 2px;
+}
+
+.how-point-dot {
+    flex: none;
+    width: 10px;
+    height: 10px;
+    box-sizing: border-box;
+    border-radius: 50%;
+    border: 1.5px solid color-mix(in srgb, #6639EC 45%, #FFFFFF);
+    background: rgb(255 255 255 / .6);
+    transition: background .3s var(--ease), border-color .3s var(--ease), transform .3s var(--ease);
+}
+
+.how-point.is-active {
+    color: var(--d-ink, #120E3D);
+    font-weight: 600;
+}
+
+/* Het actieve puntje in gevuld paars glas. */
+.how-point.is-active .how-point-dot {
+    border-color: rgb(255 255 255 / .5);
     background:
-        radial-gradient(120% 80% at 50% -10%, rgb(255 255 255 / .42) 0%, rgb(255 255 255 / 0) 58%),
+        radial-gradient(120% 90% at 50% 0%, rgb(255 255 255 / .55) 0%, rgb(255 255 255 / 0) 60%),
         linear-gradient(180deg, color-mix(in srgb, #5B2EE0 80%, #FFFFFF), #5B2EE0);
-    color: #FFFFFF;
+    box-shadow: 0 0 0 3px color-mix(in srgb, #6639EC 14%, transparent);
+    transform: scale(1.15);
 }
 
-:root[data-theme='dark'] .how-tab {
-    border-color: rgb(255 255 255 / .12);
-    background:
-        radial-gradient(120% 80% at 50% 0%, rgb(255 255 255 / .14) 0%, rgb(255 255 255 / 0) 60%),
-        rgb(255 255 255 / .05);
-    color: #C9C6E4;
-}
-
-:root[data-theme='dark'] .how-tab.is-active {
-    border-color: rgb(255 255 255 / .22);
-    background:
-        radial-gradient(120% 80% at 50% -10%, rgb(255 255 255 / .3) 0%, rgb(255 255 255 / 0) 58%),
-        linear-gradient(180deg, color-mix(in srgb, #5B2EE0 85%, #FFFFFF), #5B2EE0);
-    color: #FFFFFF;
-}
-
-@media (max-width: 560px) {
-    .how-tab {
-        padding: 0 9px;
-        font-size: 11.5px;
+@media (max-width: 1099px) {
+    .how-step.has-points {
+        padding-bottom: 110px;
     }
+
+    .how-points {
+        left: 66px;
+        bottom: 18px;
+    }
+}
+
+:root[data-theme='dark'] .how-point-dot {
+    border-color: rgb(255 255 255 / .28);
+    background: rgb(255 255 255 / .06);
+}
+
+:root[data-theme='dark'] .how-point.is-active {
+    color: #F3F1FF;
+}
+
+:root[data-theme='dark'] .how-point.is-active .how-point-dot {
+    border-color: rgb(255 255 255 / .4);
+    background:
+        radial-gradient(120% 90% at 50% 0%, rgb(255 255 255 / .35) 0%, rgb(255 255 255 / 0) 60%),
+        linear-gradient(180deg, color-mix(in srgb, #7B52FA 80%, #FFFFFF), #7B52FA);
 }
 
 /* Kaarten en stappen komen zacht in beeld tijdens het scrollen: alleen CSS (scroll-driven animation), dus de

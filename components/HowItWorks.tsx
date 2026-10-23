@@ -32,11 +32,11 @@ const STEPS: { title: string; body: string; shots: Shot[] }[] = [
   },
   {
     title: "Bespreek de resultaten",
-    body: "Bekijk per cliënt de uitslagen: passende beroepen, opleidingen, loopbaanwaarden en meer. Jij bepaalt wat je deelt en voert een goed onderbouwd gesprek.",
+    body: "Bekijk per cliënt de uitslagen en bepaal zelf wat je deelt. Zo voer je een goed onderbouwd gesprek.",
     shots: [
       {
-        src: "/assets/screens/04-uitslag-beroepen.png",
-        alt: "De uitslag Jouw beroepen in Helios: passende beroepen met een matchpercentage en uitleg per beroep",
+        src: "/assets/screens/04-uitslag-bekende-beroepen.png",
+        alt: "De uitslag Jouw beroepen in Helios: bekende beroepen zoals politiemedewerker, scheidsrechter en winkelsurveillant met een matchpercentage, en uitleg over politiemedewerker",
         label: "Beroepen",
       },
       {
@@ -56,7 +56,7 @@ const STEPS: { title: string; body: string; shots: Shot[] }[] = [
 const duration = (i: number) => (STEPS[i].shots.length > 1 ? SHOT_MS * STEPS[i].shots.length : SLIDE_MS);
 
 // Sectie "Hoe het werkt": drie stappen met een slideshow van echte schermen uit het platform.
-// De slideshow loopt vanzelf door; klikken kiest een stap (of een uitslag), hover pauzeert.
+// De slideshow loopt vanzelf door; klikken kiest een stap (of bij stap 3 een uitslag), hover pauzeert.
 export default function HowItWorks() {
   const [active, setActive] = useState(0);
   const [shot, setShot] = useState(0);
@@ -93,8 +93,6 @@ export default function HowItWorks() {
     setShot(0);
   };
 
-  const labels = STEPS[active].shots.filter((s) => s.label);
-
   return (
     <section className="how" id="hoe-het-werkt" aria-labelledby="how-title">
       <div className="how-inner">
@@ -112,10 +110,10 @@ export default function HowItWorks() {
         <div className="how-body" onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}>
           <ol className="how-steps">
             {STEPS.map((s, i) => (
-              <li key={s.title}>
+              <li key={s.title} className="how-step-item">
                 <button
                   type="button"
-                  className={`how-step${i === active ? " is-active" : ""}`}
+                  className={`how-step${i === active ? " is-active" : ""}${s.shots.length > 1 ? " has-points" : ""}`}
                   aria-current={i === active ? "step" : undefined}
                   onClick={() => choose(i)}
                 >
@@ -131,24 +129,39 @@ export default function HowItWorks() {
                     <span key={active} className="how-step-progress" style={{ animationDuration: `${duration(i)}ms` } as CSSProperties} aria-hidden="true" />
                   )}
                 </button>
+                {/* Stap 3: drie puntjes, één per uitslag; het actieve puntje is het scherm dat je ziet. */}
+                {s.shots.length > 1 && (
+                  <ul className="how-points" aria-label="Uitslagen">
+                    {s.shots.map((sh, j) => {
+                      const on = i === active && j === shot;
+                      return (
+                        <li key={sh.src}>
+                          <button
+                            type="button"
+                            className={`how-point${on ? " is-active" : ""}`}
+                            aria-pressed={on}
+                            onClick={() => {
+                              setActive(i);
+                              setShot(j);
+                            }}
+                          >
+                            <span className="how-point-dot" aria-hidden="true" />
+                            {sh.label}
+                          </button>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
               </li>
             ))}
           </ol>
 
           <div className="how-frame">
-            <div className="how-frame-bar">
-              <span aria-hidden="true" />
-              <span aria-hidden="true" />
-              <span aria-hidden="true" />
-              {labels.length > 0 && (
-                <div className="how-tabs" role="group" aria-label="Uitslagen">
-                  {labels.map((s, j) => (
-                    <button key={s.src} type="button" className={`how-tab${j === shot ? " is-active" : ""}`} aria-pressed={j === shot} onClick={() => setShot(j)}>
-                      {s.label}
-                    </button>
-                  ))}
-                </div>
-              )}
+            <div className="how-frame-bar" aria-hidden="true">
+              <span />
+              <span />
+              <span />
             </div>
             <div className="how-slides">
               {STEPS.flatMap((s, i) =>
