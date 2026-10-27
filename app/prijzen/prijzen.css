@@ -1,0 +1,293 @@
+/* Prijzen (app/prijzen/page.tsx en components/Pricing.tsx). Licht als terugvalwaarde, donker via de --d-* variabelen
+   van globals.css; alleen tinten paars. */
+.prc {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 160px 24px 110px;
+    font-family: var(--font-inter), sans-serif;
+    color: var(--text);
+}
+
+.prc-head {
+    max-width: 760px;
+    margin: 0 auto 36px;
+    text-align: center;
+}
+
+.prc-title {
+    margin: 0 0 14px;
+    font-family: var(--font-inter-tight), sans-serif;
+    font-size: clamp(34px, 5vw, 54px);
+    font-weight: 800;
+    line-height: 1.08;
+    letter-spacing: -1.2px;
+    color: var(--heading);
+}
+
+.prc-title span {
+    background: var(--purple-text);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+.prc-intro {
+    margin: 0;
+    font-size: 18px;
+    line-height: 1.55;
+    color: var(--text-intro);
+}
+
+.prc-toggle {
+    display: flex;
+    width: fit-content;
+    margin: 0 auto 28px;
+    padding: 5px;
+    gap: 4px;
+    border: 1px solid var(--d-line, #E6E7F0);
+    border-radius: 999px;
+    background: var(--d-card, #FFFFFF);
+}
+
+.prc-toggle button {
+    height: 40px;
+    padding: 0 20px;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--d-ink, #14152B);
+    font: 500 15px var(--font-inter), sans-serif;
+    cursor: pointer;
+    transition: all .2s;
+}
+
+.prc-toggle button.is-active {
+    background: var(--primary);
+    color: #FFFFFF;
+}
+
+.prc-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+    gap: 20px;
+    align-items: stretch;
+}
+
+.prc-card {
+    display: flex;
+    flex-direction: column;
+    padding: 28px 26px 26px;
+    border: 1px solid var(--d-line, #E6E4F7);
+    border-radius: 24px;
+    background: var(--d-card, #FFFFFF);
+    box-shadow: 0 18px 40px rgb(var(--d-shadow, 75 60 240) / .08);
+    transition: transform .25s var(--ease), box-shadow .25s var(--ease);
+}
+
+.prc-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 24px 50px rgb(var(--d-shadow, 75 60 240) / .14);
+}
+
+.prc-name {
+    margin: 0;
+    font-family: var(--font-inter-tight), sans-serif;
+    font-size: 24px;
+    font-weight: 800;
+    color: var(--heading);
+}
+
+.prc-desc {
+    margin: 6px 0 0;
+    font-size: 15px;
+    color: var(--d-muted, #6B6E88);
+}
+
+.prc-price {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 4px 10px;
+    margin: 22px 0 0;
+}
+
+.prc-amount {
+    font-family: var(--font-inter-tight), sans-serif;
+    font-size: 44px;
+    font-weight: 800;
+    letter-spacing: -1px;
+    color: var(--heading);
+}
+
+.prc-period {
+    font-size: 15px;
+    color: var(--d-muted, #6B6E88);
+}
+
+.prc-note {
+    margin: 2px 0 0;
+    font-size: 13.5px;
+    color: var(--d-muted, #6B6E88);
+}
+
+.prc-none {
+    margin-top: 22px;
+}
+
+.prc-includes {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 22px 0 26px;
+    padding: 0;
+    list-style: none;
+}
+
+.prc-includes li {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 15.5px;
+    color: var(--text);
+}
+
+.prc-includes svg {
+    flex: none;
+    margin-top: 3px;
+    color: var(--primary);
+}
+
+:root[data-theme='dark'] .prc-includes svg {
+    color: var(--d-link);
+}
+
+.prc-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 52px;
+    margin-top: auto;
+    border-radius: 999px;
+    background: var(--primary);
+    color: #FFFFFF;
+    font-size: 16px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all .25s;
+}
+
+.prc-btn:hover {
+    background: var(--primary-hover);
+    transform: translateY(-2px);
+}
+
+.prc-btn-soft {
+    background: var(--d-tint-2, #F1EEFF);
+    color: var(--d-link, #4B3CF0);
+}
+
+.prc-btn-soft:hover {
+    background: var(--d-tint-3, #E6E0FF);
+}
+
+.prc-addons {
+    margin-top: 56px;
+}
+
+.prc-subtitle {
+    margin: 0;
+    font-family: var(--font-inter-tight), sans-serif;
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--heading);
+}
+
+.prc-intro-small {
+    margin: 6px 0 16px;
+    font-size: 15.5px;
+    color: var(--text-intro);
+}
+
+.prc-addon-list {
+    margin: 0;
+    padding: 6px 22px;
+    border: 1px solid var(--d-line, #E6E4F7);
+    border-radius: 20px;
+    background: var(--d-card, #FFFFFF);
+    list-style: none;
+}
+
+.prc-addon-list li {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 4px 14px;
+    padding: 16px 0;
+    border-bottom: 1px solid var(--d-line, #EFEDF8);
+}
+
+.prc-addon-list li:last-child {
+    border-bottom: 0;
+}
+
+.prc-addon-name {
+    font-weight: 600;
+    color: var(--heading);
+}
+
+.prc-addon-what {
+    flex: 1;
+    min-width: 200px;
+    font-size: 14.5px;
+    color: var(--d-muted, #6B6E88);
+}
+
+.prc-addon-price {
+    font-weight: 600;
+    color: var(--heading);
+}
+
+.prc-addon-price span {
+    font-weight: 400;
+    font-size: 14px;
+    color: var(--d-muted, #6B6E88);
+}
+
+.prc-facts {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+    gap: 16px;
+    margin: 48px 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.prc-facts li {
+    padding: 20px 22px;
+    border-radius: 18px;
+    background: var(--d-tint-1, #F7F5FF);
+    font-size: 15px;
+    line-height: 1.5;
+    color: var(--text);
+}
+
+.prc-facts strong {
+    display: block;
+    margin-bottom: 4px;
+    font-weight: 600;
+    color: var(--heading);
+}
+
+.prc-empty,
+.prc-personal {
+    margin: 40px auto 0;
+    text-align: center;
+    font-size: 16px;
+    color: var(--text-intro);
+}
+
+.prc-empty a,
+.prc-personal a {
+    color: var(--d-link, #4B3CF0);
+    font-weight: 600;
+}

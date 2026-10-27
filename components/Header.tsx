@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState, type CSSProperties } from "react";
-import { LOGIN_URL, SIGNUP_URL } from "@/lib/app-links";
+import { LOGIN_URL } from "@/lib/app-links";
 import ThemeToggle from "./ThemeToggle";
 
 const ITEMS = [
@@ -11,7 +11,7 @@ const ITEMS = [
   { label: "Voor scholen", href: "#" },
   { label: "Voor professionals", href: "#" },
   { label: "Over Helios", href: "#" },
-  { label: "Prijzen", href: "#" },
+  { label: "Prijzen", href: "/prijzen" },
   { label: "Contact", href: "#" },
 ];
 
@@ -183,7 +183,7 @@ export default function Header() {
           <a className="hdr-login" href={LOGIN_URL}>
             Inloggen
           </a>
-          <a className="hdr-cta" href={SIGNUP_URL}>
+          <a className="hdr-cta" href="/prijzen">
             <span className="hdr-cta-sheen" aria-hidden="true" />
             <span className="hdr-cta-label">Aanmelden</span>
             <Arrow size={18} />
@@ -209,7 +209,7 @@ export default function Header() {
             <a className="hdr-mobile-login" href={LOGIN_URL} tabIndex={mobileOpen ? 0 : -1}>
               Inloggen
             </a>
-            <a className="hdr-mobile-cta" href={SIGNUP_URL} tabIndex={mobileOpen ? 0 : -1}>
+            <a className="hdr-mobile-cta" href="/prijzen" tabIndex={mobileOpen ? 0 : -1}>
               Aanmelden <Arrow size={16} />
             </a>
           </div>

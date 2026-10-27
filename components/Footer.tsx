@@ -13,7 +13,7 @@ const COLUMNS = [
       { label: "Begeleiding", href: "#" },
       { label: "Voor scholen", href: "#" },
       { label: "Voor organisaties", href: "#" },
-      { label: "Prijzen", href: "#" },
+      { label: "Prijzen", href: "/prijzen" },
     ],
   },
   {
