@@ -14,6 +14,8 @@ export type Package = {
   name: string;
   description: string | null;
   includes: string[];
+  /** Het soort test van een toevoeging (bijv. "Beroepen"); leeg bij gebruikers of klanten. */
+  category?: string | null;
   countable: boolean;
   prices: Price[];
   orderUrl?: string;

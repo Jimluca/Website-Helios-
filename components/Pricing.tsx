@@ -31,6 +31,8 @@ const ICONS = {
   bolt: "M13 2 3 14h9l-1 8 10-12h-9l1-8z",
 };
 const PACKAGE_ICONS = [ICONS.box, ICONS.bars, ICONS.gem];
+// De volgorde van de soorten testen (zoals in Helios); een onbekende soort komt erachter, "Gebruikers" als laatste.
+const GROUP_ORDER = ["Beroepen", "Opleidingen", "Waarden en talenten", "Werk- en studiehouding", "Ondersteuning"];
 
 function Icon({ d, size = 18, stroke = 1.9 }: { d: string; size?: number; stroke?: number }) {
   return (
@@ -96,6 +98,7 @@ export default function Pricing({ data }: { data: PricingData }) {
   const [chosen, setChosen] = useState<Record<number, number>>({});
   const [seats, setSeats] = useState(5);
   const [query, setQuery] = useState("");
+  const [filter, setFilter] = useState("Alles");
   const [saved, setSaved] = useState<string | null>(null);
 
   // Een opgeslagen samenstelling (of een gedeelde link) terugzetten; pas na de eerste weergave, zodat server en
@@ -170,8 +173,17 @@ export default function Pricing({ data }: { data: PricingData }) {
       }) ?? null)
     : null;
 
+  // Filters: de soorten testen in de volgorde van Helios, en "Gebruikers" voor wat geen test is.
+  const groupOf = (addon: Package) => addon.category ?? "Gebruikers";
+  const rank = (group: string) => (GROUP_ORDER.indexOf(group) + 1 || GROUP_ORDER.length) + (group === "Gebruikers" ? 100 : 0);
+  const sorted = [...data.addons].sort((a, b) => rank(groupOf(a)) - rank(groupOf(b)));
+  const groups = ["Alles", ...new Set(sorted.map(groupOf))];
   const q = query.trim().toLowerCase();
-  const addons = data.addons.filter((addon) => !q || addon.name.toLowerCase().includes(q) || addon.includes.some((line) => line.toLowerCase().includes(q)));
+  const addons = sorted.filter(
+    (addon) =>
+      (filter === "Alles" || groupOf(addon) === filter) &&
+      (!q || addon.name.toLowerCase().includes(q) || addon.includes.some((line) => line.toLowerCase().includes(q))),
+  );
 
   const toggleAddon = (id: number) =>
     setChosen((now) => {
@@ -342,15 +354,32 @@ export default function Pricing({ data }: { data: PricingData }) {
                 </span>
                 <div className="pc-step-body">
                   <h2 className="pc-step-title">Voeg losse toevoegingen toe</h2>
-                  <p className="pc-step-text">Breid je pakket uit met extra tests en gebruikers. De prijs wordt automatisch berekend.</p>
+                  <p className="pc-step-text">Breid je pakket uit met losse testen en extra gebruikers. De prijs wordt automatisch berekend.</p>
                 </div>
                 {data.addons.length > 6 && (
                   <label className="pc-search">
                     <Icon d={ICONS.search} size={15} stroke={2} />
-                    <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Zoek een toevoeging…" aria-label="Zoek een toevoeging" />
+                    <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Zoek een test…" aria-label="Zoek een test" />
                   </label>
                 )}
               </div>
+
+              {groups.length > 2 && (
+                <div className="pc-chips" role="group" aria-label="Soort toevoeging">
+                  {groups.map((group) => (
+                    <button
+                      key={group}
+                      type="button"
+                      className={`pc-chip${filter === group ? " is-on" : ""}`}
+                      aria-pressed={filter === group}
+                      onClick={() => setFilter(group)}
+                    >
+                      {group}
+                      <span>{group === "Alles" ? data.addons.length : data.addons.filter((addon) => groupOf(addon) === group).length}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
 
               <div className="pc-addons">
                 {addons.map((addon) => {

@@ -507,6 +507,84 @@
     color: inherit;
 }
 
+.pc-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 18px;
+}
+
+.pc-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 34px;
+    padding: 0 8px 0 14px;
+    border: 1px solid color-mix(in srgb, #6639EC 16%, var(--pc-line));
+    border-radius: 999px;
+    background:
+        radial-gradient(120% 80% at 50% 0%, rgb(255 255 255 / .9) 0%, rgb(255 255 255 / 0) 60%),
+        rgb(255 255 255 / .55);
+    box-shadow: inset 0 1px 0 #FFFFFF;
+    color: var(--pc-text);
+    font: 500 13.5px var(--font-inter), sans-serif;
+    cursor: pointer;
+    transition: color .25s var(--ease), background .25s var(--ease), border-color .25s var(--ease);
+}
+
+.pc-chip span {
+    min-width: 22px;
+    padding: 2px 6px;
+    box-sizing: border-box;
+    border-radius: 999px;
+    background: color-mix(in srgb, #6639EC 10%, transparent);
+    font-size: 12px;
+    font-weight: 600;
+    text-align: center;
+    color: var(--d-link, #4B2BF0);
+}
+
+.pc-chip:hover {
+    color: var(--d-link, #4B2BF0);
+}
+
+.pc-chip.is-on {
+    border-color: rgb(255 255 255 / .35);
+    background:
+        radial-gradient(120% 80% at 50% -10%, rgb(255 255 255 / .42) 0%, rgb(255 255 255 / 0) 58%),
+        linear-gradient(180deg, color-mix(in srgb, #5B2EE0 80%, #FFFFFF), #5B2EE0);
+    color: #FFFFFF;
+}
+
+.pc-chip.is-on span {
+    background: rgb(255 255 255 / .22);
+    color: #FFFFFF;
+}
+
+.pc-chip:focus-visible {
+    outline: 2px solid var(--d-link, #4B2BF0);
+    outline-offset: 2px;
+}
+
+:root[data-theme='dark'] .pc-chip {
+    border-color: rgb(255 255 255 / .12);
+    background:
+        radial-gradient(120% 80% at 50% 0%, rgb(255 255 255 / .12) 0%, rgb(255 255 255 / 0) 60%),
+        rgb(255 255 255 / .05);
+    box-shadow: none;
+    color: #C9C6E4;
+}
+
+:root[data-theme='dark'] .pc-chip span {
+    background: rgb(255 255 255 / .1);
+    color: #D6CCFF;
+}
+
+:root[data-theme='dark'] .pc-chip.is-on {
+    border-color: rgb(255 255 255 / .22);
+    color: #FFFFFF;
+}
+
 .pc-addons {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr));
