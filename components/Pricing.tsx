@@ -405,34 +405,27 @@ export default function Pricing({ data, summary = null, adjust = null }: { data:
 
   return (
     <div className="pc">
-      <header className="pc-head">
-        <p className="pc-eyebrow">{summary ? "JOUW PAKKET" : "ZELF SAMENSTELLEN"}</p>
-        <h2 className="pc-title">
-          {summary ? (
-            <>
-              Jouw <span>samengestelde</span> pakket
-            </>
-          ) : (
-            <>
-              Stel jouw <span>Helios-pakket</span> samen.
-            </>
-          )}
-        </h2>
-        <p className="pc-intro">
-          {summary
-            ? `${summary} Kies eventueel een ander pakket en voeg toe wat je nog nodig hebt.`
-            : "Kies een basispakket en breid het naar wens uit met losse toevoegingen. Zo stel je eenvoudig een oplossing samen die past bij jouw organisatie."}
-        </p>
-        <div className="pc-badge" aria-hidden="true">
-          <span className="pc-badge-icon">
-            <Icon d={ICONS.pen} size={20} />
-          </span>
-          <span>
-            <strong>Flexibel samenstellen</strong>
-            <small>Betaal alleen voor wat je nodig hebt.</small>
-          </span>
-        </div>
-      </header>
+      {/* Na de vragen staat het advies (PriceAdvice) boven de calculator; dan heeft hij geen eigen kop. */}
+      {!summary && (
+        <header className="pc-head">
+          <p className="pc-eyebrow">ZELF SAMENSTELLEN</p>
+          <h2 className="pc-title">
+            Stel jouw <span>Helios-pakket</span> samen.
+          </h2>
+          <p className="pc-intro">
+            Kies een basispakket en breid het naar wens uit met losse toevoegingen. Zo stel je eenvoudig een oplossing samen die past bij jouw organisatie.
+          </p>
+          <div className="pc-badge" aria-hidden="true">
+            <span className="pc-badge-icon">
+              <Icon d={ICONS.pen} size={20} />
+            </span>
+            <span>
+              <strong>Flexibel samenstellen</strong>
+              <small>Betaal alleen voor wat je nodig hebt.</small>
+            </span>
+          </div>
+        </header>
+      )}
 
       <div className="pc-layout">
         <section className="pc-main" aria-label="Samenstellen">

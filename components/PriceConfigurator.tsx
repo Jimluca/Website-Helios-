@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import PriceAdvice from "@/components/PriceAdvice";
 import PriceGuide from "@/components/PriceGuide";
 import Pricing, { type Adjust } from "@/components/Pricing";
 import { compose, unitFor, type Answers, type Composed } from "@/lib/configurator";
@@ -109,6 +110,14 @@ export default function PriceConfigurator({ data }: { data: PricingData }) {
       />
 
       <section className="prc-build" id="zelf-samenstellen" ref={target} aria-label="Jouw pakket">
+        {composed && (
+          <PriceAdvice
+            data={data}
+            answers={answers}
+            composed={composed}
+            onEdit={() => document.getElementById("pg-title")?.scrollIntoView({ behavior: "smooth", block: "start" })}
+          />
+        )}
         {open && <Pricing data={data} summary={composed?.summary ?? null} adjust={adjust} />}
       </section>
     </>

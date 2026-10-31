@@ -1570,3 +1570,237 @@
         grid-template-columns: minmax(0, 1fr);
     }
 }
+
+/* ---------- Ons advies (components/PriceAdvice.tsx) ----------
+   Een donkerpaarse kaart, in licht en donker gelijk: links het advies, rechts de antwoorden in glas. */
+.pa {
+    position: relative;
+    overflow: hidden;
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+    gap: 28px;
+    align-items: center;
+    margin-bottom: 22px;
+    padding: 32px;
+    border-radius: 26px;
+    border: 1px solid rgb(255 255 255 / .1);
+    background:
+        radial-gradient(70% 120% at 0% 0%, rgb(123 82 250 / .35) 0%, rgb(123 82 250 / 0) 60%),
+        linear-gradient(135deg, #1A1442 0%, #241A5E 55%, #2E2075 100%);
+    color: #E9E5FF;
+    scroll-margin-top: 100px;
+}
+
+.pa-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0 0 18px;
+    padding: 5px 14px 5px 5px;
+    border-radius: 999px;
+    border: 1px solid rgb(255 255 255 / .14);
+    background: rgb(255 255 255 / .06);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: .14em;
+    color: #D6CCFF;
+}
+
+.pa-badge-icon {
+    display: grid;
+    place-items: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: linear-gradient(180deg, #8E6EFF, #5B2EE0);
+    color: #FFFFFF;
+}
+
+.pa-title {
+    margin: 0;
+    font-family: var(--font-inter-tight), sans-serif;
+    font-size: clamp(26px, 2.7vw, 36px);
+    font-weight: 800;
+    line-height: 1.12;
+    letter-spacing: -0.03em;
+    color: #FFFFFF;
+}
+
+.pa-title span {
+    background: linear-gradient(90deg, #A68FFA 0%, #C2B3FB 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+.pa-text {
+    max-width: 620px;
+    margin: 14px 0 0;
+    font-size: 15.5px;
+    line-height: 1.6;
+    color: #C9C3EE;
+}
+
+.pa-why {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    height: 44px;
+    margin-top: 22px;
+    padding: 0 20px;
+    border: 1px solid rgb(255 255 255 / .9);
+    border-radius: 999px;
+    background:
+        radial-gradient(120% 80% at 50% 0%, #FFFFFF 0%, rgb(255 255 255 / 0) 60%),
+        #F3F0FF;
+    font: 600 15px var(--font-inter), sans-serif;
+    color: #1A1442;
+    cursor: pointer;
+    transition: transform .25s var(--ease);
+}
+
+.pa-why:hover {
+    transform: translateY(-1px);
+}
+
+.pa-why[aria-expanded='true'] svg {
+    transform: rotate(90deg);
+}
+
+.pa-why:focus-visible,
+.pa-answers-head button:focus-visible {
+    outline: 2px solid #C2B3FB;
+    outline-offset: 3px;
+}
+
+.pa-reasons {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 18px 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.pa-reasons li {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 14.5px;
+    line-height: 1.5;
+    color: #DDD7FF;
+}
+
+.pa-reasons svg {
+    flex: none;
+    margin-top: 3px;
+    color: #A68FFA;
+}
+
+.pa-answers {
+    padding: 22px 22px 18px;
+    border-radius: 20px;
+    border: 1px solid rgb(255 255 255 / .12);
+    background:
+        radial-gradient(120% 80% at 50% 0%, rgb(255 255 255 / .1) 0%, rgb(255 255 255 / 0) 60%),
+        rgb(255 255 255 / .05);
+    -webkit-backdrop-filter: blur(14px) saturate(150%);
+    backdrop-filter: blur(14px) saturate(150%);
+}
+
+.pa-answers-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+
+.pa-answers-head h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 700;
+    color: #FFFFFF;
+}
+
+.pa-answers-head button {
+    flex: none;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 2px;
+    border: 0;
+    background: none;
+    font: 600 13.5px var(--font-inter), sans-serif;
+    color: #C2B3FB;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    cursor: pointer;
+}
+
+.pa-answers dl {
+    margin: 0;
+}
+
+.pa-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+    gap: 12px;
+    align-items: start;
+    padding: 9px 0;
+}
+
+.pa-row dt {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    color: #B9B2E6;
+}
+
+.pa-row dt svg {
+    flex: none;
+    color: #A68FFA;
+}
+
+.pa-row dd {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: #FFFFFF;
+}
+
+.pa-chip-more {
+    background: rgb(166 143 250 / .25);
+}
+
+.pa-row-themes dd {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.pa-chip {
+    padding: 4px 10px;
+    border-radius: 999px;
+    border: 1px solid rgb(255 255 255 / .14);
+    background: rgb(255 255 255 / .08);
+    font-size: 12.5px;
+    font-weight: 500;
+    color: #E9E5FF;
+}
+
+@media (max-width: 900px) {
+    .pa {
+        grid-template-columns: minmax(0, 1fr);
+        padding: 24px 18px;
+    }
+}
+
+@media (max-width: 420px) {
+    .pa-row {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 4px;
+    }
+}
