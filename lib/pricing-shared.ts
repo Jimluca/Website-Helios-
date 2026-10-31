@@ -19,11 +19,25 @@ export type Package = {
   countable: boolean;
   prices: Price[];
   orderUrl?: string;
+  /** Voor wie het pakket is (sleutel uit `audiences`); leeg bij een pakket zonder doelgroep. */
+  audience?: string | null;
+  /** De productlijn (bijv. "Loopbaan"): pakketten met dezelfde doelgroep en productlijn verschillen in grootte. */
+  family?: string | null;
+  /** De grootte (bijv. "Klein" of "Organisatie"); bij een toevoeging: alleen bij pakketten van die grootte. */
+  size?: string | null;
+  /** Pakket: zoveel professionals en cliënten zitten erin (null: onbeperkt). */
+  users?: number | null;
+  clients?: number | null;
+  /** Toevoeging: zoveel professionals of cliënten komen erbij. */
+  extraUsers?: number;
+  extraClients?: number;
 };
 
 export type Pricing = {
   orderable: boolean;
   orderUrl: string;
+  /** De doelgroepen van de calculator, in volgorde. */
+  audiences?: { key: string; label: string }[];
   packages: Package[];
   addons: Package[];
   taxPercent: number;

@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import PriceGuide from "@/components/PriceGuide";
 import Pricing from "@/components/Pricing";
-import { compose, type Answers, type Composed } from "@/lib/configurator";
+import { compose, unitFor, type Answers, type Composed } from "@/lib/configurator";
 import { CHOOSE_EVENT } from "@/lib/pricing-events";
 import type { Pricing as PricingData } from "@/lib/pricing-shared";
 
@@ -91,7 +91,16 @@ export default function PriceConfigurator({ data }: { data: PricingData }) {
           <Pricing
             data={data}
             advice={
-              composed ? { answers, composed, onEdit: () => document.getElementById("pg-title")?.scrollIntoView({ behavior: "smooth", block: "start" }) } : null
+              composed
+                ? {
+                    answers,
+                    composed,
+                    unit: unitFor(answers),
+                    onEdit: () => document.getElementById("pg-title")?.scrollIntoView({ behavior: "smooth", block: "start" }),
+                    onTeam: (team: number) => onAnswer({ team }),
+                    onClients: (users: number) => onAnswer({ users }),
+                  }
+                : null
             }
           />
         )}

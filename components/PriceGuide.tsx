@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { COUNTS, EDUCATION, LEVELS, TEAMS, unitFor, type Answers } from "@/lib/configurator";
+import { clientOptions, EDUCATION, LEVELS, teamOptions, unitFor, type Answers } from "@/lib/configurator";
 import type { Pricing as PricingData } from "@/lib/pricing-shared";
 
 // Stap 1 van de configurator op de pagina Prijzen: vier vragen (wie ben je, welk onderwijs, hoe groot is het team,
@@ -38,9 +38,9 @@ export default function PriceGuide({
   const isEducation = answers.who === EDUCATION;
   const unit = unitFor(answers);
   const needsLevel = isEducation && !answers.level;
-  // Een aantal dat je later in het pakket hebt aangepast, valt in een van de banden.
-  const team = TEAMS.find((t) => answers.team !== undefined && answers.team >= t.min && answers.team <= t.max);
-  const count = COUNTS.find((c, i) => answers.users !== undefined && answers.users <= c.value && (i === 0 || answers.users > COUNTS[i - 1].value));
+  // De keuzes: 1 tot 5 professionals en de cliëntentreden uit Helios, telkens met "meer" (dan contact).
+  const teams = teamOptions();
+  const counts = clientOptions(data, answers.who, unit);
 
   let step = 0;
   const question = (text: string, children: ReactNode) => (
@@ -94,8 +94,8 @@ export default function PriceGuide({
             !needsLevel &&
             question(
               "Hoe groot is het team?",
-              TEAMS.map((t) => (
-                <Option key={t.value} on={team === t} onClick={() => onAnswer({ team: t.value })}>
+              teams.map((t) => (
+                <Option key={t.value} on={answers.team === t.value} onClick={() => onAnswer({ team: t.value })}>
                   {t.label}
                 </Option>
               )),
@@ -106,9 +106,9 @@ export default function PriceGuide({
             answers.team !== undefined &&
             question(
               `Hoeveel ${unit} gebruiken Helios?`,
-              COUNTS.map((c) => (
-                <Option key={c.value} on={count === c} onClick={() => onAnswer({ users: c.value })}>
-                  {c.label} {unit}
+              counts.map((c) => (
+                <Option key={c.value} on={answers.users === c.value} onClick={() => onAnswer({ users: c.value })}>
+                  {c.label}
                 </Option>
               )),
             )}

@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { euros, type Package, type Price, type Pricing as PricingData } from "@/lib/pricing-shared";
 import PriceAdvice from "@/components/PriceAdvice";
-import { isCountAddon, type Answers, type Composed } from "@/lib/configurator";
+import { clientSteps, isLimitAddon, limitExtras, MAX_PROFESSIONALS, professionalAddon, usersOf, type Answers, type Composed } from "@/lib/configurator";
 import { CHOOSE_EVENT } from "@/lib/pricing-events";
 
 // Prijscalculator (ontwerp: "Prijscalculator Helios"): kies een basispakket, voeg toevoegingen toe en zie meteen wat
@@ -101,7 +101,16 @@ const isOwn = (item: Package) => item.prices.length > 0 && item.prices.every((pr
 const isPerSeat = (item: Package) => item.prices.some((price) => price.perSeat);
 
 /** Wat de configurator meegeeft: de antwoorden, het samengestelde pakket en terug naar de vragen. */
-export type AdviceInput = { answers: Answers; composed: Composed; onEdit: () => void };
+export type AdviceInput = {
+  answers: Answers;
+  composed: Composed;
+  onEdit: () => void;
+  /** leerlingen, studenten of cliënten */
+  unit: string;
+  /** De aantallen in de samenstelling aanpassen = de antwoorden aanpassen (dan stelt de configurator opnieuw samen). */
+  onTeam: (team: number) => void;
+  onClients: (clients: number) => void;
+};
 
 /**
  * advice: het pakket komt uit de vragen (PriceConfigurator). Dan staat "Ons advies" bovenaan, met "Jouw samenstelling"
@@ -224,7 +233,7 @@ export default function Pricing({ data, advice = null }: { data: PricingData; ad
           const covered = new Set(target?.includes ?? []);
           for (const [id, qty] of Object.entries(chosenRef.current)) {
             const old = data.addons.find((addon) => addon.id === Number(id));
-            if (!old || (old.countable && !old.category)) continue;
+            if (!old || isLimitAddon(old)) continue;
             const match = data.addons.find((addon) => addon.name === old.name && (!addon.size || !target?.size || addon.size === target.size));
             if (match && next[match.id] === undefined && !match.includes.every((line) => covered.has(line))) {
               next[match.id] = qty;
@@ -297,9 +306,7 @@ export default function Pricing({ data, advice = null }: { data: PricingData; ad
   const redundant = (addon: Package) => chosen[addon.id] === undefined && addon.includes.length > 0 && addon.includes.every((line) => includedNow.has(line));
   // Een toevoeging met een grootte (de prijs verschilt per grootte) staat alleen bij pakketten van die grootte.
   // Na de vragen regelen de aantallen bij stap 1 de extra gebruikers en cliënten; die staan dan niet bij de toevoegingen.
-  const offeredAddons = data.addons.filter(
-    (addon) => !redundant(addon) && (!addon.size || size === null || addon.size === size) && !(configured && isCountAddon(addon)),
-  );
+  const offeredAddons = data.addons.filter((addon) => !redundant(addon) && (!addon.size || size === null || addon.size === size) && !isLimitAddon(addon));
   const sorted = [...offeredAddons].sort((a, b) => rank(groupOf(a)) - rank(groupOf(b)));
   const groups = ["Alles", ...new Set(sorted.map(groupOf))];
   const q = query.trim().toLowerCase();
@@ -324,6 +331,93 @@ export default function Pricing({ data, advice = null }: { data: PricingData; ad
       ...now,
       [id]: Math.max(1, Math.min(999, qty || 1)),
     }));
+
+  // Professionals en cliënten: het pakket heeft er een aantal; extra professionals (tot MAX_PROFESSIONALS) en een
+  // cliëntentrede zijn toevoegingen. Na de vragen gaat een wijziging terug naar de antwoorden.
+  const profAddon = professionalAddon(data);
+  const steps = clientSteps(data, pkg);
+  const includedUsers = pkg ? usersOf(pkg) : 1;
+  const teamNow = Number.isFinite(includedUsers) ? includedUsers + (profAddon ? (chosen[profAddon.id] ?? 0) * (profAddon.extraUsers || 1) : 0) : Infinity;
+  const stepNow = [...steps].reverse().find((step) => step.addon && chosen[step.addon.id] !== undefined) ?? steps[0];
+  const setLimits = (team: number, clients: number) => {
+    if (!pkg) return;
+    if (advice) {
+      if (team !== teamNow) advice.onTeam(team);
+      if (clients !== stepNow.total) advice.onClients(clients);
+      return;
+    }
+    const { extras } = limitExtras(data, pkg, team, clients);
+    setChosen((now) => {
+      const next = Object.fromEntries(Object.entries(now).filter(([id]) => !isLimitAddon(data.addons.find((a) => a.id === Number(id)) ?? ({} as Package))));
+      for (const extra of extras) next[extra.id] = extra.count;
+      return next;
+    });
+  };
+  // Weghalen in "Toevoegingen": een extra professional of cliëntentrede terug naar wat in het pakket zit.
+  const removeLine = (addon: Package) => {
+    if (!isLimitAddon(addon)) return toggleAddon(addon.id);
+    setLimits((addon.extraUsers ?? 0) > 0 ? includedUsers : teamNow, (addon.extraClients ?? 0) > 0 ? steps[0].total : stepNow.total);
+  };
+  const unit = advice?.unit ?? "cliënten";
+  const limitsBlock =
+    pkg && (Number.isFinite(includedUsers) || steps.length > 1) ? (
+      <div className="pc-limits">
+        {Number.isFinite(includedUsers) && profAddon && (
+          <div className="pc-limit">
+            <span className="pc-limit-label">
+              <strong>Professionals</strong>
+              <small>
+                {includedUsers} in het pakket{teamNow > includedUsers ? `, ${teamNow - includedUsers} extra` : ""}
+              </small>
+            </span>
+            <span className="pc-qty">
+              <button
+                type="button"
+                aria-label="Eén professional minder"
+                disabled={teamNow <= includedUsers}
+                onClick={() => setLimits(teamNow - 1, stepNow.total)}
+              >
+                −
+              </button>
+              <span className="pc-qty-value" aria-live="polite">
+                {teamNow}
+              </span>
+              <button
+                type="button"
+                aria-label="Eén professional meer"
+                disabled={teamNow >= MAX_PROFESSIONALS}
+                onClick={() => setLimits(teamNow + 1, stepNow.total)}
+              >
+                +
+              </button>
+            </span>
+          </div>
+        )}
+        {steps.length > 1 && (
+          <div className="pc-limit">
+            <span className="pc-limit-label">
+              <strong>{unit.charAt(0).toUpperCase() + unit.slice(1)}</strong>
+              <small>Standaard tot {steps[0].total.toLocaleString("nl-NL")} per jaar</small>
+            </span>
+            <select className="pc-select" value={stepNow.total} onChange={(e) => setLimits(teamNow, Number(e.target.value))} aria-label={`Aantal ${unit}`}>
+              {steps.map((step) => (
+                <option key={step.total} value={step.total}>
+                  Tot {step.total.toLocaleString("nl-NL")}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+        {teamNow >= MAX_PROFESSIONALS && (
+          <p className="pc-limit-note">
+            Meer dan {MAX_PROFESSIONALS} professionals of {steps[steps.length - 1].total.toLocaleString("nl-NL")} {unit}?{" "}
+            <a href={`mailto:${CONTACT}?subject=${encodeURIComponent("Helios op maat")}`}>Neem contact op</a> voor een pakket op maat.
+          </p>
+        )}
+      </div>
+    ) : null;
+  // In het overzicht van een pakket de testen; de aantallen staan in limitsBlock.
+  const isLimitLine = (line: string) => /gebruiker|cliënt|onbeperkt|^tot /i.test(line);
 
   const periodWord = period === "year" ? "per jaar" : "per maand";
   const lineText = (item: Package, units: number) => {
@@ -393,7 +487,7 @@ export default function Pricing({ data, advice = null }: { data: PricingData; ad
             {selected.map((addon) => (
               <div key={addon.id} className="pc-line">
                 <span className="pc-icon">
-                  <Icon d={addon.countable || isPerSeat(addon) ? ICONS.users : ICONS.test} size={16} stroke={2} />
+                  <Icon d={isLimitAddon(addon) || isPerSeat(addon) ? ICONS.users : ICONS.test} size={16} stroke={2} />
                 </span>
                 <span className="pc-line-text">
                   <strong>
@@ -402,7 +496,7 @@ export default function Pricing({ data, advice = null }: { data: PricingData; ad
                   </strong>
                   <span className="pc-line-price">{lineText(addon, addonUnits(addon))}</span>
                 </span>
-                <button type="button" className="pc-remove" aria-label={`${addon.name} weghalen`} onClick={() => toggleAddon(addon.id)}>
+                <button type="button" className="pc-remove" aria-label={`${addon.name} weghalen`} onClick={() => removeLine(addon)}>
                   <Icon d={ICONS.x} size={12} stroke={2.4} />
                 </button>
               </div>
@@ -487,9 +581,7 @@ export default function Pricing({ data, advice = null }: { data: PricingData; ad
           <h2 className="pc-title">
             Stel jouw <span>Helios-pakket</span> samen.
           </h2>
-          <p className="pc-intro">
-            Kies alleen de modules die je nodig hebt. Zo stel je eenvoudig een pakket samen dat past bij jouw organisatie.
-          </p>
+          <p className="pc-intro">Kies alleen de modules die je nodig hebt. Zo stel je eenvoudig een pakket samen dat past bij jouw organisatie.</p>
           <div className="pc-badge" aria-hidden="true">
             <span className="pc-badge-icon">
               <Icon d={ICONS.pen} size={20} />
@@ -510,15 +602,18 @@ export default function Pricing({ data, advice = null }: { data: PricingData; ad
               <>
                 <p className="pa-comp-sub">In het pakket {pkg.family ?? pkg.name}</p>
                 <div className="pc-features pa-tests">
-                  {pkg.includes.map((line) => (
-                    <span key={line}>
-                      <Icon d={ICONS.check} size={14} stroke={2.6} />
-                      {line}
-                    </span>
-                  ))}
+                  {pkg.includes
+                    .filter((line) => !isLimitLine(line))
+                    .map((line) => (
+                      <span key={line}>
+                        <Icon d={ICONS.check} size={14} stroke={2.6} />
+                        {line}
+                      </span>
+                    ))}
                 </div>
               </>
             )}
+            {limitsBlock}
             {linesBlock}
             {totalBlock}
             {actionsBlock}
@@ -749,13 +844,16 @@ export default function Pricing({ data, advice = null }: { data: PricingData; ad
                   </label>
                 )}
                 <div className="pc-features">
-                  {pkg.includes.map((line) => (
-                    <span key={line}>
-                      <Icon d={ICONS.check} size={14} stroke={2.6} />
-                      {line}
-                    </span>
-                  ))}
+                  {pkg.includes
+                    .filter((line) => !isLimitLine(line))
+                    .map((line) => (
+                      <span key={line}>
+                        <Icon d={ICONS.check} size={14} stroke={2.6} />
+                        {line}
+                      </span>
+                    ))}
                 </div>
+                {limitsBlock}
                 <a className="pc-link" href={configured ? "#pg-title" : "#pakketten"}>
                   {configured ? "Wijzig antwoorden" : "Andere keuze maken"} <Icon d={ICONS.arrow} size={14} stroke={2} />
                 </a>

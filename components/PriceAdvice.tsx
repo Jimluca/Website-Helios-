@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
-import { COUNTS, EDUCATION, LEVELS, TEAMS, unitFor, type Answers, type Composed } from "@/lib/configurator";
+import { EDUCATION, LEVELS, MAX_PROFESSIONALS, unitFor, type Answers, type Composed } from "@/lib/configurator";
 import { euros, type Package, type Pricing as PricingData } from "@/lib/pricing-shared";
 
 // Het advies boven het voorgestelde pakket (ontwerp: "Ons advies"): links welk pakket we adviseren en waarom, rechts
@@ -78,17 +78,13 @@ export default function PriceAdvice({
   const name = pkg.family ?? pkg.name;
   const unit = unitFor(answers);
   const education = answers.who === EDUCATION;
-  const team = answers.team ?? 1;
-  const teamBand = TEAMS.find((t) => team >= t.min && team <= t.max);
-  // Een band zoals gekozen, of het precieze aantal als je dat later bij het pakket hebt aangepast.
-  const teamText = teamBand && teamBand.value === team ? teamBand.label : `${team} ${team === 1 ? "persoon" : "personen"}`;
-  const countBand = COUNTS.find((c, i) => (answers.users ?? 0) <= c.value && (i === 0 || (answers.users ?? 0) > COUNTS[i - 1].value));
-  const countText = countBand ? `${countBand.label} ${unit}` : `${answers.users} ${unit}`;
+  // Wat er nu in de samenstelling zit (de aantallen kun je rechts nog aanpassen).
+  const teamText = `${composed.users} ${composed.users === 1 ? "professional" : "professionals"}`;
+  const countText = Number.isFinite(composed.clients) ? `tot ${composed.clients.toLocaleString("nl-NL")} ${unit}` : `onbeperkt ${unit}`;
   const level = LEVELS.find((l) => l.key === answers.level)?.label;
 
   const themes = THEMES.filter(([test]) => tests(pkg).some((line) => test.test(line))).map(([, theme]) => theme);
   const extraUsers = composed.extras.map((e) => ({ ...e, addon: data.addons.find((a) => a.id === e.id) })).filter((e) => e.addon);
-  const yearPrice = pkg.prices.find((p) => p.period === "year") ?? pkg.prices[0];
 
   // De prijs van het advies per jaar: het pakket plus de extra accounts (een maandprijs telt twaalf keer).
   const perYear = (item: Package) => {
@@ -97,23 +93,28 @@ export default function PriceAdvice({
     return year ? year.amount : month ? month.amount * 12 : 0;
   };
   const priceLines = [
-    { label: `${name}${pkg.size ? ` (${pkg.size.toLowerCase()})` : ""}`, cents: perYear(pkg) },
-    ...extraUsers.map((e) => ({ label: `${e.count} ${e.addon!.name.toLowerCase()}${e.count === 1 ? "" : "s"}`, cents: perYear(e.addon!) * e.count })),
+    { label: name, cents: perYear(pkg) },
+    ...extraUsers.map((e) => ({
+      label:
+        (e.addon!.extraUsers ?? 0) > 0
+          ? `${e.count} extra ${e.count === 1 ? "professional" : "professionals"}`
+          : (e.addon!.extraClients ?? 0) > 0 && Number.isFinite(composed.clients)
+            ? `tot ${composed.clients.toLocaleString("nl-NL")} ${unit}`
+            : e.addon!.name.toLowerCase(),
+      cents: perYear(e.addon!) * e.count,
+    })),
   ];
   const totalCents = priceLines.reduce((sum, line) => sum + line.cents, 0);
 
+  const professionals = extraUsers.find((e) => (e.addon!.extraUsers ?? 0) > 0);
+  const tier = extraUsers.find((e) => (e.addon!.extraClients ?? 0) > 0);
   const reasons = [
     Number.isFinite(composed.includedUsers)
-      ? `Er zitten ${composed.includedUsers} ${composed.includedUsers === 1 ? "gebruiker" : "gebruikers"} in${
-          extraUsers.length
-            ? `, voor jullie team komen er ${extraUsers.map((e) => `${e.count} ${e.addon!.name.toLowerCase()}${e.count === 1 ? "" : "s"}`).join(" en ")} bij`
-            : ""
-        }.`
-      : "Onbeperkt gebruikers voor je hele team.",
+      ? `Er zit ${composed.includedUsers} professional in het pakket${professionals ? `; voor jullie team komen er ${professionals.count} bij (${euros(perYear(professionals.addon!)).replace(" ", " ")} per professional per jaar)` : ""}. Professionals voeg je zelf toe, tot ${MAX_PROFESSIONALS} in totaal.`
+      : "Onbeperkt professionals voor je hele team.",
     Number.isFinite(composed.includedClients)
-      ? `Tot ${composed.includedClients.toLocaleString("nl-NL")} ${unit} per jaar.`
-      : `Onbeperkt ${unit}: je betaalt niet per ${unit === "leerlingen" ? "leerling" : unit === "studenten" ? "student" : unit === "cliënten" ? "cliënt" : "persoon"}.`,
-    `Dit is de voordeligste grootte (${(pkg.size ?? "").toLowerCase() || "standaard"}) voor jullie aantal${yearPrice ? `, vanaf ${euros(yearPrice.amount).replace(" ", " ")} per jaar` : ""}.`,
+      ? `Standaard tot ${composed.includedClients.toLocaleString("nl-NL")} ${unit} per jaar${tier ? `, met de uitbreiding ${countText}` : ""}. Meer nodig? Dan zet je het later hoger.`
+      : `Onbeperkt ${unit}.`,
     tests(pkg).length
       ? `Met ${tests(pkg)
           .map((line, i) => (i ? line.replace(/^Alle /, "alle ") : line))
@@ -125,7 +126,7 @@ export default function PriceAdvice({
     { icon: ICONS.building, label: "Organisatie", value: education ? "Onderwijsinstelling" : "Loopbaanorganisatie" },
     ...(education && level ? [{ icon: ICONS.cap, label: "Onderwijs", value: level }] : []),
     { icon: ICONS.team, label: "Teamgrootte", value: teamText },
-    { icon: ICONS.people, label: `Aantal ${unit}`, value: countText.replace(` ${unit}`, "") },
+    { icon: ICONS.people, label: `Aantal ${unit}`, value: countText },
   ];
 
   return (
@@ -141,9 +142,21 @@ export default function PriceAdvice({
           Op basis van jouw antwoorden adviseren wij het <span>{packageWord(name)}.</span>
         </h2>
         <p className="pa-text">
-          Dit pakket sluit het beste aan bij {education ? "onderwijsinstellingen" : "loopbaanorganisaties"} met {countText.toLowerCase()} en een teamgrootte van{" "}
-          {teamText.toLowerCase()}. {pkg.description ?? ""} Hieronder voeg je nog toe wat je nodig hebt.
+          Dit pakket sluit het beste aan bij {education ? "onderwijsinstellingen" : "loopbaanorganisaties"} met {teamText} en {countText}.{" "}
+          {pkg.description ?? ""} Rechts pas je het aantal professionals en {unit} aan; hieronder voeg je nog testen toe.
         </p>
+        {composed.contact.length > 0 && (
+          <p className="pa-contact">
+            {composed.contact.includes("team") && composed.contact.includes("clients")
+              ? `Meer dan ${MAX_PROFESSIONALS} professionals en meer ${unit}?`
+              : composed.contact.includes("team")
+                ? `Meer dan ${MAX_PROFESSIONALS} professionals?`
+                : `Meer dan ${composed.clients.toLocaleString("nl-NL")} ${unit}?`}{" "}
+            Daar maken we graag een pakket op maat voor. Hieronder zie je alvast de prijs tot {MAX_PROFESSIONALS} professionals
+            {Number.isFinite(composed.clients) ? ` en ${composed.clients.toLocaleString("nl-NL")} ${unit}` : ""}.{" "}
+            <a href={`mailto:info@helioscarreer.nl?subject=${encodeURIComponent("Helios op maat")}`}>Neem contact op</a>
+          </p>
+        )}
         <div className="pa-price">
           <p className="pa-price-total">
             <strong>{euros(totalCents)}</strong>
@@ -191,7 +204,6 @@ export default function PriceAdvice({
                 <Icon d={row.icon} size={15} />
                 <span className="sr-only">{row.label}: </span>
                 {row.value}
-                {row.label.startsWith("Aantal") ? ` ${unit}` : ""}
               </li>
             ))}
           </ul>
