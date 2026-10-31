@@ -82,6 +82,15 @@ function unitText(item: Package, period: Period) {
   return item.countable ? `per stuk ${per}` : per;
 }
 
+/** De groottes die een doelgroep heeft, in de volgorde van Helios (klein eerst). */
+const sizesOf = (packages: Package[], audience: string | null) => [
+  ...new Set(packages.filter((item) => item.audience === audience && item.size).map((item) => item.size as string)),
+];
+
+/** De pakketten die bij de keuze van doelgroep en grootte horen; een pakket zonder doelgroep staat er altijd bij. */
+const visibleFor = (packages: Package[], audience: string | null, size: string | null) =>
+  packages.filter((item) => !item.audience || audience === null || (item.audience === audience && (!item.size || item.size === size)));
+
 /** Bij een pakket per gebruiker telt het aantal gebruikers; bij een toevoeging per stuk het aantal stuks. */
 const isPerSeat = (item: Package) => item.prices.some((price) => price.perSeat);
 
@@ -93,7 +102,19 @@ export default function Pricing({ data }: { data: PricingData }) {
   }, [data.packages, data.addons]);
 
   const [period, setPeriod] = useState<Period>(periods[0] ?? "year");
-  const [packageId, setPackageId] = useState<number | null>(data.packages[0]?.id ?? null);
+  // De doelgroepen die pakketten hebben, en de gekozen doelgroep en grootte; zonder doelgroepen is er één lijst.
+  const audienceList = useMemo(
+    () => (data.audiences ?? []).filter((item) => data.packages.some((pack) => pack.audience === item.key)),
+    [data.audiences, data.packages],
+  );
+  const [audience, setAudience] = useState<string | null>(audienceList[0]?.key ?? null);
+  const [sizeChoice, setSizeChoice] = useState<string | null>(null);
+  const sizes = sizesOf(data.packages, audience);
+  const size = sizeChoice !== null && sizes.includes(sizeChoice) ? sizeChoice : (sizes[0] ?? null);
+  const visiblePackages = visibleFor(data.packages, audience, size);
+  const [packageId, setPackageId] = useState<number | null>(
+    visibleFor(data.packages, audienceList[0]?.key ?? null, sizesOf(data.packages, audienceList[0]?.key ?? null)[0] ?? null)[0]?.id ?? null,
+  );
   // Gekozen toevoegingen met hun aantal (1 voor een toevoeging die je niet per stuk koopt).
   const [chosen, setChosen] = useState<Record<number, number>>({});
   const [seats, setSeats] = useState(5);
@@ -135,6 +156,13 @@ export default function Pricing({ data }: { data: PricingData }) {
       const known = (id: number, list: Package[]) => list.some((item) => item.id === id);
       if (state.pakket === null || (state.pakket && known(state.pakket, data.packages))) {
         setPackageId(state.pakket ?? null);
+        const restored = data.packages.find((item) => item.id === state.pakket);
+        if (restored?.audience) {
+          setAudience(restored.audience);
+        }
+        if (restored?.size) {
+          setSizeChoice(restored.size);
+        }
       }
       if (state.extra) {
         setChosen(Object.fromEntries(Object.entries(state.extra).filter(([id]) => known(Number(id), data.addons))));
@@ -149,6 +177,16 @@ export default function Pricing({ data }: { data: PricingData }) {
   }, [data.packages, data.addons, periods]);
 
   const pkg = data.packages.find((item) => item.id === packageId) ?? null;
+
+  // Een andere doelgroep of grootte: dezelfde productlijn in de nieuwe keuze, anders het eerste pakket daarvan.
+  const switchTo = (nextAudience: string | null, nextSize: string | null) => {
+    const nextSizes = sizesOf(data.packages, nextAudience);
+    const useSize = nextSize !== null && nextSizes.includes(nextSize) ? nextSize : (nextSizes[0] ?? null);
+    const same = pkg?.family ? data.packages.find((item) => item.audience === nextAudience && item.family === pkg.family && item.size === useSize) : undefined;
+    setAudience(nextAudience);
+    setSizeChoice(useSize);
+    setPackageId(!pkg ? null : !pkg.audience ? pkg.id : ((same ?? visibleFor(data.packages, nextAudience, useSize)[0])?.id ?? null));
+  };
   const pkgUnits = pkg && isPerSeat(pkg) ? seats : 1;
   const addonUnits = (addon: Package) => (isPerSeat(addon) ? seats : 1) * (chosen[addon.id] ?? 1);
   const selected = data.addons.filter((addon) => chosen[addon.id] !== undefined);
@@ -166,7 +204,7 @@ export default function Pricing({ data }: { data: PricingData }) {
   // Slimme suggestie: alles wat je los kiest, zit ook in een ander pakket dat goedkoper uitkomt.
   const wanted = selected.flatMap((addon) => addon.includes.map((line) => line.toLowerCase()));
   const suggestion = selected.length
-    ? (data.packages.find((other) => {
+    ? (visiblePackages.find((other) => {
         const has = new Set([...other.includes, other.name].map((line) => line.toLowerCase()));
         const price = cost(other, "year", isPerSeat(other) ? seats : 1);
         return other.id !== packageId && wanted.every((line) => has.has(line)) && price !== null && price.cents < total("year");
@@ -176,7 +214,11 @@ export default function Pricing({ data }: { data: PricingData }) {
   // Filters: de soorten testen in de volgorde van Helios, en "Gebruikers" voor wat geen test is.
   const groupOf = (addon: Package) => addon.category ?? "Gebruikers";
   const rank = (group: string) => (GROUP_ORDER.indexOf(group) + 1 || GROUP_ORDER.length) + (group === "Gebruikers" ? 100 : 0);
-  const sorted = [...data.addons].sort((a, b) => rank(groupOf(a)) - rank(groupOf(b)));
+  const includedNow = new Set(pkg?.includes ?? []);
+  const redundant = (addon: Package) => chosen[addon.id] === undefined && addon.includes.length > 0 && addon.includes.every((line) => includedNow.has(line));
+  // Een toevoeging met een grootte (de prijs verschilt per grootte) staat alleen bij pakketten van die grootte.
+  const offeredAddons = data.addons.filter((addon) => !redundant(addon) && (!addon.size || size === null || addon.size === size));
+  const sorted = [...offeredAddons].sort((a, b) => rank(groupOf(a)) - rank(groupOf(b)));
   const groups = ["Alles", ...new Set(sorted.map(groupOf))];
   const q = query.trim().toLowerCase();
   const addons = sorted.filter(
@@ -262,10 +304,10 @@ export default function Pricing({ data }: { data: PricingData }) {
   return (
     <div className="pc">
       <header className="pc-head">
-        <p className="pc-eyebrow">PRIJSCALCULATOR</p>
-        <h1 className="pc-title">
+        <p className="pc-eyebrow">ZELF SAMENSTELLEN</p>
+        <h2 className="pc-title">
           Stel jouw <span>Helios-pakket</span> samen.
-        </h1>
+        </h2>
         <p className="pc-intro">
           Kies een basispakket en breid het naar wens uit met losse toevoegingen. Zo stel je eenvoudig een oplossing samen die past bij jouw organisatie.
         </p>
@@ -292,8 +334,48 @@ export default function Pricing({ data }: { data: PricingData }) {
             </div>
           </div>
 
+          {audienceList.length > 0 && (
+            <div className="pc-audience">
+              {audienceList.length > 1 && (
+                <div className="pc-chips" role="radiogroup" aria-label="Doelgroep">
+                  {audienceList.map((item) => (
+                    <button
+                      key={item.key}
+                      type="button"
+                      role="radio"
+                      aria-checked={audience === item.key}
+                      className={`pc-chip${audience === item.key ? " is-on" : ""}`}
+                      onClick={() => switchTo(item.key, size)}
+                    >
+                      {item.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+              {sizes.length > 1 && (
+                <div className="pc-sizes">
+                  <span className="pc-sizes-label">Grootte</span>
+                  <div className="pc-chips" role="radiogroup" aria-label="Grootte">
+                    {sizes.map((name) => (
+                      <button
+                        key={name}
+                        type="button"
+                        role="radio"
+                        aria-checked={size === name}
+                        className={`pc-chip${size === name ? " is-on" : ""}`}
+                        onClick={() => switchTo(audience, name)}
+                      >
+                        {name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
           <div className="pc-packages" role="radiogroup" aria-label="Basispakket">
-            {data.packages.map((item, i) => {
+            {visiblePackages.map((item, i) => {
               const on = item.id === packageId;
               const price = cost(item, period, 1);
               return (
@@ -310,7 +392,7 @@ export default function Pricing({ data }: { data: PricingData }) {
                       <Icon d={PACKAGE_ICONS[i % PACKAGE_ICONS.length]} size={26} stroke={1.8} />
                     </span>
                     <span className="pc-package-name">
-                      <strong>{item.name}</strong>
+                      <strong>{item.family ?? item.name}</strong>
                       {item.description && <small>{item.description}</small>}
                     </span>
                     <span className="pc-radio" aria-hidden="true" />
@@ -375,7 +457,7 @@ export default function Pricing({ data }: { data: PricingData }) {
                       onClick={() => setFilter(group)}
                     >
                       {group}
-                      <span>{group === "Alles" ? data.addons.length : data.addons.filter((addon) => groupOf(addon) === group).length}</span>
+                      <span>{group === "Alles" ? offeredAddons.length : offeredAddons.filter((addon) => groupOf(addon) === group).length}</span>
                     </button>
                   ))}
                 </div>
