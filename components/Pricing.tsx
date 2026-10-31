@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { euros, type Package, type Price, type Pricing as PricingData } from "@/lib/pricing-shared";
+import { COUNTS, isCountAddon } from "@/lib/configurator";
 import { CHOOSE_EVENT } from "@/lib/pricing-events";
 
 // Prijscalculator (ontwerp: "Prijscalculator Helios"): kies een basispakket, voeg toevoegingen toe en zie meteen wat
@@ -95,8 +96,24 @@ const visibleFor = (packages: Package[], audience: string | null, size: string |
 /** Bij een pakket per gebruiker telt het aantal gebruikers; bij een toevoeging per stuk het aantal stuks. */
 const isPerSeat = (item: Package) => item.prices.some((price) => price.perSeat);
 
-/** summary: wat de vragen bovenaan (PriceGuide) hebben samengesteld; dan staat hier "Jouw samengestelde pakket". */
-export default function Pricing({ data, summary = null }: { data: PricingData; summary?: string | null }) {
+/** Aanpassen van het samengestelde pakket (PriceConfigurator): aantallen en productlijn gaan terug naar de configurator. */
+export type Adjust = {
+  team: number;
+  clients: number;
+  /** leerlingen, studenten of cliënten */
+  unit: string;
+  includedUsers: number;
+  includedClients: number;
+  onTeam: (team: number) => void;
+  onClients: (clients: number) => void;
+  onFamily: (family: string | null) => void;
+};
+
+/**
+ * summary: wat de vragen bovenaan (PriceGuide) hebben samengesteld; dan staat hier "Jouw samengestelde pakket".
+ * adjust: dan staat bij stap 1 alleen dat ene pakket, met de aantallen om aan te passen.
+ */
+export default function Pricing({ data, summary = null, adjust = null }: { data: PricingData; summary?: string | null; adjust?: Adjust | null }) {
   const periods = useMemo(() => {
     const all = new Set([...data.packages, ...data.addons].flatMap((item) => item.prices.map((price) => price.period)));
 
@@ -123,6 +140,7 @@ export default function Pricing({ data, summary = null }: { data: PricingData; s
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState("Alles");
   const [saved, setSaved] = useState<string | null>(null);
+  const [showOthers, setShowOthers] = useState(false);
 
   // Wat er nu gekozen is, voor als de vragen bovenaan opnieuw samenstellen (zie restore).
   const chosenRef = useRef(chosen);
@@ -247,7 +265,10 @@ export default function Pricing({ data, summary = null }: { data: PricingData; s
   const includedNow = new Set(pkg?.includes ?? []);
   const redundant = (addon: Package) => chosen[addon.id] === undefined && addon.includes.length > 0 && addon.includes.every((line) => includedNow.has(line));
   // Een toevoeging met een grootte (de prijs verschilt per grootte) staat alleen bij pakketten van die grootte.
-  const offeredAddons = data.addons.filter((addon) => !redundant(addon) && (!addon.size || size === null || addon.size === size));
+  // Na de vragen regelen de aantallen bij stap 1 de extra gebruikers en cliënten; die staan dan niet bij de toevoegingen.
+  const offeredAddons = data.addons.filter(
+    (addon) => !redundant(addon) && (!addon.size || size === null || addon.size === size) && !(adjust && isCountAddon(addon)),
+  );
   const sorted = [...offeredAddons].sort((a, b) => rank(groupOf(a)) - rank(groupOf(b)));
   const groups = ["Alles", ...new Set(sorted.map(groupOf))];
   const q = query.trim().toLowerCase();
@@ -331,6 +352,57 @@ export default function Pricing({ data, summary = null }: { data: PricingData; s
     return `mailto:${CONTACT}?subject=${encodeURIComponent(`Offerte Helios${pkg ? ` – ${pkg.name}` : ""}`)}&body=${encodeURIComponent(rows.join("\n"))}`;
   };
 
+  // Een pakketkaart: een keuzeknop, of (het voorgestelde pakket na de vragen) een gewone kaart.
+  const packageCard = (item: Package, i: number, onPick?: () => void) => {
+    const on = item.id === packageId;
+    const price = cost(item, period, 1);
+    const Tag = onPick ? "button" : "div";
+    return (
+      <Tag
+        key={item.id}
+        {...(onPick ? { type: "button" as const, role: "radio", "aria-checked": on, onClick: onPick } : {})}
+        className={`pc-package${on ? " is-on" : ""}${onPick ? "" : " is-proposal"}`}
+      >
+        <span className="pc-package-top">
+          <span className="pc-icon pc-icon-lg">
+            <Icon d={PACKAGE_ICONS[i % PACKAGE_ICONS.length]} size={26} stroke={1.8} />
+          </span>
+          <span className="pc-package-name">
+            <strong>{item.family ?? item.name}</strong>
+            {item.description && <small>{item.description}</small>}
+          </span>
+          <span className="pc-radio" aria-hidden="true" />
+        </span>
+        <span className="pc-package-price">
+          {price ? (
+            <>
+              <strong>
+                {price.exact ? "" : "± "}
+                {euros(price.cents)}
+              </strong>
+              <small>{unitText(item, period)}</small>
+            </>
+          ) : (
+            <small>Prijs op aanvraag</small>
+          )}
+        </span>
+        {(() => {
+          const trial = item.prices.find((p) => p.trialDays > 0);
+          return trial ? <span className="pc-trial">{trial.trialDays} dagen gratis proberen</span> : null;
+        })()}
+        <span className="pc-rule" aria-hidden="true" />
+        <span className="pc-features">
+          {item.includes.map((line) => (
+            <span key={line}>
+              <Icon d={ICONS.check} size={14} stroke={2.6} />
+              {line}
+            </span>
+          ))}
+        </span>
+      </Tag>
+    );
+  };
+
   return (
     <div className="pc">
       <header className="pc-head">
@@ -372,7 +444,7 @@ export default function Pricing({ data, summary = null }: { data: PricingData; s
               <h2 className="pc-step-title">{summary ? "Jouw pakket" : "Kies jouw basispakket"}</h2>
               <p className="pc-step-text">
                 {summary
-                  ? "Dit pakket past bij je antwoorden en staat al aangevinkt. Een ander pakket kiezen kan ook."
+                  ? "Dit pakket past bij je antwoorden. Pas het aantal professionals en " + (adjust?.unit ?? "cliënten") + " aan, of kies een ander pakket."
                   : "Elk pakket bevat een set instrumenten en functies. Je kunt het later uitbreiden met toevoegingen."}
               </p>
             </div>
@@ -419,59 +491,88 @@ export default function Pricing({ data, summary = null }: { data: PricingData; s
             </div>
           )}
 
-          <div className="pc-packages" role="radiogroup" aria-label="Basispakket">
-            {visiblePackages.map((item, i) => {
-              const on = item.id === packageId;
-              const price = cost(item, period, 1);
-              return (
-                <button
-                  key={item.id}
-                  type="button"
-                  role="radio"
-                  aria-checked={on}
-                  className={`pc-package${on ? " is-on" : ""}`}
-                  onClick={() => setPackageId(item.id)}
-                >
-                  <span className="pc-package-top">
-                    <span className="pc-icon pc-icon-lg">
-                      <Icon d={PACKAGE_ICONS[i % PACKAGE_ICONS.length]} size={26} stroke={1.8} />
+          {adjust && pkg ? (
+            <>
+              <div className="pc-proposal">
+                {packageCard(pkg, data.packages.indexOf(pkg))}
+                <div className="pc-adjust" aria-label="Aanpassen">
+                  <div className="pc-adjust-row">
+                    <span className="pc-adjust-label">
+                      <strong>Professionals</strong>
+                      <small>
+                        {Number.isFinite(adjust.includedUsers)
+                          ? `${adjust.includedUsers} in het pakket${adjust.team > adjust.includedUsers ? `, ${adjust.team - adjust.includedUsers} extra` : ""}`
+                          : "Onbeperkt in het pakket"}
+                      </small>
                     </span>
-                    <span className="pc-package-name">
-                      <strong>{item.family ?? item.name}</strong>
-                      {item.description && <small>{item.description}</small>}
+                    <span className="pc-qty">
+                      <button type="button" aria-label="Eén professional minder" onClick={() => adjust.onTeam(Math.max(1, adjust.team - 1))}>
+                        −
+                      </button>
+                      <input
+                        type="number"
+                        min={1}
+                        max={999}
+                        value={adjust.team}
+                        onChange={(e) => adjust.onTeam(Math.max(1, Math.min(999, Number(e.target.value) || 1)))}
+                        aria-label="Aantal professionals"
+                      />
+                      <button type="button" aria-label="Eén professional meer" onClick={() => adjust.onTeam(Math.min(999, adjust.team + 1))}>
+                        +
+                      </button>
                     </span>
-                    <span className="pc-radio" aria-hidden="true" />
-                  </span>
-                  <span className="pc-package-price">
-                    {price ? (
-                      <>
-                        <strong>
-                          {price.exact ? "" : "± "}
-                          {euros(price.cents)}
-                        </strong>
-                        <small>{unitText(item, period)}</small>
-                      </>
-                    ) : (
-                      <small>Prijs op aanvraag</small>
-                    )}
-                  </span>
-                  {(() => {
-                    const trial = item.prices.find((p) => p.trialDays > 0);
-                    return trial ? <span className="pc-trial">{trial.trialDays} dagen gratis proberen</span> : null;
-                  })()}
-                  <span className="pc-rule" aria-hidden="true" />
-                  <span className="pc-features">
-                    {item.includes.map((line) => (
-                      <span key={line}>
-                        <Icon d={ICONS.check} size={14} stroke={2.6} />
-                        {line}
-                      </span>
-                    ))}
-                  </span>
+                  </div>
+                  <div className="pc-adjust-row">
+                    <span className="pc-adjust-label">
+                      <strong>{adjust.unit.charAt(0).toUpperCase() + adjust.unit.slice(1)}</strong>
+                      <small>
+                        {Number.isFinite(adjust.includedClients)
+                          ? `Tot ${adjust.includedClients.toLocaleString("nl-NL")} in het pakket`
+                          : "Onbeperkt in het pakket"}
+                      </small>
+                    </span>
+                    <select
+                      className="pc-select"
+                      value={adjust.clients}
+                      onChange={(e) => adjust.onClients(Number(e.target.value))}
+                      aria-label={`Aantal ${adjust.unit}`}
+                    >
+                      {COUNTS.map((c) => (
+                        <option key={c.value} value={c.value}>
+                          {c.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <p className="pc-adjust-note">
+                    Meer professionals of {adjust.unit}? Dan kiezen we vanzelf de voordeligste grootte, met extra accounts als dat nodig is.
+                  </p>
+                </div>
+              </div>
+              {visiblePackages.length > 1 && (
+                <button type="button" className="pc-others-toggle" aria-expanded={showOthers} onClick={() => setShowOthers((v) => !v)}>
+                  {showOthers ? "Andere pakketten verbergen" : "Ander pakket kiezen"}
+                  <Icon d={ICONS.arrow} size={14} stroke={2} />
                 </button>
-              );
-            })}
-          </div>
+              )}
+              {showOthers && (
+                <div className="pc-packages" role="radiogroup" aria-label="Ander pakket">
+                  {visiblePackages
+                    .filter((item) => item.id !== pkg.id)
+                    .map((item) =>
+                      packageCard(item, data.packages.indexOf(item), () => {
+                        adjust.onFamily(item.family ?? null);
+                        setShowOthers(false);
+                      }),
+                    )}
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="pc-packages" role="radiogroup" aria-label="Basispakket">
+              {visiblePackages.map((item, i) => packageCard(item, i, () => setPackageId(item.id)))}
+            </div>
+          )}
 
           {data.addons.length > 0 && (
             <>
@@ -481,7 +582,11 @@ export default function Pricing({ data, summary = null }: { data: PricingData; s
                 </span>
                 <div className="pc-step-body">
                   <h2 className="pc-step-title">{summary ? "Voeg nog iets toe" : "Voeg losse toevoegingen toe"}</h2>
-                  <p className="pc-step-text">Breid je pakket uit met losse testen en extra gebruikers. De prijs wordt automatisch berekend.</p>
+                  <p className="pc-step-text">
+                    {adjust
+                      ? "Zet losse testen aan die nog niet in je pakket zitten. De prijs wordt automatisch berekend."
+                      : "Breid je pakket uit met losse testen en extra gebruikers. De prijs wordt automatisch berekend."}
+                  </p>
                 </div>
                 {data.addons.length > 6 && (
                   <label className="pc-search">

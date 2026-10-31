@@ -1458,3 +1458,115 @@
     }
 
 }
+
+/* Het voorgestelde pakket na de vragen, met de aantallen ernaast (components/Pricing.tsx, adjust). */
+.pc-proposal {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+    gap: 16px;
+    align-items: start;
+    margin-top: 22px;
+}
+
+.pc-package.is-proposal {
+    cursor: default;
+    border: 1.5px solid #6639EC;
+    background: var(--pc-soft);
+    box-shadow: 0 14px 32px -14px rgb(75 43 232 / .35);
+}
+
+.pc-package.is-proposal:hover {
+    transform: none;
+}
+
+.pc-package.is-proposal .pc-radio {
+    display: none;
+}
+
+:root[data-theme='dark'] .pc-package.is-proposal {
+    border-color: #8768F6;
+    background: rgb(102 57 236 / .16);
+}
+
+.pc-adjust {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding: 18px;
+    border-radius: 18px;
+    border: 1px solid var(--pc-line);
+    background: var(--d-card, #FFFFFF);
+}
+
+.pc-adjust-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px 16px;
+}
+
+.pc-adjust-label strong {
+    display: block;
+    font-size: 15px;
+    color: var(--pc-ink);
+}
+
+.pc-adjust-label small {
+    display: block;
+    margin-top: 2px;
+    font-size: 13px;
+    color: var(--pc-muted);
+}
+
+.pc-select {
+    height: 36px;
+    padding: 0 34px 0 14px;
+    border: 1px solid color-mix(in srgb, #6639EC 20%, var(--pc-line));
+    border-radius: 999px;
+    background:
+        url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236639EC' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'><path d='m6 9 6 6 6-6'/></svg>") no-repeat right 12px center,
+        var(--d-card, #FFFFFF);
+    font: 600 14px var(--font-inter), sans-serif;
+    color: var(--pc-ink);
+    appearance: none;
+    cursor: pointer;
+}
+
+.pc-select:focus-visible,
+.pc-others-toggle:focus-visible {
+    outline: 2px solid var(--d-link, #4B2BF0);
+    outline-offset: 2px;
+}
+
+.pc-adjust-note {
+    margin: 0;
+    padding-top: 12px;
+    border-top: 1px solid var(--pc-line);
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--pc-muted);
+}
+
+.pc-others-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin: 14px 0 0 4px;
+    padding: 4px 2px;
+    border: 0;
+    background: none;
+    font: 600 14px var(--font-inter), sans-serif;
+    color: var(--d-link, #4B2BF0);
+    cursor: pointer;
+}
+
+.pc-others-toggle[aria-expanded='true'] svg {
+    transform: rotate(90deg);
+}
+
+@media (max-width: 760px) {
+    .pc-proposal {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
