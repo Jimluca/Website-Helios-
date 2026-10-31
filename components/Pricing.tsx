@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { euros, type Package, type Price, type Pricing as PricingData } from "@/lib/pricing-shared";
+import { CHOOSE_EVENT } from "@/lib/pricing-events";
 
 // Prijscalculator (ontwerp: "Prijscalculator Helios"): kies een basispakket, voeg toevoegingen toe en zie meteen wat
 // het kost, per jaar of per maand. Alle pakketten en bedragen komen uit Helios (Admin › Pakketten); hier staat geen
@@ -124,9 +125,14 @@ export default function Pricing({ data }: { data: PricingData }) {
 
   // Een opgeslagen samenstelling (of een gedeelde link) terugzetten; pas na de eerste weergave, zodat server en
   // browser eerst hetzelfde tonen.
+  // De keuzehulp bovenaan (PriceGuide) zet een pakket in de adresbalk en vraagt dan om het hier te kiezen.
   useEffect(() => {
     const frame = requestAnimationFrame(() => restore());
-    return () => cancelAnimationFrame(frame);
+    window.addEventListener(CHOOSE_EVENT, restore);
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener(CHOOSE_EVENT, restore);
+    };
 
     function restore() {
       let state: {

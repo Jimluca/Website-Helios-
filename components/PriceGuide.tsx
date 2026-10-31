@@ -1,347 +1,306 @@
 "use client";
 
-import { useRef, useState } from "react";
-import { PRICE_LISTS, eur, type PriceList, type PriceRow } from "@/lib/price-lists";
+import { useState, type ReactNode } from "react";
+import { CHOOSE_EVENT } from "@/lib/pricing-events";
+import { euros, type Package, type Pricing as PricingData } from "@/lib/pricing-shared";
 
-// Het begin van de pagina Prijzen: een paar vragen die naar de passende prijslijst wijzen, en daaronder de prijslijsten
-// zelf (een tab per soort licentie). Zelf samenstellen kan daarna in de prijscalculator (#zelf-samenstellen).
+// Het begin van de pagina Prijzen: vier vragen (wie ben je, welk onderwijs, hoe groot is het team, hoeveel leerlingen,
+// studenten of cliënten) en daarna de pakketten uit Helios die daarbij passen. Alles komt uit Helios: de doelgroepen,
+// de pakketten per grootte en hun prijzen. De grootte is de kleinste waarin het team en het aantal gebruikers passen
+// (de grenzen "Tot … gebruikers" en "Tot … cliënten" van Helios); is het team groter, dan komen er extra
+// professionalaccounts bij. "Kies" zet het pakket in de prijscalculator eronder (#zelf-samenstellen).
 
-type Advice = { list: string; column?: number; why: string };
+type Answers = { who?: string; level?: string; team?: number; users?: number };
 
-type Option = { label: string; next?: string; advice?: Advice };
-type Question = { id: string; text: string; options: Option[] };
+const LEVELS = [
+  { key: "vo", label: "Middelbaar onderwijs", unit: "leerlingen" },
+  { key: "mbo", label: "mbo", unit: "studenten" },
+  { key: "hbo", label: "hbo", unit: "studenten" },
+  { key: "wo", label: "wo", unit: "studenten" },
+];
 
-const QUESTIONS: Record<string, Question> = {
-  who: {
-    id: "who",
-    text: "Voor wie is Helios?",
-    options: [
-      { label: "Een school", advice: { list: "onderwijs", why: "Voor scholen, btw-vrij." } },
-      { label: "Loopbaanprofessional of re-integratie", next: "team" },
-      { label: "Alleen skills in kaart brengen", next: "skills" },
-    ],
-  },
-  team: {
-    id: "team",
-    text: "Met hoeveel professionals werk je?",
-    options: [
-      { label: "Alleen ik", next: "clients" },
-      {
-        label: "Met meerdere professionals",
-        advice: { list: "jaarlicentie", why: "Per professionalaccount tot 100 cliënten per jaar; extra accounts voeg je toe." },
-      },
-    ],
-  },
-  clients: {
-    id: "clients",
-    text: "Hoeveel cliënten begeleid je per jaar?",
-    options: [
-      { label: "Een paar (tot 5)", advice: { list: "vijf", why: "Testinzet voor 5 cliënten, tot 5 jaar lang." } },
-      { label: "Tot 12", advice: { list: "solo", column: 0, why: "Een jaarlicentie voor 12 cliënten." } },
-      { label: "Tot 25", advice: { list: "solo", column: 1, why: "Een jaarlicentie voor 25 cliënten." } },
-      { label: "Tot 50", advice: { list: "solo", column: 2, why: "Een jaarlicentie voor 50 cliënten." } },
-      { label: "Meer dan 50", advice: { list: "jaarlicentie", why: "Tot 100 cliënten per jaar per professionalaccount." } },
-      { label: "Wisselend: liever per cliënt betalen", advice: { list: "per-client", why: "Geen afnameverplichting: je betaalt per cliënt." } },
-    ],
-  },
-  skills: {
-    id: "skills",
-    text: "Voor hoeveel cliënten?",
-    options: [
-      { label: "Tot 20", advice: { list: "skills-match", column: 0, why: "Een bundel voor 20 cliënten." } },
-      { label: "Tot 100", advice: { list: "skills-match", column: 1, why: "Een bundel voor 100 cliënten." } },
-    ],
-  },
-};
+const TEAMS: { value: number; label: string; open?: boolean }[] = [
+  { value: 1, label: "Alleen ik" },
+  { value: 5, label: "2 tot 5 personen" },
+  { value: 10, label: "6 tot 10 personen" },
+  // Open naar boven: we rekenen met 11, in de calculator zet je het precieze aantal.
+  { value: 11, label: "Meer dan 10 personen", open: true },
+];
 
-const ARROW = "M5 12h14M12 5l7 7-7 7";
+const COUNTS = [
+  { value: 50, label: "Tot 50" },
+  { value: 250, label: "50 tot 250" },
+  { value: 1000, label: "250 tot 1.000" },
+  { value: 5000, label: "Meer dan 1.000" },
+];
 
-function Arrow() {
+/** "Tot 5 gebruikers" → 5, "Onbeperkt …" → oneindig; zonder regel: oneindig. */
+function limit(pkg: Package, word: RegExp): number {
+  for (const line of pkg.includes) {
+    if (!word.test(line)) continue;
+    const n = line.match(/(\d[\d.]*)/);
+    return /onbeperkt/i.test(line) || !n ? Infinity : Number(n[1].replace(/\./g, ""));
+  }
+  return Infinity;
+}
+
+const usersOf = (pkg: Package) => limit(pkg, /gebruiker/i);
+const clientsOf = (pkg: Package) => limit(pkg, /cliënt|client|leerling|student/i);
+
+function yearPrice(pkg: Package): { cents: number; text: string } | null {
+  const year = pkg.prices.find((p) => p.period === "year");
+  if (year) return { cents: year.amount, text: "per jaar" };
+  const month = pkg.prices.find((p) => p.period === "month");
+  return month ? { cents: month.amount, text: "per maand" } : null;
+}
+
+function Option({ on, onClick, children }: { on: boolean; onClick: () => void; children: ReactNode }) {
+  return (
+    <button type="button" className={`pg-option${on ? " is-on" : ""}`} aria-pressed={on} onClick={onClick}>
+      {children}
+    </button>
+  );
+}
+
+function Check() {
   return (
     <svg
       viewBox="0 0 24 24"
-      width="16"
-      height="16"
+      width="14"
+      height="14"
       fill="none"
       stroke="currentColor"
-      strokeWidth="2"
+      strokeWidth="2.6"
       strokeLinecap="round"
       strokeLinejoin="round"
       aria-hidden="true"
     >
-      <path d={ARROW} />
+      <path d="M20 6 9 17l-5-5" />
     </svg>
   );
 }
 
-/** Het eerste pakket in de lijst (het instapbedrag), in de gekozen kolom. */
-function startPrice(list: PriceList, column = 0) {
-  const row = list.rows.find((r) => r.highlight);
-  const price = row?.prices[column] ?? row?.prices[0];
-  return row && typeof price === "number" ? { row, price } : null;
-}
+export default function PriceGuide({ data }: { data: PricingData | null }) {
+  const [answers, setAnswers] = useState<Answers>({});
+  const audiences = (data?.audiences ?? []).filter((a) => data?.packages.some((p) => p.audience === a.key));
+  const education = audiences.find((a) => a.key === "education");
+  const career = audiences.find((a) => a.key === "career");
 
-/** Een rij met maar één tekst (bijv. training) beslaat alle kolommen. */
-const spans = (row: PriceRow) => row.prices.slice(1).every((p) => p === "");
+  // "Ik ben een …": de doelgroepen uit Helios, in de woorden van de bezoeker.
+  const WHO = [
+    ...(education ? [{ key: education.key, label: "Onderwijsinstelling" }] : []),
+    ...(career ? [{ key: career.key, label: "Loopbaanorganisatie" }] : []),
+  ];
 
-function Table({ list, column }: { list: PriceList; column: number }) {
-  const columns = list.columns ?? [""];
-  const many = columns.length > 1;
+  const isEducation = answers.who === education?.key;
+  const unit = isEducation ? (LEVELS.find((l) => l.key === answers.level)?.unit ?? "leerlingen of studenten") : "cliënten";
+  const needsLevel = isEducation && !answers.level;
 
-  return (
-    <table className="pg-table" data-column={many ? column : undefined}>
-      {many && (
-        <thead>
-          <tr>
-            <th scope="col">
-              <span className="sr-only">Onderdeel</span>
-            </th>
-            {columns.map((c, i) => (
-              <th key={c} scope="col" className={`pg-col${i === column ? " is-on" : ""}`} data-col={i}>
-                {c}
-              </th>
-            ))}
-          </tr>
-        </thead>
-      )}
-      <tbody>
-        {list.rows.map((row) => (
-          <tr key={row.label} className={row.highlight ? "is-package" : undefined}>
-            <th scope="row">
-              <span className="pg-label">{row.label}</span>
-              {row.sub && <span className="pg-sub">{row.sub}</span>}
-              {row.items && (
-                <ul className="pg-items">
-                  {row.items.map((item) => (
-                    <li key={item}>{item}</li>
-                  ))}
-                </ul>
-              )}
-            </th>
-            {spans(row) ? (
-              <td colSpan={columns.length} className="pg-price pg-price-wide">
-                {eur(row.prices[0])}
-              </td>
-            ) : (
-              row.prices.map((price, i) => (
-                <td key={i} className={`pg-price${many && i === column ? " is-on" : ""}`} data-col={many ? i : undefined}>
-                  {many && <span className="pg-price-col">{columns[i]}</span>}
-                  {eur(price)}
-                </td>
-              ))
-            )}
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  );
-}
+  const set = (patch: Answers, clear: (keyof Answers)[]) =>
+    setAnswers((now) => {
+      const next = { ...now, ...patch };
+      for (const key of clear) delete next[key];
+      return next;
+    });
 
-export default function PriceGuide() {
-  const [path, setPath] = useState<string[]>(["who"]);
-  const [picked, setPicked] = useState<Record<string, string>>({});
-  const [advice, setAdvice] = useState<Advice | null>(null);
-  const [tab, setTab] = useState(PRICE_LISTS[0].id);
-  const [column, setColumn] = useState<Record<string, number>>({});
-  const listsRef = useRef<HTMLElement>(null);
+  // De pakketten van de gekozen doelgroep, per grootte (in de volgorde van Helios: klein eerst).
+  const packages = data?.packages.filter((p) => p.audience === answers.who) ?? [];
+  const sizes = [...new Set(packages.map((p) => p.size ?? ""))];
+  const done = answers.who !== undefined && !needsLevel && answers.team !== undefined && answers.users !== undefined;
 
-  const answer = (question: Question, option: Option) => {
-    const index = path.indexOf(question.id);
-    setPath([...path.slice(0, index + 1), ...(option.next ? [option.next] : [])]);
-    setPicked((now) => ({ ...Object.fromEntries(Object.entries(now).filter(([id]) => path.indexOf(id) < index)), [question.id]: option.label }));
-    setAdvice(option.advice ?? null);
-  };
+  let size = "";
+  let extraUsers = 0;
+  if (done && sizes.length) {
+    const fits = sizes.find((s) => {
+      const sample = packages.find((p) => (p.size ?? "") === s)!;
+      return usersOf(sample) >= answers.team! && clientsOf(sample) >= answers.users!;
+    });
+    size = fits ?? sizes[sizes.length - 1];
+    const sample = packages.find((p) => (p.size ?? "") === size)!;
+    extraUsers = Math.max(0, answers.team! - (Number.isFinite(usersOf(sample)) ? usersOf(sample) : answers.team!));
+  }
+  const offered = packages.filter((p) => (p.size ?? "") === size);
+  const extraAddon = data?.addons.find((a) => a.countable && !a.category && a.includes.some((line) => /gebruiker/i.test(line)));
+  const perExtra = extraAddon ? Number(extraAddon.includes.join(" ").match(/(\d+)\s*extra gebruiker/i)?.[1] ?? 1) : 1;
+  const extraCount = extraAddon && extraUsers > 0 ? Math.ceil(extraUsers / perExtra) : 0;
+  const extraPrice = extraAddon ? yearPrice(extraAddon) : null;
 
-  const restart = () => {
-    setPath(["who"]);
-    setPicked({});
-    setAdvice(null);
-  };
-
-  const show = (id: string, col?: number) => {
-    setTab(id);
-    if (col !== undefined) {
-      setColumn((now) => ({ ...now, [id]: col }));
+  const choose = (pkg: Package) => {
+    const url = new URL(window.location.href);
+    url.search = "";
+    url.searchParams.set("pakket", String(pkg.id));
+    if (extraCount && extraAddon) {
+      url.searchParams.set("extra", `${extraAddon.id}:${extraCount}`);
     }
-    listsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    url.hash = "zelf-samenstellen";
+    window.history.replaceState(null, "", url.toString());
+    window.dispatchEvent(new Event(CHOOSE_EVENT));
+    document.getElementById("zelf-samenstellen")?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
-  const advised = advice ? PRICE_LISTS.find((l) => l.id === advice.list) : null;
-  const start = advised ? startPrice(advised, advice?.column) : null;
-  const current = PRICE_LISTS.find((l) => l.id === tab) ?? PRICE_LISTS[0];
-  const currentColumn = column[current.id] ?? 0;
+  const sizeLabel = size ? size.toLowerCase() : "";
+  let step = 0;
 
   return (
-    <>
-      <section className="pg-guide" aria-labelledby="pg-title">
-        <p className="pc-eyebrow">PRIJZEN</p>
-        <h1 className="pc-title" id="pg-title">
-          Welk <span>Helios-pakket</span> past bij jou?
-        </h1>
-        <p className="pc-intro">Beantwoord een paar vragen en zie meteen welke prijslijst bij je past. Of bekijk alle prijzen en stel zelf een pakket samen.</p>
+    <section className="pg-guide" aria-labelledby="pg-title">
+      <p className="pc-eyebrow">PRIJZEN</p>
+      <h1 className="pc-title" id="pg-title">
+        Welk <span>Helios-pakket</span> past bij jou?
+      </h1>
+      <p className="pc-intro">Beantwoord vier korte vragen en zie meteen welke pakketten bij je passen, met hun prijs. Of stel zelf een pakket samen.</p>
 
-        <div className="pg-questions">
-          {path.map((id, step) => {
-            const question = QUESTIONS[id];
-            return (
-              <div key={id} className="pg-question">
-                <p className="pg-q">
-                  <span className="pg-q-num" aria-hidden="true">
-                    {step + 1}
-                  </span>
-                  {question.text}
-                </p>
-                <div className="pg-options" role="group" aria-label={question.text}>
-                  {question.options.map((option) => (
-                    <button
-                      key={option.label}
-                      type="button"
-                      className={`pg-option${picked[id] === option.label ? " is-on" : ""}`}
-                      aria-pressed={picked[id] === option.label}
-                      onClick={() => answer(question, option)}
-                    >
-                      {option.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        {advised && advice && (
-          <div className="pg-advice" role="status">
-            <div className="pg-advice-text">
-              <span className="pg-advice-label">Ons advies</span>
-              <strong>
-                {advised.name}
-                {advice.column !== undefined && advised.columns ? `, ${advised.columns[advice.column]}` : ""}
-              </strong>
-              <span>
-                {advice.why}
-                {start && (
-                  <>
-                    {" "}
-                    {start.row.label} vanaf <b>{eur(start.price)}</b>
-                    {advised.id === "per-client" ? " per cliënt" : advised.id === "vijf" || advised.id === "skills-match" ? "" : " per jaar"}.
-                  </>
-                )}
-              </span>
-            </div>
-            <div className="pg-advice-actions">
-              <button type="button" className="pc-cta pg-cta" onClick={() => show(advised.id, advice.column)}>
-                Bekijk de prijslijst <Arrow />
-              </button>
-              <button type="button" className="pc-ghost" onClick={restart}>
-                Opnieuw
-              </button>
-            </div>
-          </div>
-        )}
-
-        <p className="pg-skip">
-          <a href="#prijslijsten">Alle prijslijsten bekijken</a>
-          <span aria-hidden="true">·</span>
-          <a href="#zelf-samenstellen">Zelf een pakket samenstellen</a>
+      {!data || !WHO.length ? (
+        <p className="pg-empty">
+          De pakketten staan hier binnenkort. <a href="mailto:info@helioscarreer.nl">Neem contact op</a> voor een pakket op maat.
         </p>
-      </section>
-
-      <section className="pg-lists" id="prijslijsten" ref={listsRef} aria-labelledby="pg-lists-title">
-        <h2 className="pc-step-title pg-lists-title" id="pg-lists-title">
-          Alle prijslijsten
-        </h2>
-        <div className="pg-tabs" role="tablist" aria-label="Prijslijsten">
-          {PRICE_LISTS.map((list) => (
-            <button
-              key={list.id}
-              type="button"
-              role="tab"
-              id={`pg-tab-${list.id}`}
-              aria-selected={list.id === tab}
-              aria-controls="pg-panel"
-              className={`pg-tab${list.id === tab ? " is-on" : ""}${advice?.list === list.id ? " is-advised" : ""}`}
-              onClick={() => setTab(list.id)}
-            >
-              <strong>{list.name}</strong>
-              <small>{list.short}</small>
-            </button>
-          ))}
-        </div>
-
-        <div className="pg-panel" id="pg-panel" role="tabpanel" aria-labelledby={`pg-tab-${current.id}`}>
-          <div className="pg-panel-head">
-            <div>
-              <h3 className="pg-panel-title">{current.name}</h3>
-              <p className="pg-panel-intro">{current.intro}</p>
+      ) : (
+        <div className="pg-questions">
+          <div className="pg-question">
+            <p className="pg-q">
+              <span className="pg-q-num" aria-hidden="true">
+                {++step}
+              </span>
+              Ik ben een
+            </p>
+            <div className="pg-options" role="group" aria-label="Ik ben een">
+              {WHO.map((w) => (
+                <Option key={w.key} on={answers.who === w.key} onClick={() => set({ who: w.key }, ["level"])}>
+                  {w.label}
+                </Option>
+              ))}
             </div>
-            {current.columns && current.columns.length > 1 && (
-              <div className="pg-columns" role="radiogroup" aria-label="Aantal cliënten">
-                {current.columns.map((c, i) => (
-                  <button
-                    key={c}
-                    type="button"
-                    role="radio"
-                    aria-checked={i === currentColumn}
-                    className={`pc-chip${i === currentColumn ? " is-on" : ""}`}
-                    onClick={() => setColumn((now) => ({ ...now, [current.id]: i }))}
-                  >
-                    {c}
-                  </button>
-                ))}
-              </div>
-            )}
           </div>
 
-          <Table list={current} column={currentColumn} />
-
-          {current.standard && (
-            <div className="pg-standard">
-              <h4>Standaard in elk pakket</h4>
-              <ul>
-                {current.standard.map((line) => (
-                  <li key={line}>
-                    <svg
-                      viewBox="0 0 24 24"
-                      width="14"
-                      height="14"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2.6"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      aria-hidden="true"
-                    >
-                      <path d="M20 6 9 17l-5-5" />
-                    </svg>
-                    {line}
-                  </li>
+          {isEducation && (
+            <div className="pg-question">
+              <p className="pg-q">
+                <span className="pg-q-num" aria-hidden="true">
+                  {++step}
+                </span>
+                Welk onderwijs?
+              </p>
+              <div className="pg-options" role="group" aria-label="Welk onderwijs?">
+                {LEVELS.map((l) => (
+                  <Option key={l.key} on={answers.level === l.key} onClick={() => set({ level: l.key }, [])}>
+                    {l.label}
+                  </Option>
                 ))}
-              </ul>
+              </div>
             </div>
           )}
 
-          <div className="pg-foot">
-            <div className="pg-notes">
-              {current.notes.map((note) => (
-                <p key={note}>{note}</p>
-              ))}
+          {answers.who && !needsLevel && (
+            <div className="pg-question">
+              <p className="pg-q">
+                <span className="pg-q-num" aria-hidden="true">
+                  {++step}
+                </span>
+                Hoe groot is het team?
+              </p>
+              <div className="pg-options" role="group" aria-label="Hoe groot is het team?">
+                {TEAMS.map((t) => (
+                  <Option key={t.value} on={answers.team === t.value} onClick={() => set({ team: t.value }, [])}>
+                    {t.label}
+                  </Option>
+                ))}
+              </div>
             </div>
-            <div className="pg-foot-actions">
-              <a
-                className="pc-cta pg-cta"
-                href={`mailto:info@helioscarreer.nl?subject=${encodeURIComponent(`Offerte Helios ${current.name}`)}&body=${encodeURIComponent(
-                  `Graag ontvang ik een offerte voor Helios ${current.name}${current.columns && current.columns.length > 1 ? ` (${current.columns[currentColumn]})` : ""}.\n\nOrganisatie:\nNaam:\nTelefoon:`,
-                )}`}
-              >
-                Offerte aanvragen <Arrow />
-              </a>
-              <a className="pc-ghost" href="#zelf-samenstellen">
-                Zelf samenstellen
-              </a>
+          )}
+
+          {answers.who && !needsLevel && answers.team !== undefined && (
+            <div className="pg-question">
+              <p className="pg-q">
+                <span className="pg-q-num" aria-hidden="true">
+                  {++step}
+                </span>
+                Hoeveel {unit} gebruiken Helios?
+              </p>
+              <div className="pg-options" role="group" aria-label={`Hoeveel ${unit} gebruiken Helios?`}>
+                {COUNTS.map((c) => (
+                  <Option key={c.value} on={answers.users === c.value} onClick={() => set({ users: c.value }, [])}>
+                    {c.label} {unit}
+                  </Option>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
         </div>
-      </section>
-    </>
+      )}
+
+      {done && offered.length > 0 && (
+        <div className="pg-result" role="status">
+          <div className="pg-result-head">
+            <span className="pg-advice-label">Pakketten voor jou</span>
+            <strong>
+              {audiences.find((a) => a.key === answers.who)?.label}
+              {size && <>, {sizeLabel}</>}
+            </strong>
+            <span>
+              {Number.isFinite(clientsOf(offered[0])) ? `Tot ${clientsOf(offered[0]).toLocaleString("nl-NL")} ${unit}` : `Onbeperkt ${unit}`}
+              {extraCount > 0 && extraAddon && (
+                <>
+                  , plus {TEAMS.find((t) => t.value === answers.team)?.open ? `${extraCount} of meer` : extraCount} × {extraAddon.name.toLowerCase()}
+                  {extraPrice && (
+                    <>
+                      {" "}
+                      ({euros(extraPrice.cents)} per stuk {extraPrice.text})
+                    </>
+                  )}{" "}
+                  voor een team van {TEAMS.find((t) => t.value === answers.team)?.label.toLowerCase()}
+                </>
+              )}
+              . Prijzen exclusief btw.
+            </span>
+          </div>
+
+          <div className="pg-cards">
+            {offered.map((pkg) => {
+              const price = yearPrice(pkg);
+              const own = price?.cents === 0;
+              const tests = pkg.includes.filter((line) => !/gebruiker|cliënt|onbeperkt|^tot /i.test(line));
+              return (
+                <article key={pkg.id} className={`pg-card${own ? " is-own" : ""}`}>
+                  <h3>{pkg.family ?? pkg.name}</h3>
+                  {pkg.description && <p className="pg-card-desc">{pkg.description}</p>}
+                  <p className="pg-card-price">
+                    {own ? (
+                      <strong>Zelf kiezen</strong>
+                    ) : price ? (
+                      <>
+                        <strong>{euros(price.cents)}</strong>
+                        <small>{price.text}</small>
+                      </>
+                    ) : (
+                      <small>Prijs op aanvraag</small>
+                    )}
+                  </p>
+                  {tests.length > 0 && (
+                    <ul className="pg-card-list">
+                      {tests.map((line) => (
+                        <li key={line}>
+                          <Check />
+                          {line}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  <button type="button" className={own ? "pc-ghost pg-card-btn" : "pc-cta pg-card-btn"} onClick={() => choose(pkg)}>
+                    {own ? "Zelf samenstellen" : `Kies ${pkg.family ?? pkg.name}`}
+                  </button>
+                </article>
+              );
+            })}
+          </div>
+
+          <button type="button" className="pg-restart" onClick={() => setAnswers({})}>
+            Opnieuw beginnen
+          </button>
+        </div>
+      )}
+
+      <p className="pg-skip">
+        <a href="#zelf-samenstellen">Direct zelf een pakket samenstellen</a>
+      </p>
+    </section>
   );
 }

@@ -5,13 +5,12 @@ import { SIGNUP_URL } from "@/lib/app-links";
 import { getPricing } from "@/lib/pricing";
 import "./prijzen.css";
 
-// Prijzen: eerst een paar vragen die naar de passende prijslijst wijzen en de prijslijsten zelf (lib/price-lists.ts),
-// daarna zelf samenstellen in de prijscalculator met de pakketten en toevoegingen uit Helios. Lukt het ophalen uit
-// Helios niet, dan staat daar "neem contact op".
+// Prijzen: eerst vier vragen die naar de passende pakketten uit Helios wijzen (PriceGuide), daarna zelf samenstellen in
+// de prijscalculator. Alle pakketten en prijzen komen uit Helios; lukt het ophalen niet, dan staat er "neem contact op".
 
 export const metadata: Metadata = {
   title: "Prijzen – Helios",
-  description: "De prijzen van Helios: beantwoord een paar vragen en zie welke prijslijst bij je past, bekijk alle prijslijsten of stel zelf een pakket samen.",
+  description: "De prijzen van Helios: beantwoord vier vragen en zie welke pakketten bij je passen, of stel zelf een pakket samen.",
 };
 
 export default async function PricingPage() {
@@ -19,7 +18,7 @@ export default async function PricingPage() {
 
   return (
     <main className="prc">
-      <PriceGuide />
+      <PriceGuide data={data} />
 
       <section className="prc-build" id="zelf-samenstellen" aria-label="Zelf een pakket samenstellen">
         {data && data.packages.length > 0 ? (
