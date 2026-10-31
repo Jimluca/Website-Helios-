@@ -98,7 +98,8 @@ function compose(data: PricingData, answers: Answers, education: string | undefi
   return {
     packageId: chosen.id,
     extraId: extra?.id,
-    extraCount, // Bedragen blijven bij elkaar ("€ 125" niet over twee regels).
+    extraCount,
+    // Bedragen blijven bij elkaar ("€ 125" niet over twee regels).
     summary: `Op basis van je antwoorden: ${parts.join(", ")}.`.replace(/€ /g, "€ "),
   };
 }
