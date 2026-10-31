@@ -1,16 +1,16 @@
 import type { Metadata } from "next";
-import PriceGuide from "@/components/PriceGuide";
-import Pricing from "@/components/Pricing";
+import PriceConfigurator from "@/components/PriceConfigurator";
 import { SIGNUP_URL } from "@/lib/app-links";
 import { getPricing } from "@/lib/pricing";
 import "./prijzen.css";
 
-// Prijzen: eerst vier vragen die naar de passende pakketten uit Helios wijzen (PriceGuide), daarna zelf samenstellen in
-// de prijscalculator. Alle pakketten en prijzen komen uit Helios; lukt het ophalen niet, dan staat er "neem contact op".
+// Prijzen: een configurator. Vier vragen stellen een pakket uit Helios samen, daarna kies je eventueel een ander pakket
+// en voeg je toe wat je nog nodig hebt (PriceConfigurator). Alle pakketten en prijzen komen uit Helios; lukt het
+// ophalen niet, dan staat er "neem contact op".
 
 export const metadata: Metadata = {
   title: "Prijzen – Helios",
-  description: "De prijzen van Helios: beantwoord vier vragen en zie welke pakketten bij je passen, of stel zelf een pakket samen.",
+  description: "Stel je Helios-pakket samen: beantwoord vier vragen, krijg een pakket met prijs en voeg toe wat je nog nodig hebt.",
 };
 
 export default async function PricingPage() {
@@ -18,17 +18,18 @@ export default async function PricingPage() {
 
   return (
     <main className="prc">
-      <PriceGuide data={data} />
-
-      <section className="prc-build" id="zelf-samenstellen" aria-label="Zelf een pakket samenstellen">
-        {data && data.packages.length > 0 ? (
-          <Pricing data={data} />
-        ) : (
+      {data && data.packages.length > 0 ? (
+        <PriceConfigurator data={data} />
+      ) : (
+        <header className="prc-head">
+          <h1 className="prc-title">
+            Stel jouw <span>Helios-pakket</span> samen
+          </h1>
           <p className="prc-empty">
-            Zelf een pakket samenstellen kan hier binnenkort. Wil je nu al een pakket op maat? <a href="mailto:info@helioscarreer.nl">Neem contact op</a>.
+            De pakketten staan hier binnenkort. Wil je nu al een pakket op maat? <a href="mailto:info@helioscarreer.nl">Neem contact op</a>.
           </p>
-        )}
-      </section>
+        </header>
+      )}
 
       <p className="prc-personal">
         Ben je cliënt of leerling en wil je zelf testen doen? <a href={SIGNUP_URL}>Maak een gratis account</a>.

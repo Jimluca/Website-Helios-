@@ -95,7 +95,8 @@ const visibleFor = (packages: Package[], audience: string | null, size: string |
 /** Bij een pakket per gebruiker telt het aantal gebruikers; bij een toevoeging per stuk het aantal stuks. */
 const isPerSeat = (item: Package) => item.prices.some((price) => price.perSeat);
 
-export default function Pricing({ data }: { data: PricingData }) {
+/** summary: wat de vragen bovenaan (PriceGuide) hebben samengesteld; dan staat hier "Jouw samengestelde pakket". */
+export default function Pricing({ data, summary = null }: { data: PricingData; summary?: string | null }) {
   const periods = useMemo(() => {
     const all = new Set([...data.packages, ...data.addons].flatMap((item) => item.prices.map((price) => price.period)));
 
@@ -310,12 +311,22 @@ export default function Pricing({ data }: { data: PricingData }) {
   return (
     <div className="pc">
       <header className="pc-head">
-        <p className="pc-eyebrow">ZELF SAMENSTELLEN</p>
+        <p className="pc-eyebrow">{summary ? "JOUW PAKKET" : "ZELF SAMENSTELLEN"}</p>
         <h2 className="pc-title">
-          Stel jouw <span>Helios-pakket</span> samen.
+          {summary ? (
+            <>
+              Jouw <span>samengestelde</span> pakket
+            </>
+          ) : (
+            <>
+              Stel jouw <span>Helios-pakket</span> samen.
+            </>
+          )}
         </h2>
         <p className="pc-intro">
-          Kies een basispakket en breid het naar wens uit met losse toevoegingen. Zo stel je eenvoudig een oplossing samen die past bij jouw organisatie.
+          {summary
+            ? `${summary} Kies eventueel een ander pakket en voeg toe wat je nog nodig hebt.`
+            : "Kies een basispakket en breid het naar wens uit met losse toevoegingen. Zo stel je eenvoudig een oplossing samen die past bij jouw organisatie."}
         </p>
         <div className="pc-badge" aria-hidden="true">
           <span className="pc-badge-icon">
@@ -335,12 +346,17 @@ export default function Pricing({ data }: { data: PricingData }) {
               1
             </span>
             <div>
-              <h2 className="pc-step-title">Kies jouw basispakket</h2>
-              <p className="pc-step-text">Elk pakket bevat een set instrumenten en functies. Je kunt het later uitbreiden met toevoegingen.</p>
+              <h2 className="pc-step-title">{summary ? "Jouw pakket" : "Kies jouw basispakket"}</h2>
+              <p className="pc-step-text">
+                {summary
+                  ? "Dit pakket past bij je antwoorden en staat al aangevinkt. Een ander pakket kiezen kan ook."
+                  : "Elk pakket bevat een set instrumenten en functies. Je kunt het later uitbreiden met toevoegingen."}
+              </p>
             </div>
           </div>
 
-          {audienceList.length > 0 && (
+          {/* Na de vragen liggen doelgroep en grootte vast (die volgen uit de antwoorden). */}
+          {audienceList.length > 0 && !summary && (
             <div className="pc-audience">
               {audienceList.length > 1 && (
                 <div className="pc-chips" role="radiogroup" aria-label="Doelgroep">
@@ -441,7 +457,7 @@ export default function Pricing({ data }: { data: PricingData }) {
                   2
                 </span>
                 <div className="pc-step-body">
-                  <h2 className="pc-step-title">Voeg losse toevoegingen toe</h2>
+                  <h2 className="pc-step-title">{summary ? "Voeg nog iets toe" : "Voeg losse toevoegingen toe"}</h2>
                   <p className="pc-step-text">Breid je pakket uit met losse testen en extra gebruikers. De prijs wordt automatisch berekend.</p>
                 </div>
                 {data.addons.length > 6 && (

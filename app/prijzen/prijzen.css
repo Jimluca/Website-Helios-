@@ -1422,160 +1422,20 @@
     color: var(--pc-muted);
 }
 
-.pg-skip a {
-    font-weight: 600;
-    color: var(--d-link, #4B2BF0);
-}
-
-
-/* De pakketten uit Helios die bij de antwoorden passen. */
-.pg-result {
-    margin-top: 30px;
-    padding: 24px;
-    border-radius: 24px;
-    border: 1px solid color-mix(in srgb, #6639EC 22%, var(--pc-line));
-    background:
-        radial-gradient(120% 100% at 0% 0%, rgb(255 255 255 / .9) 0%, rgb(255 255 255 / 0) 60%),
-        color-mix(in srgb, #6639EC 6%, var(--d-card, #FFFFFF));
-    box-shadow: inset 0 1px 0 rgb(255 255 255 / .9), 0 24px 50px -30px rgb(60 40 160 / .4);
-    animation: pg-in .45s var(--ease) both;
-}
-
-:root[data-theme='dark'] .pg-result {
-    border-color: rgb(166 143 250 / .3);
-    background: rgb(102 57 236 / .12);
-    box-shadow: none;
-}
-
-.pg-result-head {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
-
-.pg-result-head strong {
-    font-family: var(--font-inter-tight), sans-serif;
-    font-size: 26px;
-    font-weight: 800;
-    letter-spacing: -0.03em;
-    color: var(--pc-ink);
-}
-
-.pg-result-head > span:last-child {
-    font-size: 15px;
-    line-height: 1.5;
-    color: var(--pc-text);
-}
-
-.pg-cards {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
-    gap: 14px;
-    margin-top: 20px;
-}
-
-.pg-card {
-    display: flex;
-    flex-direction: column;
-    padding: 18px;
-    border-radius: 18px;
-    border: 1px solid var(--pc-line);
-    background: var(--d-card, #FFFFFF);
-}
-
-.pg-card.is-own {
-    border-style: dashed;
-    background: transparent;
-}
-
-.pg-card h3 {
-    margin: 0;
-    font-family: var(--font-inter-tight), sans-serif;
-    font-size: 19px;
-    font-weight: 800;
-    letter-spacing: -0.02em;
-    color: var(--pc-ink);
-}
-
-.pg-card-desc {
-    margin: 6px 0 0;
-    font-size: 13.5px;
-    line-height: 1.45;
-    color: var(--pc-text);
-}
-
-.pg-card-price {
-    display: flex;
-    align-items: baseline;
-    flex-wrap: wrap;
-    gap: 4px 8px;
-    margin: 14px 0 0;
-}
-
-.pg-card-price strong {
-    font-family: var(--font-inter-tight), sans-serif;
-    font-size: 26px;
-    font-weight: 800;
-    letter-spacing: -0.03em;
-    color: var(--pc-ink);
-}
-
-.pg-card-price small {
-    font-size: 13px;
-    color: var(--pc-muted);
-}
-
-.pg-card-list {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    margin: 14px 0 0;
-    padding: 14px 0 0;
-    border-top: 1px solid var(--pc-line);
-    list-style: none;
-}
-
-.pg-card-list li {
-    display: flex;
-    align-items: flex-start;
-    gap: 8px;
-    font-size: 13.5px;
-    line-height: 1.4;
-    color: var(--pc-text);
-}
-
-.pg-card-list svg {
-    flex: none;
-    margin-top: 2px;
-    color: #6639EC;
-}
-
-:root[data-theme='dark'] .pg-card-list svg {
-    color: #A68FFA;
-}
-
-.pc-cta.pg-card-btn,
-.pc-ghost.pg-card-btn {
-    width: 100%;
-    height: 44px;
-    margin: auto 0 0;
-}
-
-/* De knoppen staan onderaan, op één lijn in alle kaarten. */
-.pg-card-list,
-.pg-card-price:last-of-type {
-    margin-bottom: 18px;
-}
-
-.pg-restart {
-    margin-top: 16px;
-    padding: 4px 2px;
+.pg-skip a,
+.pg-skip button {
+    padding: 0;
     border: 0;
     background: none;
-    font: 600 14px var(--font-inter), sans-serif;
+    font: 600 15px var(--font-inter), sans-serif;
     color: var(--d-link, #4B2BF0);
     cursor: pointer;
 }
+
+.pg-skip button:hover {
+    text-decoration: underline;
+}
+
 
 .pg-empty {
     margin: 28px 0 0;
@@ -1597,7 +1457,4 @@
         padding-left: 0;
     }
 
-    .pg-result {
-        padding: 18px 14px;
-    }
 }
