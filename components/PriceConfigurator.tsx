@@ -3,21 +3,18 @@
 import { useEffect, useRef, useState } from "react";
 import PriceAdvice from "@/components/PriceAdvice";
 import PriceGuide from "@/components/PriceGuide";
-import Pricing, { type Adjust } from "@/components/Pricing";
-import { compose, unitFor, type Answers, type Composed } from "@/lib/configurator";
+import Pricing from "@/components/Pricing";
+import { compose, type Answers, type Composed } from "@/lib/configurator";
 import { CHOOSE_EVENT } from "@/lib/pricing-events";
 import type { Pricing as PricingData } from "@/lib/pricing-shared";
 
-// De configurator op de pagina Prijzen: de vier vragen (PriceGuide) stellen één pakket samen (lib/configurator.ts), en
-// in de calculator eronder (Pricing) pas je dat aan: het aantal professionals en leerlingen, studenten of cliënten,
-// een andere productlijn, en toevoegingen. Een ander aantal is gewoon een ander antwoord: het pakket wordt opnieuw
-// samengesteld, in de goedkoopste grootte. De keuze gaat via de adresbalk (?pakket=…&extra=…), zodat hij bij herladen
-// en in een gedeelde link blijft staan.
+// De configurator op de pagina Prijzen: de vier vragen (PriceGuide) stellen één pakket samen (lib/configurator.ts),
+// "Ons advies" (PriceAdvice) laat het zien met de prijs, en in de calculator eronder (Pricing) voeg je nog dingen toe.
+// Een ander antwoord stelt opnieuw samen, in de goedkoopste grootte. De keuze gaat via de adresbalk
+// (?pakket=…&extra=…), zodat hij bij herladen en in een gedeelde link blijft staan.
 
 export default function PriceConfigurator({ data }: { data: PricingData }) {
   const [answers, setAnswers] = useState<Answers>({});
-  // De productlijn die je zelf kiest in de calculator; zonder keuze de eerste betaalde van Helios.
-  const [family, setFamily] = useState<string | null>(null);
   const [composed, setComposed] = useState<Composed | null>(null);
   // Zonder vragen meteen zelf samenstellen, of een gedeelde link met een samenstelling.
   const [skipped, setSkipped] = useState(false);
@@ -27,8 +24,8 @@ export default function PriceConfigurator({ data }: { data: PricingData }) {
 
   const open = composed !== null || skipped;
 
-  const apply = (nextAnswers: Answers, nextFamily: string | null) => {
-    const next = compose(data, nextAnswers, nextFamily);
+  const apply = (nextAnswers: Answers) => {
+    const next = compose(data, nextAnswers);
     if (next) {
       const url = new URL(window.location.href);
       url.search = "";
@@ -52,11 +49,8 @@ export default function PriceConfigurator({ data }: { data: PricingData }) {
   const onAnswer = (patch: Answers, clear: (keyof Answers)[] = []) => {
     const next = { ...answers, ...patch };
     for (const key of clear) delete next[key];
-    // Een andere doelgroep: begin weer bij het standaardpakket daarvan.
-    const nextFamily = patch.who && patch.who !== answers.who ? null : family;
     setAnswers(next);
-    setFamily(nextFamily);
-    apply(next, nextFamily);
+    apply(next);
   };
 
   // Een gedeelde link met een samenstelling opent de calculator meteen; pas na de eerste weergave, zodat server en
@@ -81,22 +75,6 @@ export default function PriceConfigurator({ data }: { data: PricingData }) {
     }
   }, [scrollKey]);
 
-  const adjust: Adjust | null = composed
-    ? {
-        team: answers.team ?? 1,
-        clients: answers.users ?? 1,
-        unit: unitFor(answers),
-        includedUsers: composed.includedUsers,
-        includedClients: composed.includedClients,
-        onTeam: (team) => onAnswer({ team }),
-        onClients: (users) => onAnswer({ users }),
-        onFamily: (next) => {
-          setFamily(next);
-          apply(answers, next);
-        },
-      }
-    : null;
-
   return (
     <>
       <PriceGuide
@@ -118,7 +96,7 @@ export default function PriceConfigurator({ data }: { data: PricingData }) {
             onEdit={() => document.getElementById("pg-title")?.scrollIntoView({ behavior: "smooth", block: "start" })}
           />
         )}
-        {open && <Pricing data={data} summary={composed?.summary ?? null} adjust={adjust} />}
+        {open && <Pricing data={data} summary={composed?.summary ?? null} configured={composed !== null} />}
       </section>
     </>
   );

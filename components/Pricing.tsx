@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { euros, type Package, type Price, type Pricing as PricingData } from "@/lib/pricing-shared";
-import { COUNTS, isCountAddon } from "@/lib/configurator";
+import { isCountAddon } from "@/lib/configurator";
 import { CHOOSE_EVENT } from "@/lib/pricing-events";
 
 // Prijscalculator (ontwerp: "Prijscalculator Helios"): kies een basispakket, voeg toevoegingen toe en zie meteen wat
@@ -96,24 +96,11 @@ const visibleFor = (packages: Package[], audience: string | null, size: string |
 /** Bij een pakket per gebruiker telt het aantal gebruikers; bij een toevoeging per stuk het aantal stuks. */
 const isPerSeat = (item: Package) => item.prices.some((price) => price.perSeat);
 
-/** Aanpassen van het samengestelde pakket (PriceConfigurator): aantallen en productlijn gaan terug naar de configurator. */
-export type Adjust = {
-  team: number;
-  clients: number;
-  /** leerlingen, studenten of cliënten */
-  unit: string;
-  includedUsers: number;
-  includedClients: number;
-  onTeam: (team: number) => void;
-  onClients: (clients: number) => void;
-  onFamily: (family: string | null) => void;
-};
-
 /**
  * summary: wat de vragen bovenaan (PriceGuide) hebben samengesteld; dan staat hier "Jouw samengestelde pakket".
- * adjust: dan staat bij stap 1 alleen dat ene pakket, met de aantallen om aan te passen.
+ * configured: het pakket komt uit de vragen; dan geen stap 1 maar meteen de toevoegingen.
  */
-export default function Pricing({ data, summary = null, adjust = null }: { data: PricingData; summary?: string | null; adjust?: Adjust | null }) {
+export default function Pricing({ data, summary = null, configured = false }: { data: PricingData; summary?: string | null; configured?: boolean }) {
   const periods = useMemo(() => {
     const all = new Set([...data.packages, ...data.addons].flatMap((item) => item.prices.map((price) => price.period)));
 
@@ -140,7 +127,6 @@ export default function Pricing({ data, summary = null, adjust = null }: { data:
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState("Alles");
   const [saved, setSaved] = useState<string | null>(null);
-  const [showOthers, setShowOthers] = useState(false);
 
   // Wat er nu gekozen is, voor als de vragen bovenaan opnieuw samenstellen (zie restore).
   const chosenRef = useRef(chosen);
@@ -267,7 +253,7 @@ export default function Pricing({ data, summary = null, adjust = null }: { data:
   // Een toevoeging met een grootte (de prijs verschilt per grootte) staat alleen bij pakketten van die grootte.
   // Na de vragen regelen de aantallen bij stap 1 de extra gebruikers en cliënten; die staan dan niet bij de toevoegingen.
   const offeredAddons = data.addons.filter(
-    (addon) => !redundant(addon) && (!addon.size || size === null || addon.size === size) && !(adjust && isCountAddon(addon)),
+    (addon) => !redundant(addon) && (!addon.size || size === null || addon.size === size) && !(configured && isCountAddon(addon)),
   );
   const sorted = [...offeredAddons].sort((a, b) => rank(groupOf(a)) - rank(groupOf(b)));
   const groups = ["Alles", ...new Set(sorted.map(groupOf))];
@@ -352,17 +338,12 @@ export default function Pricing({ data, summary = null, adjust = null }: { data:
     return `mailto:${CONTACT}?subject=${encodeURIComponent(`Offerte Helios${pkg ? ` – ${pkg.name}` : ""}`)}&body=${encodeURIComponent(rows.join("\n"))}`;
   };
 
-  // Een pakketkaart: een keuzeknop, of (het voorgestelde pakket na de vragen) een gewone kaart.
-  const packageCard = (item: Package, i: number, onPick?: () => void) => {
+  // Een pakketkaart om te kiezen (stap 1).
+  const packageCard = (item: Package, i: number, onPick: () => void) => {
     const on = item.id === packageId;
     const price = cost(item, period, 1);
-    const Tag = onPick ? "button" : "div";
     return (
-      <Tag
-        key={item.id}
-        {...(onPick ? { type: "button" as const, role: "radio", "aria-checked": on, onClick: onPick } : {})}
-        className={`pc-package${on ? " is-on" : ""}${onPick ? "" : " is-proposal"}`}
-      >
+      <button key={item.id} type="button" role="radio" aria-checked={on} className={`pc-package${on ? " is-on" : ""}`} onClick={onPick}>
         <span className="pc-package-top">
           <span className="pc-icon pc-icon-lg">
             <Icon d={PACKAGE_ICONS[i % PACKAGE_ICONS.length]} size={26} stroke={1.8} />
@@ -399,7 +380,7 @@ export default function Pricing({ data, summary = null, adjust = null }: { data:
             </span>
           ))}
         </span>
-      </Tag>
+      </button>
     );
   };
 
@@ -429,154 +410,75 @@ export default function Pricing({ data, summary = null, adjust = null }: { data:
 
       <div className="pc-layout">
         <section className="pc-main" aria-label="Samenstellen">
-          <div className="pc-step" id="pakketten">
-            <span className="pc-step-num" aria-hidden="true">
-              1
-            </span>
-            <div>
-              <h2 className="pc-step-title">{summary ? "Jouw pakket" : "Kies jouw basispakket"}</h2>
-              <p className="pc-step-text">
-                {summary
-                  ? "Dit pakket past bij je antwoorden. Pas het aantal professionals en " + (adjust?.unit ?? "cliënten") + " aan, of kies een ander pakket."
-                  : "Elk pakket bevat een set instrumenten en functies. Je kunt het later uitbreiden met toevoegingen."}
-              </p>
-            </div>
-          </div>
-
-          {/* Na de vragen liggen doelgroep en grootte vast (die volgen uit de antwoorden). */}
-          {audienceList.length > 0 && !summary && (
-            <div className="pc-audience">
-              {audienceList.length > 1 && (
-                <div className="pc-chips" role="radiogroup" aria-label="Doelgroep">
-                  {audienceList.map((item) => (
-                    <button
-                      key={item.key}
-                      type="button"
-                      role="radio"
-                      aria-checked={audience === item.key}
-                      className={`pc-chip${audience === item.key ? " is-on" : ""}`}
-                      onClick={() => switchTo(item.key, size)}
-                    >
-                      {item.label}
-                    </button>
-                  ))}
-                </div>
-              )}
-              {sizes.length > 1 && (
-                <div className="pc-sizes">
-                  <span className="pc-sizes-label">Grootte</span>
-                  <div className="pc-chips" role="radiogroup" aria-label="Grootte">
-                    {sizes.map((name) => (
-                      <button
-                        key={name}
-                        type="button"
-                        role="radio"
-                        aria-checked={size === name}
-                        className={`pc-chip${size === name ? " is-on" : ""}`}
-                        onClick={() => switchTo(audience, name)}
-                      >
-                        {name}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
-          {adjust && pkg ? (
+          {/* Na de vragen staat het advies (PriceAdvice) erboven en is het pakket al gekozen: dan begint het hier bij de toevoegingen. */}
+          {!configured && (
             <>
-              <div className="pc-proposal">
-                {packageCard(pkg, data.packages.indexOf(pkg))}
-                <div className="pc-adjust" aria-label="Aanpassen">
-                  <div className="pc-adjust-row">
-                    <span className="pc-adjust-label">
-                      <strong>Professionals</strong>
-                      <small>
-                        {Number.isFinite(adjust.includedUsers)
-                          ? `${adjust.includedUsers} in het pakket${adjust.team > adjust.includedUsers ? `, ${adjust.team - adjust.includedUsers} extra` : ""}`
-                          : "Onbeperkt in het pakket"}
-                      </small>
-                    </span>
-                    <span className="pc-qty">
-                      <button type="button" aria-label="Eén professional minder" onClick={() => adjust.onTeam(Math.max(1, adjust.team - 1))}>
-                        −
-                      </button>
-                      <input
-                        type="number"
-                        min={1}
-                        max={999}
-                        value={adjust.team}
-                        onChange={(e) => adjust.onTeam(Math.max(1, Math.min(999, Number(e.target.value) || 1)))}
-                        aria-label="Aantal professionals"
-                      />
-                      <button type="button" aria-label="Eén professional meer" onClick={() => adjust.onTeam(Math.min(999, adjust.team + 1))}>
-                        +
-                      </button>
-                    </span>
-                  </div>
-                  <div className="pc-adjust-row">
-                    <span className="pc-adjust-label">
-                      <strong>{adjust.unit.charAt(0).toUpperCase() + adjust.unit.slice(1)}</strong>
-                      <small>
-                        {Number.isFinite(adjust.includedClients)
-                          ? `Tot ${adjust.includedClients.toLocaleString("nl-NL")} in het pakket`
-                          : "Onbeperkt in het pakket"}
-                      </small>
-                    </span>
-                    <select
-                      className="pc-select"
-                      value={adjust.clients}
-                      onChange={(e) => adjust.onClients(Number(e.target.value))}
-                      aria-label={`Aantal ${adjust.unit}`}
-                    >
-                      {COUNTS.map((c) => (
-                        <option key={c.value} value={c.value}>
-                          {c.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <p className="pc-adjust-note">
-                    Meer professionals of {adjust.unit}? Dan kiezen we vanzelf de voordeligste grootte, met extra accounts als dat nodig is.
-                  </p>
+              <div className="pc-step" id="pakketten">
+                <span className="pc-step-num" aria-hidden="true">
+                  1
+                </span>
+                <div>
+                  <h2 className="pc-step-title">Kies jouw basispakket</h2>
+                  <p className="pc-step-text">Elk pakket bevat een set instrumenten en functies. Je kunt het later uitbreiden met toevoegingen.</p>
                 </div>
               </div>
-              {visiblePackages.length > 1 && (
-                <button type="button" className="pc-others-toggle" aria-expanded={showOthers} onClick={() => setShowOthers((v) => !v)}>
-                  {showOthers ? "Andere pakketten verbergen" : "Ander pakket kiezen"}
-                  <Icon d={ICONS.arrow} size={14} stroke={2} />
-                </button>
-              )}
-              {showOthers && (
-                <div className="pc-packages" role="radiogroup" aria-label="Ander pakket">
-                  {visiblePackages
-                    .filter((item) => item.id !== pkg.id)
-                    .map((item) =>
-                      packageCard(item, data.packages.indexOf(item), () => {
-                        adjust.onFamily(item.family ?? null);
-                        setShowOthers(false);
-                      }),
-                    )}
+
+              {audienceList.length > 0 && (
+                <div className="pc-audience">
+                  {audienceList.length > 1 && (
+                    <div className="pc-chips" role="radiogroup" aria-label="Doelgroep">
+                      {audienceList.map((item) => (
+                        <button
+                          key={item.key}
+                          type="button"
+                          role="radio"
+                          aria-checked={audience === item.key}
+                          className={`pc-chip${audience === item.key ? " is-on" : ""}`}
+                          onClick={() => switchTo(item.key, size)}
+                        >
+                          {item.label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  {sizes.length > 1 && (
+                    <div className="pc-sizes">
+                      <span className="pc-sizes-label">Grootte</span>
+                      <div className="pc-chips" role="radiogroup" aria-label="Grootte">
+                        {sizes.map((name) => (
+                          <button
+                            key={name}
+                            type="button"
+                            role="radio"
+                            aria-checked={size === name}
+                            className={`pc-chip${size === name ? " is-on" : ""}`}
+                            onClick={() => switchTo(audience, name)}
+                          >
+                            {name}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
+
+              <div className="pc-packages" role="radiogroup" aria-label="Basispakket">
+                {visiblePackages.map((item, i) => packageCard(item, i, () => setPackageId(item.id)))}
+              </div>
             </>
-          ) : (
-            <div className="pc-packages" role="radiogroup" aria-label="Basispakket">
-              {visiblePackages.map((item, i) => packageCard(item, i, () => setPackageId(item.id)))}
-            </div>
           )}
 
           {data.addons.length > 0 && (
             <>
-              <div className="pc-step pc-step-2">
+              <div className={`pc-step pc-step-2${configured ? " is-first" : ""}`}>
                 <span className="pc-step-num" aria-hidden="true">
                   2
                 </span>
                 <div className="pc-step-body">
                   <h2 className="pc-step-title">{summary ? "Voeg nog iets toe" : "Voeg losse toevoegingen toe"}</h2>
                   <p className="pc-step-text">
-                    {adjust
+                    {configured
                       ? "Zet losse testen aan die nog niet in je pakket zitten. De prijs wordt automatisch berekend."
                       : "Breid je pakket uit met losse testen en extra gebruikers. De prijs wordt automatisch berekend."}
                   </p>
@@ -738,8 +640,8 @@ export default function Pricing({ data, summary = null, adjust = null }: { data:
                   </span>
                 ))}
               </div>
-              <a className="pc-link" href="#pakketten">
-                Andere keuze maken <Icon d={ICONS.arrow} size={14} stroke={2} />
+              <a className="pc-link" href={configured ? "#pg-title" : "#pakketten"}>
+                {configured ? "Wijzig antwoorden" : "Andere keuze maken"} <Icon d={ICONS.arrow} size={14} stroke={2} />
               </a>
             </div>
           ) : (

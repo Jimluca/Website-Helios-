@@ -77,6 +77,18 @@ export default function PriceAdvice({ data, answers, composed, onEdit }: { data:
   const extraUsers = composed.extras.map((e) => ({ ...e, addon: data.addons.find((a) => a.id === e.id) })).filter((e) => e.addon);
   const yearPrice = pkg.prices.find((p) => p.period === "year") ?? pkg.prices[0];
 
+  // De prijs van het advies per jaar: het pakket plus de extra accounts (een maandprijs telt twaalf keer).
+  const perYear = (item: Package) => {
+    const year = item.prices.find((p) => p.period === "year");
+    const month = item.prices.find((p) => p.period === "month");
+    return year ? year.amount : month ? month.amount * 12 : 0;
+  };
+  const priceLines = [
+    { label: `${name}${pkg.size ? ` (${pkg.size.toLowerCase()})` : ""}`, cents: perYear(pkg) },
+    ...extraUsers.map((e) => ({ label: `${e.count} ${e.addon!.name.toLowerCase()}${e.count === 1 ? "" : "s"}`, cents: perYear(e.addon!) * e.count })),
+  ];
+  const totalCents = priceLines.reduce((sum, line) => sum + line.cents, 0);
+
   const reasons = [
     Number.isFinite(composed.includedUsers)
       ? `Er zitten ${composed.includedUsers} ${composed.includedUsers === 1 ? "gebruiker" : "gebruikers"} in${
@@ -117,8 +129,25 @@ export default function PriceAdvice({ data, answers, composed, onEdit }: { data:
         </h2>
         <p className="pa-text">
           Dit pakket sluit het beste aan bij {education ? "onderwijsinstellingen" : "loopbaanorganisaties"} met {countText.toLowerCase()} en een teamgrootte van{" "}
-          {teamText.toLowerCase()}. {pkg.description ?? ""} Hieronder pas je het aan en breid je het uit.
+          {teamText.toLowerCase()}. {pkg.description ?? ""} Hieronder voeg je nog toe wat je nodig hebt.
         </p>
+        <div className="pa-price">
+          <p className="pa-price-total">
+            <strong>{euros(totalCents)}</strong>
+            <span>per jaar, excl. btw</span>
+          </p>
+          {priceLines.length > 1 && (
+            <p className="pa-price-lines">
+              {priceLines.map((line, i) => (
+                <span key={line.label}>
+                  {i > 0 && <span aria-hidden="true"> + </span>}
+                  {line.label} {euros(line.cents).replace(" ", " ")}
+                </span>
+              ))}
+            </p>
+          )}
+          {priceLines.length === 1 && <p className="pa-price-lines">{priceLines[0].label}</p>}
+        </div>
         <button type="button" className="pa-why" aria-expanded={why} onClick={() => setWhy((v) => !v)}>
           Waarom dit pakket?
           <Icon d={ICONS.arrow} size={16} />
