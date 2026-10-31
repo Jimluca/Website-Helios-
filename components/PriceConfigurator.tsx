@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import PriceGuide from "@/components/PriceGuide";
-import Pricing from "@/components/Pricing";
+import Pricing, { STORAGE_KEY } from "@/components/Pricing";
 import { compose, unitFor, type Answers, type Composed } from "@/lib/configurator";
 import { CHOOSE_EVENT } from "@/lib/pricing-events";
 import type { Pricing as PricingData } from "@/lib/pricing-shared";
@@ -20,6 +20,8 @@ export default function PriceConfigurator({ data }: { data: PricingData }) {
   const mounted = useRef(false);
   const target = useRef<HTMLElement>(null);
   const [scrollKey, setScrollKey] = useState(0);
+  // Een nieuwe calculator (alles leeg) bij "Liever direct zelf samenstellen".
+  const [run, setRun] = useState(0);
 
   const open = composed !== null || skipped;
 
@@ -81,7 +83,19 @@ export default function PriceConfigurator({ data }: { data: PricingData }) {
         answers={answers}
         onAnswer={onAnswer}
         onSkip={() => {
+          // Zelf samenstellen begint leeg: geen antwoorden, geen advies, geen gekozen pakket of toevoegingen; alleen de
+          // losse modules.
+          setAnswers({});
+          setComposed(null);
+          const url = new URL(window.location.href);
+          url.search = "";
+          url.hash = "";
+          window.history.replaceState(null, "", url.toString());
+          try {
+            localStorage.removeItem(STORAGE_KEY);
+          } catch {}
           setSkipped(true);
+          setRun((n) => n + 1);
           setScrollKey((n) => n + 1);
         }}
       />
@@ -89,6 +103,7 @@ export default function PriceConfigurator({ data }: { data: PricingData }) {
       <section className="prc-build" id="zelf-samenstellen" ref={target} aria-label="Jouw pakket">
         {open && (
           <Pricing
+            key={run}
             data={data}
             advice={
               composed

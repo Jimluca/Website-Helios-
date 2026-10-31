@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { euros, type Package, type Price, type Pricing as PricingData } from "@/lib/pricing-shared";
+import ModuleInfo from "@/components/ModuleInfo";
 import PriceAdvice from "@/components/PriceAdvice";
 import { clientSteps, isLimitAddon, limitExtras, MAX_PROFESSIONALS, professionalAddon, usersOf, type Answers, type Composed } from "@/lib/configurator";
 import { CHOOSE_EVENT } from "@/lib/pricing-events";
@@ -14,7 +15,7 @@ import { CHOOSE_EVENT } from "@/lib/pricing-events";
 type Period = "month" | "year";
 
 const CONTACT = "info@helioscarreer.nl";
-const STORAGE_KEY = "helios-prijscalculator";
+export const STORAGE_KEY = "helios-prijscalculator";
 
 const ICONS = {
   box: "M21 8 12 3 3 8v8l9 5 9-5V8zM3 8l9 5 9-5M12 13v8",
@@ -32,6 +33,7 @@ const ICONS = {
   advice: "M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z",
   heart: "M19 14c1.5-1.5 3-3.2 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.8 0-3 .5-4.5 2-1.5-1.5-2.7-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4 3 5.5l7 7z",
   bolt: "M13 2 3 14h9l-1 8 10-12h-9l1-8z",
+  info: "M12 2a10 10 0 1 0 0 20a10 10 0 1 0 0-20zM12 16v-5M12 8h.01",
 };
 const PACKAGE_ICONS = [ICONS.box, ICONS.bars, ICONS.gem];
 // De volgorde van de soorten testen (zoals in Helios); een onbekende soort komt erachter, "Gebruikers" als laatste.
@@ -148,6 +150,8 @@ export default function Pricing({ data, advice = null }: { data: PricingData; ad
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState("Alles");
   const [saved, setSaved] = useState<string | null>(null);
+  // De uitleg ("i") die open staat: van een module, of van een test (een regel) in een pakket.
+  const [infoFor, setInfoFor] = useState<{ id: number; line?: string } | null>(null);
 
   // Na de vragen staat de samenstelling bovenaan in het advies. Ben je bij de toevoegingen en is het totaal daarvan uit
   // beeld, dan staat onderin een balk met het totaal. (Vast in beeld: position: sticky werkt niet, omdat html en body
@@ -478,6 +482,76 @@ export default function Pricing({ data, advice = null }: { data: PricingData; ad
   };
 
   // Onderdelen van "Jouw samenstelling": in de zijkolom, of (na de vragen) in "Ons advies" bovenaan.
+  // De testen in een pakket, elk met een "i" als Helios er uitleg bij heeft.
+  const featureLines = (item: Package) =>
+    item.includes
+      .filter((line) => !isLimitLine(line))
+      .map((line) => (
+        <span key={line}>
+          <Icon d={ICONS.check} size={14} stroke={2.6} />
+          <span className="pc-feature-text">{line}</span>
+          {item.info?.some((test) => test.line === line) && (
+            <button type="button" className="pc-info pc-info-sm" aria-label={`Wat is ${line}?`} onClick={() => setInfoFor({ id: item.id, line })}>
+              <Icon d={ICONS.info} size={14} stroke={2} />
+            </button>
+          )}
+        </span>
+      ));
+
+  // Het venster bij de "i": de uitleg van een module (met toevoegen of weghalen) of van een test in een pakket.
+  const infoDialog = (() => {
+    if (!infoFor) return null;
+    const close = () => setInfoFor(null);
+    if (infoFor.line) {
+      const item = data.packages.find((p) => p.id === infoFor.id);
+      const tests = item?.info?.filter((test) => test.line === infoFor.line) ?? [];
+      if (!item || !tests.length) return null;
+      return (
+        <ModuleInfo
+          title={infoFor.line}
+          eyebrow={`In het pakket ${item.family ?? item.name}`}
+          info={tests}
+          onClose={close}
+          foot={
+            <>
+              <span className="mi-price">Zit al in je pakket</span>
+              <button type="button" className="pc-ghost mi-btn" onClick={close}>
+                Sluiten
+              </button>
+            </>
+          }
+        />
+      );
+    }
+    const addon = data.addons.find((item) => item.id === infoFor.id);
+    if (!addon) return null;
+    const on = chosen[addon.id] !== undefined;
+    return (
+      <ModuleInfo
+        title={addon.name}
+        eyebrow={addon.category ?? "Module"}
+        info={addon.info ?? []}
+        fallback={addon.description ?? addon.includes.join(", ")}
+        onClose={close}
+        foot={
+          <>
+            <span className="mi-price">{lineText(addon, 1)}</span>
+            <button
+              type="button"
+              className={on ? "pc-ghost mi-btn" : "pc-cta mi-btn"}
+              onClick={() => {
+                toggleAddon(addon.id);
+                close();
+              }}
+            >
+              {on ? "Weghalen uit je pakket" : "Toevoegen aan je pakket"}
+            </button>
+          </>
+        }
+      />
+    );
+  })();
+
   const linesBlock = (
     <>
       {data.addons.length > 0 && (
@@ -574,6 +648,7 @@ export default function Pricing({ data, advice = null }: { data: PricingData; ad
 
   return (
     <div className="pc">
+      {infoDialog}
       {/* Na de vragen staat het advies (PriceAdvice) boven de calculator; dan heeft hij geen eigen kop. */}
       {!summary && (
         <header className="pc-head">
@@ -601,16 +676,7 @@ export default function Pricing({ data, advice = null }: { data: PricingData; ad
             {pkg && (
               <>
                 <p className="pa-comp-sub">In het pakket {pkg.family ?? pkg.name}</p>
-                <div className="pc-features pa-tests">
-                  {pkg.includes
-                    .filter((line) => !isLimitLine(line))
-                    .map((line) => (
-                      <span key={line}>
-                        <Icon d={ICONS.check} size={14} stroke={2.6} />
-                        {line}
-                      </span>
-                    ))}
-                </div>
+                <div className="pc-features pa-tests">{featureLines(pkg)}</div>
               </>
             )}
             {limitsBlock}
@@ -715,7 +781,7 @@ export default function Pricing({ data, advice = null }: { data: PricingData; ad
                     <div key={addon.id} className={`pc-addon${on ? " is-on" : ""}`}>
                       <button type="button" className="pc-addon-toggle" aria-pressed={on} onClick={() => toggleAddon(addon.id)}>
                         <span className="pc-icon">
-                          <Icon d={addon.countable || isPerSeat(addon) ? ICONS.users : ICONS.test} size={17} stroke={2} />
+                          <Icon d={isLimitAddon(addon) || isPerSeat(addon) ? ICONS.users : ICONS.test} size={17} stroke={2} />
                         </span>
                         <span className="pc-addon-name">
                           <strong>{addon.name}</strong>
@@ -757,6 +823,9 @@ export default function Pricing({ data, advice = null }: { data: PricingData; ad
                             </button>
                           </span>
                         )}
+                        <button type="button" className="pc-info" aria-label={`Wat is ${addon.name}?`} onClick={() => setInfoFor({ id: addon.id })}>
+                          <Icon d={ICONS.info} size={16} stroke={1.9} />
+                        </button>
                       </div>
                     </div>
                   );
@@ -843,16 +912,7 @@ export default function Pricing({ data, advice = null }: { data: PricingData; ad
                     </span>
                   </label>
                 )}
-                <div className="pc-features">
-                  {pkg.includes
-                    .filter((line) => !isLimitLine(line))
-                    .map((line) => (
-                      <span key={line}>
-                        <Icon d={ICONS.check} size={14} stroke={2.6} />
-                        {line}
-                      </span>
-                    ))}
-                </div>
+                <div className="pc-features">{featureLines(pkg)}</div>
                 {limitsBlock}
                 <a className="pc-link" href={configured ? "#pg-title" : "#pakketten"}>
                   {configured ? "Wijzig antwoorden" : "Andere keuze maken"} <Icon d={ICONS.arrow} size={14} stroke={2} />

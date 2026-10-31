@@ -31,6 +31,8 @@ export type Package = {
   /** Toevoeging: zoveel professionals of cliënten komen erbij. */
   extraUsers?: number;
   extraClients?: number;
+  /** Per test wat het is (verkooptekst), hoe het werkt en wat het oplevert; voor de "i". */
+  info?: { name: string; line: string; pitch: string; how: string; results: string[] }[];
 };
 
 export type Pricing = {
