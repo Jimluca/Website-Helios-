@@ -31,6 +31,12 @@ export type Package = {
   /** Toevoeging: zoveel professionals of cliënten komen erbij. */
   extraUsers?: number;
   extraClients?: number;
+  /** Cliëntentrede: kost dit percentage van het pakket en de testen, minimaal surchargeMin (centen), afgerond op roundTo. */
+  surcharge?: number;
+  surchargeMin?: number;
+  roundTo?: number;
+  /** Een pakket of test (geen extra professional of trede): waar het percentage van een trede over gaat. */
+  countsForSurcharge?: boolean;
   /** Per test wat het is (verkooptekst), hoe het werkt en wat het oplevert; voor de "i". */
   info?: { name: string; line: string; pitch: string; how: string; results: string[] }[];
 };

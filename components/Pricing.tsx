@@ -4,7 +4,18 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { euros, type Package, type Price, type Pricing as PricingData } from "@/lib/pricing-shared";
 import ModuleInfo from "@/components/ModuleInfo";
 import PriceAdvice from "@/components/PriceAdvice";
-import { clientSteps, isLimitAddon, limitExtras, MAX_PROFESSIONALS, professionalAddon, usersOf, type Answers, type Composed } from "@/lib/configurator";
+import {
+  clientSteps,
+  fitsAudience,
+  isLimitAddon,
+  limitExtras,
+  MAX_PROFESSIONALS,
+  professionalAddon,
+  surchargeAmount,
+  usersOf,
+  type Answers,
+  type Composed,
+} from "@/lib/configurator";
 import { CHOOSE_EVENT } from "@/lib/pricing-events";
 
 // Prijscalculator (ontwerp: "Prijscalculator Helios"): kies een basispakket, voeg toevoegingen toe en zie meteen wat
@@ -238,7 +249,9 @@ export default function Pricing({ data, advice = null }: { data: PricingData; ad
           for (const [id, qty] of Object.entries(chosenRef.current)) {
             const old = data.addons.find((addon) => addon.id === Number(id));
             if (!old || isLimitAddon(old)) continue;
-            const match = data.addons.find((addon) => addon.name === old.name && (!addon.size || !target?.size || addon.size === target.size));
+            const match = data.addons.find(
+              (addon) => addon.name === old.name && (!addon.size || !target?.size || addon.size === target.size) && fitsAudience(addon, target?.audience),
+            );
             if (match && next[match.id] === undefined && !match.includes.every((line) => covered.has(line))) {
               next[match.id] = qty;
             }
@@ -264,12 +277,17 @@ export default function Pricing({ data, advice = null }: { data: PricingData; ad
     const same = pkg?.family ? data.packages.find((item) => item.audience === nextAudience && item.family === pkg.family && item.size === useSize) : undefined;
     setAudience(nextAudience);
     setSizeChoice(useSize);
-    // Gekozen modules gaan mee naar de nieuwe grootte (zelfde naam, prijs van die grootte).
+    // Gekozen modules gaan mee naar de nieuwe grootte en doelgroep (zelfde naam, prijs van die grootte en doelgroep).
     setChosen((now) =>
       Object.fromEntries(
         Object.entries(now).map(([id, qty]) => {
           const old = data.addons.find((addon) => addon.id === Number(id));
-          const match = old?.size ? data.addons.find((addon) => addon.name === old.name && addon.size === useSize) : undefined;
+          const match =
+            old?.size || old?.audience
+              ? data.addons.find(
+                  (addon) => addon.name === old.name && (!old.size || addon.size === useSize) && (!old.audience || addon.audience === nextAudience),
+                )
+              : undefined;
           return [match?.id ?? Number(id), qty];
         }),
       ),
@@ -285,13 +303,18 @@ export default function Pricing({ data, advice = null }: { data: PricingData; ad
 
   // Het totaal per jaar en per maand, en wat jaarlijks betalen scheelt (alleen voor wat beide prijzen heeft).
   const lines = [...(pkg ? [{ item: pkg, units: pkgUnits }] : []), ...selected.map((addon) => ({ item: addon, units: addonUnits(addon) }))];
-  const total = (p: Period) => lines.reduce((sum, line) => sum + (cost(line.item, p, line.units)?.cents ?? 0), 0);
+  // Een cliëntentrede kost een percentage van het pakket en de testen (de andere regels behalve professionals).
+  const surchargeBase = (p: Period) =>
+    lines.reduce((sum, line) => sum + (line.item.countsForSurcharge === false ? 0 : (cost(line.item, p, line.units)?.cents ?? 0)), 0);
+  const lineCost = (item: Package, p: Period, units: number) =>
+    item.surcharge ? { cents: surchargeAmount(item, surchargeBase(p)), exact: true } : cost(item, p, units);
+  const total = (p: Period) => lines.reduce((sum, line) => sum + (lineCost(line.item, p, line.units)?.cents ?? 0), 0);
   const savings = lines.reduce((sum, { item, units }) => {
     const month = priceFor(item, "month");
     const year = priceFor(item, "year");
     return month && year ? sum + Math.max(0, month.amount * 12 - year.amount) * units : sum;
   }, 0);
-  const onlyOther = lines.filter((line) => !priceFor(line.item, period)).map((line) => line.item.name);
+  const onlyOther = lines.filter((line) => !priceFor(line.item, period) && !line.item.surcharge).map((line) => line.item.name);
 
   // Slimme suggestie: alles wat je los kiest, zit ook in een ander pakket dat goedkoper uitkomt.
   const wanted = selected.flatMap((addon) => addon.includes.map((line) => line.toLowerCase()));
@@ -310,7 +333,10 @@ export default function Pricing({ data, advice = null }: { data: PricingData; ad
   const redundant = (addon: Package) => chosen[addon.id] === undefined && addon.includes.length > 0 && addon.includes.every((line) => includedNow.has(line));
   // Een toevoeging met een grootte (de prijs verschilt per grootte) staat alleen bij pakketten van die grootte.
   // Na de vragen regelen de aantallen bij stap 1 de extra gebruikers en cliënten; die staan dan niet bij de toevoegingen.
-  const offeredAddons = data.addons.filter((addon) => !redundant(addon) && (!addon.size || size === null || addon.size === size) && !isLimitAddon(addon));
+  const offeredAddons = data.addons.filter(
+    (addon) =>
+      !redundant(addon) && (!addon.size || size === null || addon.size === size) && fitsAudience(addon, pkg?.audience ?? audience) && !isLimitAddon(addon),
+  );
   const sorted = [...offeredAddons].sort((a, b) => rank(groupOf(a)) - rank(groupOf(b)));
   const groups = ["Alles", ...new Set(sorted.map(groupOf))];
   const q = query.trim().toLowerCase();
@@ -362,7 +388,8 @@ export default function Pricing({ data, advice = null }: { data: PricingData; ad
     if (!isLimitAddon(addon)) return toggleAddon(addon.id);
     setLimits((addon.extraUsers ?? 0) > 0 ? includedUsers : teamNow, (addon.extraClients ?? 0) > 0 ? steps[0].total : stepNow.total);
   };
-  const unit = advice?.unit ?? "cliënten";
+  // Leerlingen of studenten in het onderwijs, anders cliënten (na de vragen: het woord van het antwoord).
+  const unit = advice?.unit ?? ((pkg?.audience ?? audience) === "education" ? "leerlingen of studenten" : "cliënten");
   const limitsBlock =
     pkg && (Number.isFinite(includedUsers) || steps.length > 1) ? (
       <div className="pc-limits">
@@ -425,7 +452,7 @@ export default function Pricing({ data, advice = null }: { data: PricingData; ad
 
   const periodWord = period === "year" ? "per jaar" : "per maand";
   const lineText = (item: Package, units: number) => {
-    const c = cost(item, period, units);
+    const c = lineCost(item, period, units);
     return c ? `${c.exact ? "" : "± "}${euros(c.cents)} ${periodWord}` : "prijs op aanvraag";
   };
 
@@ -441,6 +468,13 @@ export default function Pricing({ data, advice = null }: { data: PricingData; ad
     }
     url.searchParams.set("periode", period === "year" ? "jaar" : "maand");
     return url.toString();
+  };
+
+  // De bestelpagina van Helios met het pakket en de gekozen toevoegingen (een trede rekent Helios zelf uit).
+  const orderHref = (base: string) => {
+    if (!selected.length) return base;
+    const extra = selected.map((addon) => (!addon.surcharge && chosen[addon.id] > 1 ? `${addon.id}:${chosen[addon.id]}` : String(addon.id))).join(",");
+    return `${base}${base.includes("?") ? "&" : "?"}extra=${encodeURIComponent(extra)}`;
   };
 
   const save = async () => {
@@ -565,7 +599,7 @@ export default function Pricing({ data, advice = null }: { data: PricingData; ad
                 </span>
                 <span className="pc-line-text">
                   <strong>
-                    {addon.name}
+                    {(addon.extraClients ?? 0) > 0 ? addon.name.replace("cliënten", unit) : addon.name}
                     {chosen[addon.id] > 1 && <span> × {chosen[addon.id]}</span>}
                   </strong>
                   <span className="pc-line-price">{lineText(addon, addonUnits(addon))}</span>
@@ -639,7 +673,7 @@ export default function Pricing({ data, advice = null }: { data: PricingData; ad
         </p>
       )}
       {data.orderable && pkg && priceFor(pkg, period) && (
-        <a className="pc-order" href={pkg.orderUrl ?? data.orderUrl}>
+        <a className="pc-order" href={orderHref(pkg.orderUrl ?? data.orderUrl)}>
           Liever direct bestellen? Bestel {pkg.name} <Icon d={ICONS.arrow} size={14} stroke={2} />
         </a>
       )}

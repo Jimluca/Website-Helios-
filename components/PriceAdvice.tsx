@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
-import { EDUCATION, LEVELS, MAX_PROFESSIONALS, unitFor, type Answers, type Composed } from "@/lib/configurator";
+import { EDUCATION, LEVELS, MAX_PROFESSIONALS, surchargeAmount, unitFor, type Answers, type Composed } from "@/lib/configurator";
 import { euros, type Package, type Pricing as PricingData } from "@/lib/pricing-shared";
 
 // Het advies boven het voorgestelde pakket (ontwerp: "Ons advies"): links welk pakket we adviseren en waarom, rechts
@@ -101,7 +101,8 @@ export default function PriceAdvice({
           : (e.addon!.extraClients ?? 0) > 0 && Number.isFinite(composed.clients)
             ? `tot ${composed.clients.toLocaleString("nl-NL")} ${unit}`
             : e.addon!.name.toLowerCase(),
-      cents: perYear(e.addon!) * e.count,
+      // Een cliëntentrede kost een percentage van het pakket.
+      cents: e.addon!.surcharge ? surchargeAmount(e.addon!, perYear(pkg)) : perYear(e.addon!) * e.count,
     })),
   ];
   const totalCents = priceLines.reduce((sum, line) => sum + line.cents, 0);

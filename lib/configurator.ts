@@ -4,7 +4,9 @@ import { euros, type Package, type Pricing } from "@/lib/pricing-shared";
 // studenten of cliënten) naar één pakket uit Helios. Elk pakket heeft 1 professional en een aantal cliënten (25). Daarop
 // komen een cliëntentrede (een toevoeging uit de familie van treden: tot 50, 100 of 250) en extra professionalaccounts,
 // tot MAX_PROFESSIONALS in totaal. Meer professionals of cliënten dan de grootste trede: "neem contact op".
-// Pakketten, treden en prijzen komen uit Helios; alleen het maximum aantal professionals staat hier.
+// Een trede kost een percentage van het pakket en de testen (minimaal een bedrag), en de losse testen en treden hebben
+// een prijs per doelgroep. Pakketten, treden, percentages en prijzen komen uit Helios; alleen het maximum aantal
+// professionals staat hier.
 
 /** Tot zoveel professionals stel je zelf samen; daarboven maken we een pakket op maat. */
 export const MAX_PROFESSIONALS = 5;
@@ -57,6 +59,17 @@ function limit(pkg: Package, word: RegExp): number {
 export const usersOf = (pkg: Package) => (pkg.users === undefined ? limit(pkg, /gebruiker/i) : (pkg.users ?? Infinity));
 export const clientsOf = (pkg: Package) => (pkg.clients === undefined ? limit(pkg, /cliënt|client|leerling|student/i) : (pkg.clients ?? Infinity));
 
+/** Een toevoeging voor één doelgroep (bijv. een test tegen de onderwijsprijs) hoort alleen bij een pakket van die doelgroep. */
+export const fitsAudience = (addon: Package, audience: string | null | undefined) => !addon.audience || !audience || addon.audience === audience;
+
+/** Wat een cliëntentrede kost bovenop $base (het pakket en de testen, in centen): ClientSurcharge in Helios. */
+export function surchargeAmount(tier: Package, base: number): number {
+  const raw = Math.max((base * (tier.surcharge ?? 0)) / 100, tier.surchargeMin ?? 0);
+  const round = tier.roundTo || 500;
+
+  return Math.round(raw / round) * round;
+}
+
 /** Een toevoeging die professionals of cliënten toevoegt; die regel je met de aantallen, niet bij de losse modules. */
 export const isLimitAddon = (addon: Package) => (addon.extraUsers ?? 0) > 0 || (addon.extraClients ?? 0) > 0 || (addon.countable && !addon.category);
 
@@ -71,7 +84,7 @@ export function clientSteps(data: Pricing, pkg: Package | null): { addon: Packag
   const base = pkg ? clientsOf(pkg) : Infinity;
   if (!Number.isFinite(base)) return [{ addon: null, total: Infinity }];
   const tiers = data.addons
-    .filter((a) => (a.extraClients ?? 0) > 0 && !a.countable)
+    .filter((a) => (a.extraClients ?? 0) > 0 && !a.countable && fitsAudience(a, pkg?.audience))
     .map((addon) => ({ addon: addon as Package | null, total: base + (addon.extraClients ?? 0) }))
     .sort((a, b) => a.total - b.total);
   return [{ addon: null, total: base }, ...tiers];
@@ -156,7 +169,8 @@ export function compose(data: Pricing, answers: Answers, family: string | null =
   ];
   for (const extra of extras) {
     const addon = data.addons.find((a) => a.id === extra.id)!;
-    parts.push(`${extra.count > 1 ? `${extra.count} × ` : ""}${addon.name.toLowerCase()} (${euros(yearCents(addon) * extra.count)} per jaar)`);
+    const cents = addon.surcharge ? surchargeAmount(addon, yearCents(pkg)) : yearCents(addon) * extra.count;
+    parts.push(`${extra.count > 1 ? `${extra.count} × ` : ""}${addon.name.toLowerCase()} (${euros(cents)} per jaar)`);
   }
   // Bedragen blijven bij elkaar ("€ 125" niet over twee regels).
   const summary = `Op basis van je antwoorden: ${parts.join(", ")}.`.replace(/€ /g, "€ ");
