@@ -94,6 +94,9 @@ const sizesOf = (packages: Package[], audience: string | null) => [
 const visibleFor = (packages: Package[], audience: string | null, size: string | null) =>
   packages.filter((item) => !item.audience || audience === null || (item.audience === audience && (!item.size || item.size === size)));
 
+/** Het gratis pakket om zelf samen te stellen (alle prijzen € 0). */
+const isOwn = (item: Package) => item.prices.length > 0 && item.prices.every((price) => price.amount === 0);
+
 /** Bij een pakket per gebruiker telt het aantal gebruikers; bij een toevoeging per stuk het aantal stuks. */
 const isPerSeat = (item: Package) => item.prices.some((price) => price.perSeat);
 
@@ -124,8 +127,11 @@ export default function Pricing({ data, advice = null }: { data: PricingData; ad
   const sizes = sizesOf(data.packages, audience);
   const size = sizeChoice !== null && sizes.includes(sizeChoice) ? sizeChoice : (sizes[0] ?? null);
   const visiblePackages = visibleFor(data.packages, audience, size);
+  // Zelf samenstellen: de basis is het gratis pakket ("Eigen pakket") van die doelgroep en grootte, zonder testen; je
+  // kiest alleen losse modules. Pakketten met testen staan hier niet (die komen uit de vragen of de slimme suggestie).
+  const ownFor = (aud: string | null, sz: string | null) => visibleFor(data.packages, aud, sz).find(isOwn) ?? null;
   const [packageId, setPackageId] = useState<number | null>(
-    visibleFor(data.packages, audienceList[0]?.key ?? null, sizesOf(data.packages, audienceList[0]?.key ?? null)[0] ?? null)[0]?.id ?? null,
+    ownFor(audienceList[0]?.key ?? null, sizesOf(data.packages, audienceList[0]?.key ?? null)[0] ?? null)?.id ?? null,
   );
   // Gekozen toevoegingen met hun aantal (1 voor een toevoeging die je niet per stuk koopt).
   const [chosen, setChosen] = useState<Record<number, number>>({});
@@ -245,7 +251,20 @@ export default function Pricing({ data, advice = null }: { data: PricingData; ad
     const same = pkg?.family ? data.packages.find((item) => item.audience === nextAudience && item.family === pkg.family && item.size === useSize) : undefined;
     setAudience(nextAudience);
     setSizeChoice(useSize);
-    setPackageId(!pkg ? null : !pkg.audience ? pkg.id : ((same ?? visibleFor(data.packages, nextAudience, useSize)[0])?.id ?? null));
+    // Gekozen modules gaan mee naar de nieuwe grootte (zelfde naam, prijs van die grootte).
+    setChosen((now) =>
+      Object.fromEntries(
+        Object.entries(now).map(([id, qty]) => {
+          const old = data.addons.find((addon) => addon.id === Number(id));
+          const match = old?.size ? data.addons.find((addon) => addon.name === old.name && addon.size === useSize) : undefined;
+          return [match?.id ?? Number(id), qty];
+        }),
+      ),
+    );
+    const own = ownFor(nextAudience, useSize);
+    setPackageId(
+      !pkg || isOwn(pkg) ? (own?.id ?? null) : !pkg.audience ? pkg.id : ((same ?? own ?? visibleFor(data.packages, nextAudience, useSize)[0])?.id ?? null),
+    );
   };
   const pkgUnits = pkg && isPerSeat(pkg) ? seats : 1;
   const addonUnits = (addon: Package) => (isPerSeat(addon) ? seats : 1) * (chosen[addon.id] ?? 1);
@@ -364,52 +383,6 @@ export default function Pricing({ data, advice = null }: { data: PricingData; ad
     return `mailto:${CONTACT}?subject=${encodeURIComponent(`Offerte Helios${pkg ? ` – ${pkg.name}` : ""}`)}&body=${encodeURIComponent(rows.join("\n"))}`;
   };
 
-  // Een pakketkaart om te kiezen (stap 1).
-  const packageCard = (item: Package, i: number, onPick: () => void) => {
-    const on = item.id === packageId;
-    const price = cost(item, period, 1);
-    return (
-      <button key={item.id} type="button" role="radio" aria-checked={on} className={`pc-package${on ? " is-on" : ""}`} onClick={onPick}>
-        <span className="pc-package-top">
-          <span className="pc-icon pc-icon-lg">
-            <Icon d={PACKAGE_ICONS[i % PACKAGE_ICONS.length]} size={26} stroke={1.8} />
-          </span>
-          <span className="pc-package-name">
-            <strong>{item.family ?? item.name}</strong>
-            {item.description && <small>{item.description}</small>}
-          </span>
-          <span className="pc-radio" aria-hidden="true" />
-        </span>
-        <span className="pc-package-price">
-          {price ? (
-            <>
-              <strong>
-                {price.exact ? "" : "± "}
-                {euros(price.cents)}
-              </strong>
-              <small>{unitText(item, period)}</small>
-            </>
-          ) : (
-            <small>Prijs op aanvraag</small>
-          )}
-        </span>
-        {(() => {
-          const trial = item.prices.find((p) => p.trialDays > 0);
-          return trial ? <span className="pc-trial">{trial.trialDays} dagen gratis proberen</span> : null;
-        })()}
-        <span className="pc-rule" aria-hidden="true" />
-        <span className="pc-features">
-          {item.includes.map((line) => (
-            <span key={line}>
-              <Icon d={ICONS.check} size={14} stroke={2.6} />
-              {line}
-            </span>
-          ))}
-        </span>
-      </button>
-    );
-  };
-
   // Onderdelen van "Jouw samenstelling": in de zijkolom, of (na de vragen) in "Ons advies" bovenaan.
   const linesBlock = (
     <>
@@ -515,7 +488,7 @@ export default function Pricing({ data, advice = null }: { data: PricingData; ad
             Stel jouw <span>Helios-pakket</span> samen.
           </h2>
           <p className="pc-intro">
-            Kies een basispakket en breid het naar wens uit met losse toevoegingen. Zo stel je eenvoudig een oplossing samen die past bij jouw organisatie.
+            Kies alleen de modules die je nodig hebt. Zo stel je eenvoudig een pakket samen dat past bij jouw organisatie.
           </p>
           <div className="pc-badge" aria-hidden="true">
             <span className="pc-badge-icon">
@@ -555,77 +528,19 @@ export default function Pricing({ data, advice = null }: { data: PricingData; ad
 
       <div className={`pc-layout${configured ? " is-single" : ""}`}>
         <section className="pc-main" aria-label="Samenstellen" ref={mainRef}>
-          {/* Na de vragen staat het advies (PriceAdvice) erboven en is het pakket al gekozen: dan begint het hier bij de toevoegingen. */}
-          {!configured && (
-            <>
-              <div className="pc-step" id="pakketten">
-                <span className="pc-step-num" aria-hidden="true">
-                  1
-                </span>
-                <div>
-                  <h2 className="pc-step-title">Kies jouw basispakket</h2>
-                  <p className="pc-step-text">Elk pakket bevat een set instrumenten en functies. Je kunt het later uitbreiden met toevoegingen.</p>
-                </div>
-              </div>
-
-              {audienceList.length > 0 && (
-                <div className="pc-audience">
-                  {audienceList.length > 1 && (
-                    <div className="pc-chips" role="radiogroup" aria-label="Doelgroep">
-                      {audienceList.map((item) => (
-                        <button
-                          key={item.key}
-                          type="button"
-                          role="radio"
-                          aria-checked={audience === item.key}
-                          className={`pc-chip${audience === item.key ? " is-on" : ""}`}
-                          onClick={() => switchTo(item.key, size)}
-                        >
-                          {item.label}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                  {sizes.length > 1 && (
-                    <div className="pc-sizes">
-                      <span className="pc-sizes-label">Grootte</span>
-                      <div className="pc-chips" role="radiogroup" aria-label="Grootte">
-                        {sizes.map((name) => (
-                          <button
-                            key={name}
-                            type="button"
-                            role="radio"
-                            aria-checked={size === name}
-                            className={`pc-chip${size === name ? " is-on" : ""}`}
-                            onClick={() => switchTo(audience, name)}
-                          >
-                            {name}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              <div className="pc-packages" role="radiogroup" aria-label="Basispakket">
-                {visiblePackages.map((item, i) => packageCard(item, i, () => setPackageId(item.id)))}
-              </div>
-            </>
-          )}
-
           {data.addons.length > 0 && (
             <>
-              <div className={`pc-step pc-step-2${configured ? " is-first" : ""}`}>
+              {/* Na de vragen (advies erboven) is dit stap 2; zelf samenstellen begint hier, met alleen de losse modules. */}
+              <div className="pc-step pc-step-2 is-first" id="pakketten">
                 <span className="pc-step-num" aria-hidden="true">
-                  2
+                  {configured ? 2 : 1}
                 </span>
                 <div className="pc-step-body">
-                  <h2 className="pc-step-title">{summary ? "Voeg nog iets toe" : "Voeg losse toevoegingen toe"}</h2>
+                  <h2 className="pc-step-title">{configured ? "Voeg nog iets toe" : "Kies jouw losse modules"}</h2>
                   <p className="pc-step-text">
                     {configured
                       ? "Zet losse testen aan die nog niet in je pakket zitten. De prijs wordt automatisch berekend."
-                      : "Breid je pakket uit met losse testen en extra gebruikers. De prijs wordt automatisch berekend."}
+                      : "Stel je pakket helemaal zelf samen: zet de modules aan die je nodig hebt. De prijs wordt automatisch berekend."}
                   </p>
                 </div>
                 {data.addons.length > 6 && (
@@ -635,6 +550,50 @@ export default function Pricing({ data, advice = null }: { data: PricingData; ad
                   </label>
                 )}
               </div>
+
+              {!configured && (
+                <>
+                  {audienceList.length > 0 && (
+                    <div className="pc-audience">
+                      {audienceList.length > 1 && (
+                        <div className="pc-chips" role="radiogroup" aria-label="Doelgroep">
+                          {audienceList.map((item) => (
+                            <button
+                              key={item.key}
+                              type="button"
+                              role="radio"
+                              aria-checked={audience === item.key}
+                              className={`pc-chip${audience === item.key ? " is-on" : ""}`}
+                              onClick={() => switchTo(item.key, size)}
+                            >
+                              {item.label}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                      {sizes.length > 1 && (
+                        <div className="pc-sizes">
+                          <span className="pc-sizes-label">Grootte</span>
+                          <div className="pc-chips" role="radiogroup" aria-label="Grootte">
+                            {sizes.map((name) => (
+                              <button
+                                key={name}
+                                type="button"
+                                role="radio"
+                                aria-checked={size === name}
+                                className={`pc-chip${size === name ? " is-on" : ""}`}
+                                onClick={() => switchTo(audience, name)}
+                              >
+                                {name}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </>
+              )}
 
               {groups.length > 2 && (
                 <div className="pc-chips" role="group" aria-label="Soort toevoeging">
