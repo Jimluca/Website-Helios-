@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { COUNTS, EDUCATION, LEVELS, TEAMS, unitFor, type Answers, type Composed } from "@/lib/configurator";
 import { euros, type Package, type Pricing as PricingData } from "@/lib/pricing-shared";
 
@@ -57,7 +57,20 @@ const packageWord = (name: string) => (/pakket$/i.test(name) ? name : `${name} p
 
 const tests = (pkg: Package) => pkg.includes.filter((line) => !/gebruiker|cliënt|onbeperkt|^tot /i.test(line));
 
-export default function PriceAdvice({ data, answers, composed, onEdit }: { data: PricingData; answers: Answers; composed: Composed; onEdit: () => void }) {
+export default function PriceAdvice({
+  data,
+  answers,
+  composed,
+  onEdit,
+  children,
+}: {
+  data: PricingData;
+  answers: Answers;
+  composed: Composed;
+  onEdit: () => void;
+  /** "Jouw samenstelling" uit de calculator (Pricing): rechts in het advies. */
+  children: ReactNode;
+}) {
   const [why, setWhy] = useState(false);
   const pkg = data.packages.find((p) => p.id === composed.packageId);
   if (!pkg) return null;
@@ -162,48 +175,45 @@ export default function PriceAdvice({ data, answers, composed, onEdit }: { data:
             ))}
           </ul>
         )}
+
+        {/* De antwoorden kort onder het advies; de samenstelling staat rechts. */}
+        <div className="pa-answers">
+          <div className="pa-answers-head">
+            <h3>Jouw antwoorden</h3>
+            <button type="button" onClick={onEdit}>
+              <Icon d={ICONS.pen} size={14} />
+              Wijzig antwoorden
+            </button>
+          </div>
+          <ul className="pa-answer-list">
+            {rows.map((row) => (
+              <li key={row.label} title={row.label}>
+                <Icon d={row.icon} size={15} />
+                <span className="sr-only">{row.label}: </span>
+                {row.value}
+                {row.label.startsWith("Aantal") ? ` ${unit}` : ""}
+              </li>
+            ))}
+          </ul>
+          {themes.length > 0 && (
+            <p className="pa-themes">
+              <span className="pa-themes-label">Thema&apos;s</span>
+              {themes.slice(0, MAX_THEMES).map((theme) => (
+                <span key={theme} className="pa-chip">
+                  {theme}
+                </span>
+              ))}
+              {themes.length > MAX_THEMES && (
+                <span className="pa-chip pa-chip-more" title={themes.slice(MAX_THEMES).join(", ")}>
+                  +{themes.length - MAX_THEMES}
+                </span>
+              )}
+            </p>
+          )}
+        </div>
       </div>
 
-      <div className="pa-answers">
-        <div className="pa-answers-head">
-          <h3>Jouw antwoorden</h3>
-          <button type="button" onClick={onEdit}>
-            <Icon d={ICONS.pen} size={14} />
-            Wijzig antwoorden
-          </button>
-        </div>
-        <dl>
-          {rows.map((row) => (
-            <div key={row.label} className="pa-row">
-              <dt>
-                <Icon d={row.icon} size={17} />
-                {row.label}
-              </dt>
-              <dd>{row.value}</dd>
-            </div>
-          ))}
-          {themes.length > 0 && (
-            <div className="pa-row pa-row-themes">
-              <dt>
-                <Icon d={ICONS.shield} size={17} />
-                Thema&apos;s in het pakket
-              </dt>
-              <dd>
-                {themes.slice(0, MAX_THEMES).map((theme) => (
-                  <span key={theme} className="pa-chip">
-                    {theme}
-                  </span>
-                ))}
-                {themes.length > MAX_THEMES && (
-                  <span className="pa-chip pa-chip-more" title={themes.slice(MAX_THEMES).join(", ")}>
-                    +{themes.length - MAX_THEMES}
-                  </span>
-                )}
-              </dd>
-            </div>
-          )}
-        </dl>
-      </div>
+      {children}
     </section>
   );
 }

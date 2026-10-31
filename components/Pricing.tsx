@@ -2,7 +2,8 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { euros, type Package, type Price, type Pricing as PricingData } from "@/lib/pricing-shared";
-import { isCountAddon } from "@/lib/configurator";
+import PriceAdvice from "@/components/PriceAdvice";
+import { isCountAddon, type Answers, type Composed } from "@/lib/configurator";
 import { CHOOSE_EVENT } from "@/lib/pricing-events";
 
 // Prijscalculator (ontwerp: "Prijscalculator Helios"): kies een basispakket, voeg toevoegingen toe en zie meteen wat
@@ -96,11 +97,16 @@ const visibleFor = (packages: Package[], audience: string | null, size: string |
 /** Bij een pakket per gebruiker telt het aantal gebruikers; bij een toevoeging per stuk het aantal stuks. */
 const isPerSeat = (item: Package) => item.prices.some((price) => price.perSeat);
 
+/** Wat de configurator meegeeft: de antwoorden, het samengestelde pakket en terug naar de vragen. */
+export type AdviceInput = { answers: Answers; composed: Composed; onEdit: () => void };
+
 /**
- * summary: wat de vragen bovenaan (PriceGuide) hebben samengesteld; dan staat hier "Jouw samengestelde pakket".
- * configured: het pakket komt uit de vragen; dan geen stap 1 maar meteen de toevoegingen.
+ * advice: het pakket komt uit de vragen (PriceConfigurator). Dan staat "Ons advies" bovenaan, met "Jouw samenstelling"
+ * erin, en begint de calculator meteen bij de toevoegingen (geen stap 1 en geen zijkolom).
  */
-export default function Pricing({ data, summary = null, configured = false }: { data: PricingData; summary?: string | null; configured?: boolean }) {
+export default function Pricing({ data, advice = null }: { data: PricingData; advice?: AdviceInput | null }) {
+  const configured = advice !== null;
+  const summary = advice?.composed.summary ?? null;
   const periods = useMemo(() => {
     const all = new Set([...data.packages, ...data.addons].flatMap((item) => item.prices.map((price) => price.period)));
 
@@ -127,6 +133,26 @@ export default function Pricing({ data, summary = null, configured = false }: { 
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState("Alles");
   const [saved, setSaved] = useState<string | null>(null);
+
+  // Na de vragen staat de samenstelling bovenaan in het advies. Ben je bij de toevoegingen en is het totaal daarvan uit
+  // beeld, dan staat onderin een balk met het totaal. (Vast in beeld: position: sticky werkt niet, omdat html en body
+  // overflow-x: hidden hebben.)
+  const mainRef = useRef<HTMLElement>(null);
+  const [atAddons, setAtAddons] = useState(false);
+  const [compositionVisible, setCompositionVisible] = useState(true);
+  useEffect(() => {
+    if (!configured || !("IntersectionObserver" in window)) return;
+    const main = mainRef.current;
+    const composition = document.querySelector(".pa-composition .pc-total");
+    const mainObserver = new IntersectionObserver(([entry]) => setAtAddons(entry.isIntersecting), { rootMargin: "0px 0px -35% 0px" });
+    const compositionObserver = new IntersectionObserver(([entry]) => setCompositionVisible(entry.isIntersecting));
+    if (main) mainObserver.observe(main);
+    if (composition) compositionObserver.observe(composition);
+    return () => {
+      mainObserver.disconnect();
+      compositionObserver.disconnect();
+    };
+  }, [configured]);
 
   // Wat er nu gekozen is, voor als de vragen bovenaan opnieuw samenstellen (zie restore).
   const chosenRef = useRef(chosen);
@@ -384,6 +410,101 @@ export default function Pricing({ data, summary = null, configured = false }: { 
     );
   };
 
+  // Onderdelen van "Jouw samenstelling": in de zijkolom, of (na de vragen) in "Ons advies" bovenaan.
+  const linesBlock = (
+    <>
+      {data.addons.length > 0 && (
+        <>
+          <h3 className="pc-side-sub">Toevoegingen ({selected.length})</h3>
+          <div className="pc-lines">
+            {selected.map((addon) => (
+              <div key={addon.id} className="pc-line">
+                <span className="pc-icon">
+                  <Icon d={addon.countable || isPerSeat(addon) ? ICONS.users : ICONS.test} size={16} stroke={2} />
+                </span>
+                <span className="pc-line-text">
+                  <strong>
+                    {addon.name}
+                    {chosen[addon.id] > 1 && <span> × {chosen[addon.id]}</span>}
+                  </strong>
+                  <span className="pc-line-price">{lineText(addon, addonUnits(addon))}</span>
+                </span>
+                <button type="button" className="pc-remove" aria-label={`${addon.name} weghalen`} onClick={() => toggleAddon(addon.id)}>
+                  <Icon d={ICONS.x} size={12} stroke={2.4} />
+                </button>
+              </div>
+            ))}
+            {!selected.length && <p className="pc-none pc-none-sm">Nog geen toevoegingen.</p>}
+          </div>
+        </>
+      )}
+    </>
+  );
+  const totalBlock = (
+    <>
+      <div className="pc-total">
+        <div className="pc-total-head">
+          <span>{period === "year" ? "Totaal per jaar" : "Totaal per maand"}</span>
+          {period === "year" && savings > 0 && <span className="pc-save">Je bespaart {euros(savings)}</span>}
+        </div>
+        <p className="pc-total-amount" aria-live="polite">
+          <strong>{euros(total(period))}</strong>
+          <small>{periodWord}</small>
+        </p>
+        <p className="pc-vat">
+          Excl. {data.taxPercent}% btw.
+          {onlyOther.length > 0 && (
+            <>
+              {" "}
+              {onlyOther.join(", ")}: alleen {period === "year" ? "per maand" : "per jaar"} te betalen, hier omgerekend (±).
+            </>
+          )}
+        </p>
+      </div>
+      {periods.length > 1 && (
+        <div className="pc-periods" role="radiogroup" aria-label="Betalen per">
+          {(["year", "month"] as const).map((option) => (
+            <button
+              key={option}
+              type="button"
+              role="radio"
+              aria-checked={period === option}
+              className={`pc-period${period === option ? " is-on" : ""}`}
+              onClick={() => setPeriod(option)}
+            >
+              <span className="pc-radio" aria-hidden="true" />
+              <span>
+                <strong>{option === "year" ? "Jaarlijks" : "Maandelijks"}</strong>
+                <small>{option === "year" ? (savings > 0 ? "Voordeligst" : "Eén keer per jaar") : `${euros(total("month"))} per maand`}</small>
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
+    </>
+  );
+  const actionsBlock = (
+    <>
+      <a className="pc-cta" href={quoteHref()}>
+        Offerte aanvragen <Icon d={ICONS.arrow} size={16} stroke={2} />
+      </a>
+      <button type="button" className="pc-ghost pc-ghost-wide" onClick={save}>
+        <Icon d={ICONS.bookmark} size={16} stroke={2} />
+        Samenstelling opslaan
+      </button>
+      {saved && (
+        <p className="pc-saved" role="status">
+          {saved}
+        </p>
+      )}
+      {data.orderable && pkg && priceFor(pkg, period) && (
+        <a className="pc-order" href={pkg.orderUrl ?? data.orderUrl}>
+          Liever direct bestellen? Bestel {pkg.name} <Icon d={ICONS.arrow} size={14} stroke={2} />
+        </a>
+      )}
+    </>
+  );
+
   return (
     <div className="pc">
       {/* Na de vragen staat het advies (PriceAdvice) boven de calculator; dan heeft hij geen eigen kop. */}
@@ -408,8 +529,32 @@ export default function Pricing({ data, summary = null, configured = false }: { 
         </header>
       )}
 
-      <div className="pc-layout">
-        <section className="pc-main" aria-label="Samenstellen">
+      {advice && (
+        <PriceAdvice data={data} answers={advice.answers} composed={advice.composed} onEdit={advice.onEdit}>
+          <div className="pa-composition">
+            <h3 className="pa-comp-title">Jouw samenstelling</h3>
+            {pkg && (
+              <>
+                <p className="pa-comp-sub">In het pakket {pkg.family ?? pkg.name}</p>
+                <div className="pc-features pa-tests">
+                  {pkg.includes.map((line) => (
+                    <span key={line}>
+                      <Icon d={ICONS.check} size={14} stroke={2.6} />
+                      {line}
+                    </span>
+                  ))}
+                </div>
+              </>
+            )}
+            {linesBlock}
+            {totalBlock}
+            {actionsBlock}
+          </div>
+        </PriceAdvice>
+      )}
+
+      <div className={`pc-layout${configured ? " is-single" : ""}`}>
+        <section className="pc-main" aria-label="Samenstellen" ref={mainRef}>
           {/* Na de vragen staat het advies (PriceAdvice) erboven en is het pakket al gekozen: dan begint het hier bij de toevoegingen. */}
           {!configured && (
             <>
@@ -591,172 +736,106 @@ export default function Pricing({ data, summary = null, configured = false }: { 
               )}
             </>
           )}
-        </section>
-
-        <aside className="pc-side" aria-labelledby="pc-side-title">
-          <h2 className="pc-side-title" id="pc-side-title">
-            Jouw samenstelling
-          </h2>
-          <p className="pc-side-text">Hier zie je direct wat je hebt gekozen.</p>
-
-          {pkg ? (
-            <div className="pc-chosen">
-              <div className="pc-chosen-top">
-                <span className="pc-icon pc-icon-lg">
-                  <Icon d={PACKAGE_ICONS[data.packages.indexOf(pkg) % PACKAGE_ICONS.length]} size={24} stroke={1.8} />
-                </span>
-                <strong className="pc-chosen-name">{pkg.name}</strong>
-                <span className="pc-chosen-price">{lineText(pkg, pkgUnits)}</span>
-                <button type="button" className="pc-remove" aria-label={`${pkg.name} weghalen`} onClick={() => setPackageId(null)}>
-                  <Icon d={ICONS.x} size={14} stroke={2.2} />
-                </button>
-              </div>
-              {isPerSeat(pkg) && (
-                <label className="pc-seats">
-                  Aantal gebruikers
-                  <span className="pc-qty">
-                    <button type="button" aria-label="Eén gebruiker minder" onClick={() => setSeats((n) => Math.max(1, n - 1))}>
-                      −
-                    </button>
-                    <input
-                      type="number"
-                      min={1}
-                      max={999}
-                      value={seats}
-                      onChange={(e) => setSeats(Math.max(1, Math.min(999, Number(e.target.value) || 1)))}
-                      aria-label="Aantal gebruikers"
-                    />
-                    <button type="button" aria-label="Eén gebruiker meer" onClick={() => setSeats((n) => Math.min(999, n + 1))}>
-                      +
-                    </button>
-                  </span>
-                </label>
-              )}
-              <div className="pc-features">
-                {pkg.includes.map((line) => (
-                  <span key={line}>
-                    <Icon d={ICONS.check} size={14} stroke={2.6} />
-                    {line}
-                  </span>
-                ))}
-              </div>
-              <a className="pc-link" href={configured ? "#pg-title" : "#pakketten"}>
-                {configured ? "Wijzig antwoorden" : "Andere keuze maken"} <Icon d={ICONS.arrow} size={14} stroke={2} />
+          {/* Tijdens het toevoegen het totaal in beeld; de samenstelling staat in het advies bovenaan. */}
+          {configured && (
+            <div className={`pc-sticky${atAddons && !compositionVisible ? " is-shown" : ""}`} aria-live="polite">
+              <span>
+                Totaal <strong>{euros(total(period))}</strong> {periodWord}
+              </span>
+              <a href="#pa-title">
+                Bekijk je samenstelling <Icon d={ICONS.arrow} size={14} stroke={2} />
               </a>
             </div>
-          ) : (
-            <p className="pc-none">Nog geen basispakket gekozen.</p>
           )}
+        </section>
 
-          {data.addons.length > 0 && (
-            <>
-              <h3 className="pc-side-sub">Toevoegingen ({selected.length})</h3>
-              <div className="pc-lines">
-                {selected.map((addon) => (
-                  <div key={addon.id} className="pc-line">
-                    <span className="pc-icon">
-                      <Icon d={addon.countable || isPerSeat(addon) ? ICONS.users : ICONS.test} size={16} stroke={2} />
-                    </span>
-                    <span className="pc-line-text">
-                      <strong>
-                        {addon.name}
-                        {chosen[addon.id] > 1 && <span> × {chosen[addon.id]}</span>}
-                      </strong>
-                      <span className="pc-line-price">{lineText(addon, addonUnits(addon))}</span>
-                    </span>
-                    <button type="button" className="pc-remove" aria-label={`${addon.name} weghalen`} onClick={() => toggleAddon(addon.id)}>
-                      <Icon d={ICONS.x} size={12} stroke={2.4} />
-                    </button>
-                  </div>
-                ))}
-                {!selected.length && <p className="pc-none pc-none-sm">Nog geen toevoegingen.</p>}
-              </div>
-            </>
-          )}
+        {!configured && (
+          <aside className="pc-side" aria-labelledby="pc-side-title">
+            <h2 className="pc-side-title" id="pc-side-title">
+              Jouw samenstelling
+            </h2>
+            <p className="pc-side-text">Hier zie je direct wat je hebt gekozen.</p>
 
-          <div className="pc-total">
-            <div className="pc-total-head">
-              <span>{period === "year" ? "Totaal per jaar" : "Totaal per maand"}</span>
-              {period === "year" && savings > 0 && <span className="pc-save">Je bespaart {euros(savings)}</span>}
-            </div>
-            <p className="pc-total-amount" aria-live="polite">
-              <strong>{euros(total(period))}</strong>
-              <small>{periodWord}</small>
-            </p>
-            <p className="pc-vat">
-              Excl. {data.taxPercent}% btw.
-              {onlyOther.length > 0 && (
-                <>
-                  {" "}
-                  {onlyOther.join(", ")}: alleen {period === "year" ? "per maand" : "per jaar"} te betalen, hier omgerekend (±).
-                </>
-              )}
-            </p>
-          </div>
-
-          {periods.length > 1 && (
-            <div className="pc-periods" role="radiogroup" aria-label="Betalen per">
-              {(["year", "month"] as const).map((option) => (
-                <button
-                  key={option}
-                  type="button"
-                  role="radio"
-                  aria-checked={period === option}
-                  className={`pc-period${period === option ? " is-on" : ""}`}
-                  onClick={() => setPeriod(option)}
-                >
-                  <span className="pc-radio" aria-hidden="true" />
-                  <span>
-                    <strong>{option === "year" ? "Jaarlijks" : "Maandelijks"}</strong>
-                    <small>{option === "year" ? (savings > 0 ? "Voordeligst" : "Eén keer per jaar") : `${euros(total("month"))} per maand`}</small>
+            {pkg ? (
+              <div className="pc-chosen">
+                <div className="pc-chosen-top">
+                  <span className="pc-icon pc-icon-lg">
+                    <Icon d={PACKAGE_ICONS[data.packages.indexOf(pkg) % PACKAGE_ICONS.length]} size={24} stroke={1.8} />
                   </span>
-                </button>
-              ))}
-            </div>
-          )}
+                  <strong className="pc-chosen-name">{pkg.name}</strong>
+                  <span className="pc-chosen-price">{lineText(pkg, pkgUnits)}</span>
+                  <button type="button" className="pc-remove" aria-label={`${pkg.name} weghalen`} onClick={() => setPackageId(null)}>
+                    <Icon d={ICONS.x} size={14} stroke={2.2} />
+                  </button>
+                </div>
+                {isPerSeat(pkg) && (
+                  <label className="pc-seats">
+                    Aantal gebruikers
+                    <span className="pc-qty">
+                      <button type="button" aria-label="Eén gebruiker minder" onClick={() => setSeats((n) => Math.max(1, n - 1))}>
+                        −
+                      </button>
+                      <input
+                        type="number"
+                        min={1}
+                        max={999}
+                        value={seats}
+                        onChange={(e) => setSeats(Math.max(1, Math.min(999, Number(e.target.value) || 1)))}
+                        aria-label="Aantal gebruikers"
+                      />
+                      <button type="button" aria-label="Eén gebruiker meer" onClick={() => setSeats((n) => Math.min(999, n + 1))}>
+                        +
+                      </button>
+                    </span>
+                  </label>
+                )}
+                <div className="pc-features">
+                  {pkg.includes.map((line) => (
+                    <span key={line}>
+                      <Icon d={ICONS.check} size={14} stroke={2.6} />
+                      {line}
+                    </span>
+                  ))}
+                </div>
+                <a className="pc-link" href={configured ? "#pg-title" : "#pakketten"}>
+                  {configured ? "Wijzig antwoorden" : "Andere keuze maken"} <Icon d={ICONS.arrow} size={14} stroke={2} />
+                </a>
+              </div>
+            ) : (
+              <p className="pc-none">Nog geen basispakket gekozen.</p>
+            )}
 
-          <a className="pc-cta" href={quoteHref()}>
-            Offerte aanvragen <Icon d={ICONS.arrow} size={16} stroke={2} />
-          </a>
-          <button type="button" className="pc-ghost pc-ghost-wide" onClick={save}>
-            <Icon d={ICONS.bookmark} size={16} stroke={2} />
-            Samenstelling opslaan
-          </button>
-          {saved && (
-            <p className="pc-saved" role="status">
-              {saved}
-            </p>
-          )}
-          {data.orderable && pkg && priceFor(pkg, period) && (
-            <a className="pc-order" href={pkg.orderUrl ?? data.orderUrl}>
-              Liever direct bestellen? Bestel {pkg.name} <Icon d={ICONS.arrow} size={14} stroke={2} />
-            </a>
-          )}
+            {linesBlock}
 
-          <ul className="pc-trust">
-            <li>
-              <span className="pc-icon">
-                <Icon d={ICONS.mail} size={17} stroke={1.8} />
-              </span>
-              <strong>Vrijblijvende offerte</strong>
-              <small>Binnen 1 werkdag</small>
-            </li>
-            <li>
-              <span className="pc-icon">
-                <Icon d={ICONS.advice} size={17} stroke={1.8} />
-              </span>
-              <strong>Persoonlijk advies</strong>
-              <small>Van een specialist</small>
-            </li>
-            <li>
-              <span className="pc-icon">
-                <Icon d={ICONS.heart} size={17} stroke={1.8} />
-              </span>
-              <strong>Maatwerk mogelijk</strong>
-              <small>Voor grotere organisaties</small>
-            </li>
-          </ul>
-        </aside>
+            {totalBlock}
+
+            {actionsBlock}
+
+            <ul className="pc-trust">
+              <li>
+                <span className="pc-icon">
+                  <Icon d={ICONS.mail} size={17} stroke={1.8} />
+                </span>
+                <strong>Vrijblijvende offerte</strong>
+                <small>Binnen 1 werkdag</small>
+              </li>
+              <li>
+                <span className="pc-icon">
+                  <Icon d={ICONS.advice} size={17} stroke={1.8} />
+                </span>
+                <strong>Persoonlijk advies</strong>
+                <small>Van een specialist</small>
+              </li>
+              <li>
+                <span className="pc-icon">
+                  <Icon d={ICONS.heart} size={17} stroke={1.8} />
+                </span>
+                <strong>Maatwerk mogelijk</strong>
+                <small>Voor grotere organisaties</small>
+              </li>
+            </ul>
+          </aside>
+        )}
       </div>
 
       <ul className="prc-facts">
