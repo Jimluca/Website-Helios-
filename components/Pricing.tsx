@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { euros, type Package, type Price, type Pricing as PricingData } from "@/lib/pricing-shared";
 import { CHOOSE_EVENT } from "@/lib/pricing-events";
 
@@ -124,6 +124,12 @@ export default function Pricing({ data, summary = null }: { data: PricingData; s
   const [filter, setFilter] = useState("Alles");
   const [saved, setSaved] = useState<string | null>(null);
 
+  // Wat er nu gekozen is, voor als de vragen bovenaan opnieuw samenstellen (zie restore).
+  const chosenRef = useRef(chosen);
+  useEffect(() => {
+    chosenRef.current = chosen;
+  }, [chosen]);
+
   // Een opgeslagen samenstelling (of een gedeelde link) terugzetten; pas na de eerste weergave, zodat server en
   // browser eerst hetzelfde tonen.
   // De keuzehulp bovenaan (PriceGuide) zet een pakket in de adresbalk en vraagt dan om het hier te kiezen.
@@ -135,7 +141,9 @@ export default function Pricing({ data, summary = null }: { data: PricingData; s
       window.removeEventListener(CHOOSE_EVENT, restore);
     };
 
-    function restore() {
+    function restore(event?: Event) {
+      // Opnieuw samengesteld door een ander antwoord: wat je zelf had toegevoegd blijft staan.
+      const fromGuide = event instanceof Event;
       let state: {
         pakket?: number | null;
         extra?: Record<number, number>;
@@ -172,7 +180,22 @@ export default function Pricing({ data, summary = null }: { data: PricingData; s
         }
       }
       if (state.extra) {
-        setChosen(Object.fromEntries(Object.entries(state.extra).filter(([id]) => known(Number(id), data.addons))));
+        const next: Record<number, number> = Object.fromEntries(Object.entries(state.extra).filter(([id]) => known(Number(id), data.addons)));
+        if (fromGuide) {
+          // Dezelfde toevoeging in de nieuwe grootte (de prijs verschilt per grootte), behalve wat het nieuwe pakket al
+          // heeft en de extra gebruikers (die rekenen de vragen zelf uit).
+          const target = data.packages.find((item) => item.id === state.pakket);
+          const covered = new Set(target?.includes ?? []);
+          for (const [id, qty] of Object.entries(chosenRef.current)) {
+            const old = data.addons.find((addon) => addon.id === Number(id));
+            if (!old || (old.countable && !old.category)) continue;
+            const match = data.addons.find((addon) => addon.name === old.name && (!addon.size || !target?.size || addon.size === target.size));
+            if (match && next[match.id] === undefined && !match.includes.every((line) => covered.has(line))) {
+              next[match.id] = qty;
+            }
+          }
+        }
+        setChosen(next);
       }
       if (state.gebruikers && state.gebruikers > 0) {
         setSeats(Math.min(999, state.gebruikers));
