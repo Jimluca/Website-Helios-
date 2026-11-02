@@ -1,7 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // Een losse server (.next/standalone) voor de Docker-image in Coolify, zonder de volledige node_modules.
+  output: "standalone",
   cacheComponents: true,
   partialPrefetching: true,
 };

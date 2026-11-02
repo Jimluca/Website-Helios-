@@ -13,9 +13,13 @@ Open daarna http://localhost:3000.
 
 **Koppeling met het platform.** Inloggen, Aanmelden en "Maak de gratis studiekeuzetest" gaan naar het Helios-platform (`/login` en `/aanmelden`). Het adres staat in `NEXT_PUBLIC_APP_URL` (zie `.env.example`; lokaal de Docker-app op http://localhost:8800). Zet het op de server waar de website wordt gebouwd op het echte adres van het platform: het wordt bij `npm run build` in de pagina gezet.
 
+## Uitrollen
+
+De website draait in Coolify op dezelfde server als de Helios-app, als Docker-app (`Dockerfile`, Next.js `output: "standalone"`). Zie [docs/deploy-coolify.md](docs/deploy-coolify.md). Elke push naar `main` zet met _Auto Deploy_ de nieuwe versie live; `/up` is de gezondheidscheck.
+
 ## Opbouw
 
-- `app/layout.tsx`: html-basis, metadata en de fonts (Inter 400–600 en Inter Tight 700/800 via de Google Fonts-stylesheet; `next/font/google` faalt onder Turbopack in Next 16.4).
+- `app/layout.tsx`: html-basis, metadata en de fonts (Inter 400–600 en Inter Tight 700/800, zelf gehost via `@fontsource`: geen verzoeken naar Google).
 - `app/page.tsx`: de homepage.
 - `app/globals.css`: alle stijlen van de hero, de schermwissel (`.screen` / `.is-active`), de stappen en de hover-effecten (`hv-*`).
 - `components/Header.tsx`: vaste menubalk in liquid glass-stijl (via `app/layout.tsx`): glijdende hoverpil, uitklapmenu Product, compacter bij scrollen, hamburgermenu onder 1000px. Het glas zit in een eigen laag (`.hdr-glass`), zodat de uitklapmenu's de pagina erachter vervagen.
@@ -37,4 +41,4 @@ Open daarna http://localhost:3000.
 - De drie glazen tegels zijn uitsneden uit `hero2-ref.png` en zien er wat zacht uit. Vervangen door eigen 3D/glas-iconen.
 - De foto's in `public/assets/opl` en `public/assets/ber`, de vacatures en de percentages zijn voorbeeldgegevens.
 - `public/assets/prod/*`: illustraties van de productkaarten, uitgesneden uit een screenshot en daardoor niet scherp. Vervangen door de originele 3D-renders (liefst transparant, op 2×).
-- De links in de footer, de drie ingangen in de hero, "Bekijk de testen" en de knoppen op de productkaarten en "Plan een demo" en "Ontdek hoe Helios werkt" (Resultaat) linken nog naar `#`. "Bekijk hoe het werkt" linkt naar `#hoe-het-werkt`, de volgende sectie.
+- Demo en contact gaan per e-mail naar info@helioscarreer.nl (`DEMO_URL`, `CONTACT_URL` en `moreInfoUrl` in `lib/app-links.ts`), zolang er geen eigen pagina's voor zijn. Privacy en Algemene voorwaarden in de footer linken nog naar `#`: de teksten moeten nog komen.

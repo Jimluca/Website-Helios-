@@ -1,0 +1,10 @@
+# Alleen wat het bouwen nodig heeft gaat de Docker-image in.
+node_modules
+.next
+.git
+.env*
+!.env.example
+Helios-*
+*.html
+npm-debug.log*
+tsconfig.tsbuildinfo
