@@ -1,4 +1,5 @@
 import type { CSSProperties } from "react";
+import { moreInfoUrl } from "@/lib/app-links";
 import ProductArt from "./ProductArt";
 
 type Product = {
@@ -25,7 +26,7 @@ const PRODUCTS: Product[] = [
     sub: ["Voor loopbaanprofessionals", "en re-integratie"],
     body: ["Breng samen met je cliënt in beeld", "wat hij kan en wil. Met betrouwbare", "loopbaantesten, heldere rapporten", "en een eigen omgeving om cliënten", "te begeleiden."],
     cta: "Ontdek Helios Coach",
-    href: "#",
+    href: "/voor-professionals",
     rgb: "74, 31, 201",
     tile: ["#5B2EE0", "#3E17B4"],
     tint: ["#F3EEFF", "#E6DCFF"],
@@ -39,7 +40,7 @@ const PRODUCTS: Product[] = [
     sub: ["Voor studiekeuze in vo, mbo en hbo"],
     body: ["Helpt leerlingen en studenten", "een opleiding te kiezen die bij ze past.", "Ze ontdekken hun interesses en", "talenten en zien direct welke", "opleidingen aansluiten."],
     cta: "Ontdek Helios Next",
-    href: "#",
+    href: "/voor-scholen",
     rgb: "102, 57, 236",
     tile: ["#7B52FA", "#5A2FE4"],
     tint: ["#F5F1FF", "#EAE2FF"],
@@ -52,7 +53,7 @@ const PRODUCTS: Product[] = [
     sub: ["Voor LOB en burgerschap"],
     body: ["Een doorlopende leerlijn waarmee", "leerlingen ontdekken wie ze zijn en", "wat ze willen. Met kant-en-klare", "LOB-opdrachten, burgerschapslessen", "en overzicht per klas voor de mentor."],
     cta: "Ontdek Helios Horizon",
-    href: "#",
+    href: "/voor-scholen#aanpak",
     rgb: "135, 104, 246",
     tile: ["#9C82FF", "#7B5CF0"],
     tint: ["#F7F4FF", "#EEE8FF"],
@@ -65,7 +66,7 @@ const PRODUCTS: Product[] = [
     sub: ["Voor koppeling met je eigen", "systemen"],
     body: ["Zet de testen van Helios in je eigen", "website, portaal of leerlingvolgsysteem.", "Via een API, in je eigen huisstijl, zonder", "dat gebruikers apart hoeven in te", "loggen."],
     cta: "Ontdek Helios Connect",
-    href: "#",
+    href: moreInfoUrl("Helios Connect"),
     rgb: "166, 143, 250",
     tile: ["#B8A6FF", "#977EF6"],
     tint: ["#F9F7FF", "#F2EDFF"],

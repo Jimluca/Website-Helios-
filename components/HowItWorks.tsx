@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { DEMO_URL } from "@/lib/app-links";
 import { useEffect, useState, type CSSProperties } from "react";
 
 const SLIDE_MS = 5000;
@@ -187,7 +188,7 @@ export default function HowItWorks() {
         </div>
 
         <div className="how-actions">
-          <a className="how-btn" href="#">
+          <a className="how-btn" href={DEMO_URL}>
             <span>Plan een demo</span>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <path d="M4 12h16" />

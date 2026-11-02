@@ -2,12 +2,12 @@ import type { CSSProperties, ReactNode } from "react";
 import HeroVisual from "./HeroVisual";
 import { SIGNUP_URL } from "@/lib/app-links";
 
-// Vier snelle ingangen onder de knoppen. De links volgen zodra de pagina's er zijn.
+// Vier snelle ingangen onder de knoppen: functies van de app, dus via aanmelden.
 const TOOLS: { title: string; body: string; href: string; color: string; bg: string; icon: ReactNode }[] = [
   {
     title: "Zoek per school",
     body: "Ontdek opleidingen binnen een organisatie",
-    href: "#",
+    href: SIGNUP_URL,
     color: "#4A1FC9",
     bg: "#EDE7FF",
     icon: (
@@ -22,7 +22,7 @@ const TOOLS: { title: string; body: string; href: string; color: string; bg: str
   {
     title: "Opleidingen swiper",
     body: "Swipe door opleidingen die bij jou passen",
-    href: "#",
+    href: SIGNUP_URL,
     color: "#6639EC",
     bg: "#EFEAFF",
     icon: (
@@ -37,7 +37,7 @@ const TOOLS: { title: string; body: string; href: string; color: string; bg: str
   {
     title: "Zoek per sector",
     body: "Ontdek welke opleidingen bij favoriete sectoren passen",
-    href: "#",
+    href: SIGNUP_URL,
     color: "#7B5CF0",
     bg: "#F2EEFF",
     icon: (
@@ -50,7 +50,7 @@ const TOOLS: { title: string; body: string; href: string; color: string; bg: str
   {
     title: "Populaire testen",
     body: "Bekijk de testen die het meest gemaakt worden",
-    href: "#",
+    href: SIGNUP_URL,
     color: "#8F74F5",
     bg: "#F5F2FF",
     icon: <path d="M11.5 2.8a.6.6 0 0 1 1 0l2.6 5.3 5.8.8a.6.6 0 0 1 .3 1l-4.2 4.1 1 5.8a.6.6 0 0 1-.9.6L12 17.6l-5.2 2.8a.6.6 0 0 1-.9-.6l1-5.8-4.2-4.1a.6.6 0 0 1 .3-1l5.8-.8z" />,
@@ -79,7 +79,6 @@ export default function Hero() {
           <span>
             aan het{" "}
             <span className="licht">
-              <span className="licht-glow" aria-hidden="true" />
               <span className="licht-text">licht</span>
             </span>
           </span>
@@ -96,15 +95,14 @@ export default function Hero() {
             Maak de gratis studiekeuzetest
             <ArrowIcon />
           </a>
-          {/* TODO: doorlinken naar de pagina met alle testen zodra die er is. */}
-          <a className="btn btn-secondary" href="#">
+          <a className="btn btn-secondary" href="/voor-scholen#testen">
             Bekijk de testen
           </a>
         </div>
 
         <div className="hero-tools">
           {TOOLS.map((t) => (
-            <a key={t.title} className="hero-tool" href={t.href} style={{ "--tool-color": t.color, "--tool-bg": t.bg } as CSSProperties}>
+            <a key={t.title} className="hero-tool glass-card" href={t.href} style={{ "--tool-color": t.color, "--tool-bg": t.bg } as CSSProperties}>
               <span className="hero-tool-icon" aria-hidden="true">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   {t.icon}

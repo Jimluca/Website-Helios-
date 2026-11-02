@@ -1,16 +1,28 @@
 import type { Metadata } from "next";
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
+import { SITE_URL } from "@/lib/app-links";
+// Lettertypes van de eigen site (geen verzoeken naar Google, dus geen IP-adressen van bezoekers naar derden):
+// Inter 400–600 en Inter Tight 700/800, zoals in het ontwerp.
+import "@fontsource/inter/400.css";
+import "@fontsource/inter/500.css";
+import "@fontsource/inter/600.css";
+import "@fontsource/inter-tight/700.css";
+import "@fontsource/inter-tight/800.css";
 import "./globals.css";
+import "./pages.css";
 
-// Fonts via de Google Fonts-stylesheet, net als in het ontwerp: Inter 400–600 (vet valt terug op 600)
-// en Inter Tight 700/800. next/font/google faalt onder Turbopack in deze Next-versie.
-const FONTS_URL = "https://fonts.googleapis.com/css2?family=Inter+Tight:wght@700;800&family=Inter:wght@400;500;600&display=swap";
+const TITLE = "Helios – Brengt talent aan het licht";
+const DESCRIPTION =
+  "Maak verschillende testen, ontdek je talenten, interesses en mogelijkheden en krijg direct persoonlijk advies voor je studie, werk of volgende stap.";
 
+// Het deelbeeld (app/opengraph-image.png en twitter-image.png) geldt voor alle pagina's.
 export const metadata: Metadata = {
-  title: "Helios – Brengt talent aan het licht",
-  description:
-    "Maak verschillende testen, ontdek je talenten, interesses en mogelijkheden en krijg direct persoonlijk advies voor je studie, werk of volgende stap.",
+  metadataBase: new URL(SITE_URL),
+  title: TITLE,
+  description: DESCRIPTION,
+  openGraph: { type: "website", siteName: "Helios", locale: "nl_NL", title: TITLE, description: DESCRIPTION },
+  twitter: { card: "summary_large_image" },
 };
 
 // Licht of donker al vóór de eerste weergave: de eigen keuze (localStorage), anders die van het apparaat.
@@ -21,9 +33,6 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html lang="nl" data-theme="light" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
-        <link rel="stylesheet" href={FONTS_URL} />
       </head>
       <body>
         <Header />

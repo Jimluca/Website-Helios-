@@ -3,16 +3,16 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState, type CSSProperties } from "react";
-import { LOGIN_URL } from "@/lib/app-links";
+import { CONTACT_URL, LOGIN_URL } from "@/lib/app-links";
 import ThemeToggle from "./ThemeToggle";
 
 const ITEMS = [
   { label: "Product", href: "/#producten", menu: true },
-  { label: "Voor scholen", href: "#" },
-  { label: "Voor professionals", href: "#" },
-  { label: "Over Helios", href: "#" },
+  { label: "Voor scholen", href: "/voor-scholen" },
+  { label: "Voor professionals", href: "/voor-professionals" },
+  { label: "Over Helios", href: "/over-ons" },
   { label: "Prijzen", href: "/prijzen" },
-  { label: "Contact", href: "#" },
+  { label: "Contact", href: CONTACT_URL },
 ];
 
 const PRODUCTS = [

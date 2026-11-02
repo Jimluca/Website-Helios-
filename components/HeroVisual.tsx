@@ -22,13 +22,15 @@ export default function HeroVisual() {
     const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     // Schaal: desktop toont het hele canvas (1774px), gestapeld alleen het rechterdeel (1184px).
-    // Op desktop staat de inhoud 100 schermpixels lager, onder de vaste menubalk (--oy in canvaspixels).
+    // Op desktop staat de inhoud lager, onder de vaste menubalk: evenveel als de bovenmarge van .hero
+    // (--oy in canvaspixels).
     const fit = () => {
       const w = visual.clientWidth;
       if (!w) return;
       const s = w / (stacked.matches ? 1184 : 1774);
+      const oy = stacked.matches ? 0 : parseFloat(getComputedStyle(hero).paddingTop) || 0;
       stage.style.setProperty("--s", String(s));
-      stage.style.setProperty("--oy", stacked.matches ? "0px" : `${100 / s}px`);
+      stage.style.setProperty("--oy", `${oy / s}px`);
     };
     const ro = new ResizeObserver(fit);
     ro.observe(visual);
@@ -42,7 +44,8 @@ export default function HeroVisual() {
     // Zijbalk: elke 5,2 s het volgende scherm. Klikken kiest een scherm; zolang de muis op het
     // dashboard staat, pauzeert de wissel.
     const navItems = [...stage.querySelectorAll<HTMLElement>(".nav-item")];
-    const screens = [...stage.querySelectorAll<HTMLElement>(".screen")];
+    // Op naam koppelen (nav-beroepen → dashboard-beroepen): in de HTML staan de schermen in een andere volgorde.
+    const screens = navItems.map((n) => stage.querySelector<HTMLElement>(`#dashboard-${n.id.replace("nav-", "")}`));
     let active = 0;
     let paused = false;
     let timer = 0;
@@ -50,7 +53,7 @@ export default function HeroVisual() {
     const setActive = (i: number) => {
       active = i;
       navItems.forEach((n, j) => n.classList.toggle("is-active", j === i));
-      screens.forEach((s, j) => s.classList.toggle("is-active", j === i));
+      screens.forEach((s, j) => s?.classList.toggle("is-active", j === i));
     };
 
     // (Her)start de wissel, zodat een aangeklikt scherm de volle 5,2 s blijft staan.
@@ -63,14 +66,42 @@ export default function HeroVisual() {
       }, HOLD);
     };
 
+    // Muis op een menu-item toont dat scherm en pauzeert de wissel; klikken werkt ook (aanraakschermen).
     navItems.forEach((n, i) => {
       const click = () => {
         setActive(i);
         schedule();
       };
+      const enter = () => {
+        setActive(i);
+        paused = true;
+      };
       n.addEventListener("click", click);
-      cleanups.push(() => n.removeEventListener("click", click));
+      n.addEventListener("mouseenter", enter);
+      cleanups.push(() => {
+        n.removeEventListener("click", click);
+        n.removeEventListener("mouseenter", enter);
+      });
     });
+
+    // "Jouw volgende stap" op het scherm Resultaten: de stappen lopen op (1, 1, 2, 3, 4, 4, 4), elke 1,1 s.
+    const steps = [...stage.querySelectorAll<HTMLElement>(".step-item")];
+    if (steps.length && !reduced) {
+      const seq = [1, 1, 2, 3, 4, 4, 4];
+      let pos = 0;
+      const tick = window.setInterval(() => {
+        pos = (pos + 1) % seq.length;
+        const step = seq[pos];
+        stage.style.setProperty("--step-line", `${(step - 1) * 22}px`);
+        steps.forEach((el) => {
+          const n = Number(el.dataset.step);
+          el.classList.toggle("is-done", n <= step);
+          el.classList.toggle("is-current", n === step);
+          el.classList.toggle("is-next", n === step + 1);
+        });
+      }, 1100);
+      cleanups.push(() => clearInterval(tick));
+    }
 
     // Na het verlaten van het dashboard krijgt het huidige scherm weer de volle 5,2 s.
     const dashboard = stage.querySelector<HTMLElement>("#dashboard-window");

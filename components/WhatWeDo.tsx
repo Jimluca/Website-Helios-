@@ -1,4 +1,5 @@
 import type { CSSProperties, ReactNode } from "react";
+import { DEMO_URL } from "@/lib/app-links";
 
 // Pad tussen de vier stappen, in coördinaten van het ontwerpcanvas (1536 × 1024).
 const PATH =
@@ -183,7 +184,7 @@ export default function WhatWeDo() {
         </p>
 
         <div className="wwd-actions">
-          <a className="wwd-btn-demo" href="#">
+          <a className="wwd-btn-demo" href={DEMO_URL}>
             <span>Plan een demo</span>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <path d="M4 12h16" />

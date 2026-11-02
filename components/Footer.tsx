@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { CSSProperties } from "react";
+import { CONTACT_URL, DEMO_URL } from "@/lib/app-links";
 
 const COLUMNS = [
   {
@@ -8,11 +9,11 @@ const COLUMNS = [
     x: 446,
     links: [
       { label: "Hoe het werkt", href: "/#hoe-het-werkt" },
-      { label: "Testen", href: "#" },
+      { label: "Testen", href: "/voor-scholen#testen" },
       { label: "Resultaten", href: "/#resultaat" },
-      { label: "Begeleiding", href: "#" },
-      { label: "Voor scholen", href: "#" },
-      { label: "Voor organisaties", href: "#" },
+      { label: "Begeleiding", href: "/voor-professionals" },
+      { label: "Voor scholen", href: "/voor-scholen" },
+      { label: "Voor organisaties", href: "/voor-professionals" },
       { label: "Prijzen", href: "/prijzen" },
     ],
   },
@@ -20,20 +21,15 @@ const COLUMNS = [
     title: "Over Helios",
     x: 653,
     links: [
-      { label: "Onze missie", href: "#" },
-      { label: "Over ons", href: "#" },
-      { label: "Kennisbank", href: "#" },
-      { label: "FAQ", href: "#" },
-      { label: "Contact", href: "#" },
+      { label: "Onze missie", href: "/over-ons#missie" },
+      { label: "Over ons", href: "/over-ons" },
+      { label: "Contact", href: CONTACT_URL },
     ],
   },
   {
     title: "Support",
     x: 860,
     links: [
-      { label: "Helpcentrum", href: "#" },
-      { label: "Handleidingen", href: "#" },
-      { label: "Status", href: "#" },
       { label: "Privacy", href: "#" },
       { label: "Algemene voorwaarden", href: "#" },
     ],
@@ -181,7 +177,7 @@ export default function Footer() {
               ]}
             />
           </p>
-          <a className="ft-demo-btn" href="#">
+          <a className="ft-demo-btn" href={DEMO_URL}>
             <span>Plan een demo</span>
             <svg
               viewBox="0 0 24 24"
@@ -202,22 +198,8 @@ export default function Footer() {
         <p className="ft-copy">© 2026 Helios. Alle rechten voorbehouden.</p>
 
         <div className="ft-social">
-          <a href="#" aria-label="LinkedIn">
-            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-              <path d="M4.5 9h3.2v10.5H4.5zM6.1 3.8a1.85 1.85 0 1 1 0 3.7 1.85 1.85 0 0 1 0-3.7zM9.9 9h3.05v1.45h.05c.43-.8 1.47-1.65 3.02-1.65 3.23 0 3.83 2.13 3.83 4.9v5.8h-3.18v-5.15c0-1.23-.02-2.8-1.71-2.8-1.71 0-1.97 1.33-1.97 2.71v5.24H9.9z" />
-            </svg>
-          </a>
-          <a href="#" aria-label="YouTube">
-            <svg
-              className="ft-social-lg"
-              viewBox="0 0 24 24"
-              fill="currentColor"
-              aria-hidden="true"
-            >
-              <path d="M21.6 7.2a2.5 2.5 0 0 0-1.77-1.77C18.27 5 12 5 12 5s-6.27 0-7.83.43A2.5 2.5 0 0 0 2.4 7.2 26 26 0 0 0 2 12a26 26 0 0 0 .4 4.8 2.5 2.5 0 0 0 1.77 1.77C5.73 19 12 19 12 19s6.27 0 7.83-.43a2.5 2.5 0 0 0 1.77-1.77A26 26 0 0 0 22 12a26 26 0 0 0-.4-4.8zM10 15V9l5.2 3z" />
-            </svg>
-          </a>
-          <a href="#" aria-label="E-mail">
+          {/* LinkedIn en YouTube komen terug zodra de adressen er zijn. */}
+          <a href={CONTACT_URL} aria-label="E-mail">
             <svg
               className="ft-social-lg"
               viewBox="0 0 24 24"

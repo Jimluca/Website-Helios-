@@ -8,9 +8,13 @@ import "./prijzen.css";
 // en voeg je toe wat je nog nodig hebt (PriceConfigurator). Alle pakketten en prijzen komen uit Helios; lukt het
 // ophalen niet, dan staat er "neem contact op".
 
+const TITLE = "Prijzen – Helios";
+const DESCRIPTION = "Stel je Helios-pakket samen: beantwoord vier vragen, krijg een pakket met prijs en voeg toe wat je nog nodig hebt.";
+
 export const metadata: Metadata = {
-  title: "Prijzen – Helios",
-  description: "Stel je Helios-pakket samen: beantwoord vier vragen, krijg een pakket met prijs en voeg toe wat je nog nodig hebt.",
+  title: TITLE,
+  description: DESCRIPTION,
+  openGraph: { title: TITLE, description: DESCRIPTION },
 };
 
 export default async function PricingPage() {

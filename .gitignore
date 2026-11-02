@@ -40,3 +40,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# ontwerpbestanden en losse HTML-prototypes in de projectmap (horen niet op de site)
+/Helios-*/
+/*.html
