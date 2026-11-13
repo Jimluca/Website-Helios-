@@ -10,8 +10,8 @@ FROM node:24-alpine AS build
 WORKDIR /app
 # Deze adressen gaan bij het bouwen vast in de pagina's. Coolify geeft ze mee als build-variabelen;
 # zonder die variabelen gelden de adressen van de live omgeving.
-ARG NEXT_PUBLIC_APP_URL=https://app.helioscarreer.nl
-ARG NEXT_PUBLIC_SITE_URL=https://helioscarreer.nl
+ARG NEXT_PUBLIC_APP_URL=https://app.helioscareer.nl
+ARG NEXT_PUBLIC_SITE_URL=https://helioscareer.nl
 ENV NEXT_PUBLIC_APP_URL=$NEXT_PUBLIC_APP_URL \
     NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL \
     NEXT_TELEMETRY_DISABLED=1

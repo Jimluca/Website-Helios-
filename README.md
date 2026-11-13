@@ -41,4 +41,4 @@ De website draait in Coolify op dezelfde server als de Helios-app, als Docker-ap
 - De drie glazen tegels zijn uitsneden uit `hero2-ref.png` en zien er wat zacht uit. Vervangen door eigen 3D/glas-iconen.
 - De foto's in `public/assets/opl` en `public/assets/ber`, de vacatures en de percentages zijn voorbeeldgegevens.
 - `public/assets/prod/*`: illustraties van de productkaarten, uitgesneden uit een screenshot en daardoor niet scherp. Vervangen door de originele 3D-renders (liefst transparant, op 2×).
-- Demo en contact gaan per e-mail naar info@helioscarreer.nl (`DEMO_URL`, `CONTACT_URL` en `moreInfoUrl` in `lib/app-links.ts`), zolang er geen eigen pagina's voor zijn. Privacy en Algemene voorwaarden in de footer linken nog naar `#`: de teksten moeten nog komen.
+- Demo en contact gaan per e-mail naar info@helioscareer.nl (`DEMO_URL`, `CONTACT_URL` en `moreInfoUrl` in `lib/app-links.ts`), zolang er geen eigen pagina's voor zijn. Privacy en Algemene voorwaarden in de footer linken nog naar `#`: de teksten moeten nog komen.

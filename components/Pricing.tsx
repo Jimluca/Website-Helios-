@@ -25,7 +25,7 @@ import { CHOOSE_EVENT } from "@/lib/pricing-events";
 
 type Period = "month" | "year";
 
-const CONTACT = "info@helioscarreer.nl";
+const CONTACT = "info@helioscareer.nl";
 export const STORAGE_KEY = "helios-prijscalculator";
 
 const ICONS = {

@@ -30,7 +30,7 @@ export default async function PricingPage() {
             Stel jouw <span>Helios-pakket</span> samen
           </h1>
           <p className="prc-empty">
-            De pakketten staan hier binnenkort. Wil je nu al een pakket op maat? <a href="mailto:info@helioscarreer.nl">Neem contact op</a>.
+            De pakketten staan hier binnenkort. Wil je nu al een pakket op maat? <a href="mailto:info@helioscareer.nl">Neem contact op</a>.
           </p>
         </header>
       )}

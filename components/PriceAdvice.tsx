@@ -155,7 +155,7 @@ export default function PriceAdvice({
                 : `Meer dan ${composed.clients.toLocaleString("nl-NL")} ${unit}?`}{" "}
             Daar maken we graag een pakket op maat voor. Hieronder zie je alvast de prijs tot {MAX_PROFESSIONALS} professionals
             {Number.isFinite(composed.clients) ? ` en ${composed.clients.toLocaleString("nl-NL")} ${unit}` : ""}.{" "}
-            <a href={`mailto:info@helioscarreer.nl?subject=${encodeURIComponent("Helios op maat")}`}>Neem contact op</a>
+            <a href={`mailto:info@helioscareer.nl?subject=${encodeURIComponent("Helios op maat")}`}>Neem contact op</a>
           </p>
         )}
         <div className="pa-price">

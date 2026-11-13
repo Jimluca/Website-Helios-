@@ -67,7 +67,7 @@ export default function PriceGuide({
 
       {who.length === 0 ? (
         <p className="pg-empty">
-          De pakketten staan hier binnenkort. <a href="mailto:info@helioscarreer.nl">Neem contact op</a> voor een pakket op maat.
+          De pakketten staan hier binnenkort. <a href="mailto:info@helioscareer.nl">Neem contact op</a> voor een pakket op maat.
         </p>
       ) : (
         <div className="pg-questions">
