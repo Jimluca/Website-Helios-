@@ -1,5 +1,6 @@
 import type { CSSProperties, ReactNode } from "react";
 import HeroVisual from "./HeroVisual";
+import StudiekeuzetestButton from "./StudiekeuzetestButton";
 import { SIGNUP_URL } from "@/lib/app-links";
 
 // Vier snelle ingangen onder de knoppen: functies van de app, dus via aanmelden.
@@ -53,7 +54,9 @@ const TOOLS: { title: string; body: string; href: string; color: string; bg: str
     href: SIGNUP_URL,
     color: "#8F74F5",
     bg: "#F5F2FF",
-    icon: <path d="M11.5 2.8a.6.6 0 0 1 1 0l2.6 5.3 5.8.8a.6.6 0 0 1 .3 1l-4.2 4.1 1 5.8a.6.6 0 0 1-.9.6L12 17.6l-5.2 2.8a.6.6 0 0 1-.9-.6l1-5.8-4.2-4.1a.6.6 0 0 1 .3-1l5.8-.8z" />,
+    icon: (
+      <path d="M11.5 2.8a.6.6 0 0 1 1 0l2.6 5.3 5.8.8a.6.6 0 0 1 .3 1l-4.2 4.1 1 5.8a.6.6 0 0 1-.9.6L12 17.6l-5.2 2.8a.6.6 0 0 1-.9-.6l1-5.8-4.2-4.1a.6.6 0 0 1 .3-1l5.8-.8z" />
+    ),
   },
 ];
 
@@ -91,10 +94,10 @@ export default function Hero() {
         </p>
 
         <div className="hero-actions">
-          <a className="btn btn-primary" href={SIGNUP_URL}>
+          <StudiekeuzetestButton className="btn btn-primary">
             Maak de gratis studiekeuzetest
             <ArrowIcon />
-          </a>
+          </StudiekeuzetestButton>
           <a className="btn btn-secondary" href="/voor-scholen#testen">
             Bekijk de testen
           </a>

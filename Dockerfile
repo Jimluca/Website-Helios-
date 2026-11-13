@@ -12,8 +12,10 @@ WORKDIR /app
 # zonder die variabelen gelden de adressen van de live omgeving.
 ARG NEXT_PUBLIC_APP_URL=https://app.helioscareer.nl
 ARG NEXT_PUBLIC_SITE_URL=https://helioscareer.nl
+ARG NEXT_PUBLIC_STUDIEKEUZETEST_KEY=
 ENV NEXT_PUBLIC_APP_URL=$NEXT_PUBLIC_APP_URL \
     NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL \
+    NEXT_PUBLIC_STUDIEKEUZETEST_KEY=$NEXT_PUBLIC_STUDIEKEUZETEST_KEY \
     NEXT_TELEMETRY_DISABLED=1
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
