@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import LegalPage, { type LegalSection } from "@/components/legal/LegalPage";
 import { COMPANY } from "@/lib/company";
+import { HAS_ANALYTICS, HAS_MARKETING, joinNl, TRACKERS } from "@/lib/consent";
 
 const TITLE = "Cookieverklaring – Helios";
 const DESCRIPTION = "Welke cookies en vergelijkbare technieken helioscareer.nl gebruikt, waarvoor, hoe lang, en hoe je je keuze wijzigt.";
@@ -53,18 +54,53 @@ const ANALYTICS: Row[] = [
   { name: "_ga_*", by: "Google Analytics", purpose: "Houdt een bezoek (sessie) bij", duration: "2 jaar" },
 ];
 
-const MARKETING: Row[] = [
-  { name: "_gcl_au, _gcl_aw", by: "Google Ads", purpose: "Meet of een klik op een advertentie tot een aanvraag leidt", duration: "90 dagen" },
-  { name: "_fbp, _fbc", by: "Meta (Facebook, Instagram)", purpose: "Herkent je browser voor advertenties en meet wat ze opleveren", duration: "90 dagen" },
+// De advertentiediensten; alleen die met een ID (lib/consent.ts) staan op de pagina.
+const ADS = [
   {
-    name: "li_fat_id, lms_ads, lms_analytics",
-    by: "LinkedIn",
-    purpose: "Meet wat advertenties opleveren en maakt doelgroepen voor advertenties",
-    duration: "30 dagen tot 1 jaar",
+    on: !!TRACKERS.googleAds,
+    service: "Google Ads",
+    company: "Google",
+    domain: "google.com",
+    policy: "https://policies.google.com/privacy",
+    row: { name: "_gcl_au, _gcl_aw", by: "Google Ads", purpose: "Meet of een klik op een advertentie tot een aanvraag leidt", duration: "90 dagen" },
   },
-];
+  {
+    on: !!TRACKERS.meta,
+    service: "Meta",
+    company: "Meta",
+    domain: "facebook.com",
+    policy: "https://www.facebook.com/privacy/policy",
+    row: {
+      name: "_fbp, _fbc",
+      by: "Meta (Facebook, Instagram)",
+      purpose: "Herkent je browser voor advertenties en meet wat ze opleveren",
+      duration: "90 dagen",
+    },
+  },
+  {
+    on: !!TRACKERS.linkedin,
+    service: "LinkedIn",
+    company: "LinkedIn",
+    domain: "linkedin.com",
+    policy: "https://www.linkedin.com/legal/privacy-policy",
+    row: {
+      name: "li_fat_id, lms_ads, lms_analytics",
+      by: "LinkedIn",
+      purpose: "Meet wat advertenties opleveren en maakt doelgroepen voor advertenties",
+      duration: "30 dagen tot 1 jaar",
+    },
+  },
+].filter((a) => a.on);
 
-const SECTIONS: LegalSection[] = [
+const MARKETING: Row[] = ADS.map((a) => a.row);
+const SINGLE = ADS.length === 1;
+
+const CHOICE = HAS_ANALYTICS && HAS_MARKETING ? "analytische en marketingcookies" : HAS_ANALYTICS ? "analytische cookies" : "marketingcookies";
+const USES_GOOGLE = HAS_ANALYTICS || !!TRACKERS.googleAds;
+const GOOGLE_FOR = joinNl([HAS_ANALYTICS && "metingen", !!TRACKERS.googleAds && "advertenties"].filter((s): s is string => !!s));
+
+// Een sectie die false is (dienst staat uit) valt weg.
+const ALL_SECTIONS: (LegalSection | false)[] = [
   {
     id: "wat-zijn-cookies",
     title: "Wat zijn cookies",
@@ -78,11 +114,13 @@ const SECTIONS: LegalSection[] = [
   {
     id: "jouw-keuze",
     title: "Jouw keuze",
-    body: (
+    body: !(HAS_ANALYTICS || HAS_MARKETING) ? (
+      <p>We gebruiken alleen noodzakelijke cookies. Daarvoor is geen toestemming nodig, dus je krijgt geen cookiemelding te zien.</p>
+    ) : (
       <>
         <p>
-          Bij je eerste bezoek vragen we of je analytische en marketingcookies toestaat. Pas als je daarvoor kiest, worden ze geplaatst. Weigeren is net zo
-          makkelijk als accepteren, en de site werkt in beide gevallen.
+          Bij je eerste bezoek vragen we of je {CHOICE} toestaat. Pas als je daarvoor kiest, worden ze geplaatst. Weigeren is net zo makkelijk als accepteren,
+          en de site werkt in beide gevallen.
         </p>
         <p>
           Je kunt je keuze altijd wijzigen of je toestemming intrekken via{" "}
@@ -92,7 +130,7 @@ const SECTIONS: LegalSection[] = [
           , ook te vinden onderaan elke pagina. Trek je toestemming in, dan verwijderen we de cookies die de site zelf heeft geplaatst. Na 12 maanden vragen we
           het opnieuw.
         </p>
-        <p>Google ontvangt je keuze via Google Consent Mode. Zo weet Google of het cookies mag gebruiken voor metingen en advertenties.</p>
+        {USES_GOOGLE && <p>Google ontvangt je keuze via Google Consent Mode. Zo weet Google of het cookies mag gebruiken voor {GOOGLE_FOR}.</p>}
       </>
     ),
   },
@@ -106,7 +144,7 @@ const SECTIONS: LegalSection[] = [
       </>
     ),
   },
-  {
+  HAS_ANALYTICS && {
     id: "analytisch",
     title: "Analytische cookies",
     body: (
@@ -119,30 +157,28 @@ const SECTIONS: LegalSection[] = [
       </>
     ),
   },
-  {
+  HAS_MARKETING && {
     id: "marketing",
     title: "Marketingcookies",
     body: (
       <>
         <p>
-          Met cookies van Google Ads, Meta en LinkedIn meten we wat onze advertenties opleveren, bijvoorbeeld of iemand na een klik een demo aanvraagt. Ze
-          kunnen ook worden gebruikt om je op andere websites en in apps advertenties van Helios te laten zien. Alleen met jouw toestemming.
+          Met cookies van {joinNl(ADS.map((a) => a.service))} meten we wat onze advertenties opleveren, bijvoorbeeld of iemand na een klik een demo aanvraagt.
+          Ze kunnen ook worden gebruikt om je op andere websites en in apps advertenties van Helios te laten zien. Alleen met jouw toestemming.
         </p>
         <CookieTable rows={MARKETING} />
         <p>
-          Deze partijen kunnen daarnaast cookies op hun eigen domeinen plaatsen (zoals google.com, facebook.com en linkedin.com) en de gegevens ook voor hun
-          eigen doelen gebruiken. Lees daarvoor hun privacyverklaringen:{" "}
-          <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer">
-            Google
-          </a>
-          ,{" "}
-          <a href="https://www.facebook.com/privacy/policy" target="_blank" rel="noopener noreferrer">
-            Meta
-          </a>{" "}
-          en{" "}
-          <a href="https://www.linkedin.com/legal/privacy-policy" target="_blank" rel="noopener noreferrer">
-            LinkedIn
-          </a>
+          {SINGLE ? `${ADS[0].company} kan` : "Deze partijen kunnen"} daarnaast cookies op {SINGLE ? "het eigen domein" : "hun eigen domeinen"} plaatsen (zoals{" "}
+          {joinNl(ADS.map((a) => a.domain))}) en de gegevens ook voor {SINGLE ? "eigen" : "hun eigen"} doelen gebruiken. Lees daarvoor{" "}
+          {SINGLE ? "de privacyverklaring" : "hun privacyverklaringen"}:{" "}
+          {ADS.map((a, i) => (
+            <span key={a.company}>
+              {i > 0 && (i === ADS.length - 1 ? " en " : ", ")}
+              <a href={a.policy} target="_blank" rel="noopener noreferrer">
+                {a.company}
+              </a>
+            </span>
+          ))}
           .
         </p>
       </>
@@ -159,6 +195,7 @@ const SECTIONS: LegalSection[] = [
     ),
   },
 ];
+const SECTIONS = ALL_SECTIONS.filter((s): s is LegalSection => !!s);
 
 export default function CookiesPage() {
   return (

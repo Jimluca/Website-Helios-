@@ -8,9 +8,12 @@ import {
   CONSENT_KEY,
   HAS_ANALYTICS,
   HAS_MARKETING,
+  joinNl,
+  MARKETING_SERVICES,
   parseConsent,
   readConsentRaw,
   saveConsent,
+  TRACKING_COMPANIES,
   type Choice,
 } from "@/lib/consent";
 import { applyConsent, removeTrackingCookies, trackPageView } from "@/lib/trackers";
@@ -31,6 +34,12 @@ function subscribe(onChange: () => void) {
 }
 
 const SERVER = "server";
+
+// Alleen de diensten die echt aan staan (lib/consent.ts).
+const PURPOSES = [HAS_ANALYTICS && "te meten hoe de site wordt gebruikt", HAS_MARKETING && "advertenties beter te laten aansluiten"].filter(
+  (s): s is string => !!s,
+);
+const INTRO = TRACKING_COMPANIES.length ? ` Met jouw toestemming gebruiken we ook cookies van ${joinNl(TRACKING_COMPANIES)} om ${joinNl(PURPOSES)}.` : "";
 
 export default function ConsentManager() {
   const raw = useSyncExternalStore(subscribe, readConsentRaw, () => SERVER);
@@ -94,9 +103,8 @@ export default function ConsentManager() {
         Cookies op Helios
       </h2>
       <p className="cb-text">
-        We gebruiken noodzakelijke cookies om de site te laten werken. Met jouw toestemming gebruiken we ook cookies van Google, Meta en LinkedIn om te meten
-        hoe de site wordt gebruikt en om advertenties beter te laten aansluiten. Je kunt je keuze altijd wijzigen via Cookie-instellingen onderaan de pagina.
-        Lees meer in de <a href="/cookies">cookieverklaring</a>.
+        We gebruiken noodzakelijke cookies om de site te laten werken.{INTRO} Je kunt je keuze altijd wijzigen via Cookie-instellingen onderaan de pagina. Lees
+        meer in de <a href="/cookies">cookieverklaring</a>.
       </p>
 
       {details && (
@@ -108,34 +116,38 @@ export default function ConsentManager() {
             </span>
             <span className="cb-always">Altijd aan</span>
           </li>
-          <li>
-            <label className="cb-option-text" htmlFor="cb-analytics">
-              <strong>Analytisch</strong>
-              <span>Google Analytics: meten hoe bezoekers de site gebruiken.</span>
-            </label>
-            <input
-              id="cb-analytics"
-              className="cb-switch"
-              type="checkbox"
-              role="switch"
-              checked={draft.analytics}
-              onChange={(e) => setDraft((d) => ({ ...d, analytics: e.target.checked }))}
-            />
-          </li>
-          <li>
-            <label className="cb-option-text" htmlFor="cb-marketing">
-              <strong>Marketing</strong>
-              <span>Google Ads, Meta en LinkedIn: advertenties meten en laten aansluiten.</span>
-            </label>
-            <input
-              id="cb-marketing"
-              className="cb-switch"
-              type="checkbox"
-              role="switch"
-              checked={draft.marketing}
-              onChange={(e) => setDraft((d) => ({ ...d, marketing: e.target.checked }))}
-            />
-          </li>
+          {HAS_ANALYTICS && (
+            <li>
+              <label className="cb-option-text" htmlFor="cb-analytics">
+                <strong>Analytisch</strong>
+                <span>Google Analytics: meten hoe bezoekers de site gebruiken.</span>
+              </label>
+              <input
+                id="cb-analytics"
+                className="cb-switch"
+                type="checkbox"
+                role="switch"
+                checked={draft.analytics}
+                onChange={(e) => setDraft((d) => ({ ...d, analytics: e.target.checked }))}
+              />
+            </li>
+          )}
+          {HAS_MARKETING && (
+            <li>
+              <label className="cb-option-text" htmlFor="cb-marketing">
+                <strong>Marketing</strong>
+                <span>{joinNl(MARKETING_SERVICES)}: advertenties meten en laten aansluiten.</span>
+              </label>
+              <input
+                id="cb-marketing"
+                className="cb-switch"
+                type="checkbox"
+                role="switch"
+                checked={draft.marketing}
+                onChange={(e) => setDraft((d) => ({ ...d, marketing: e.target.checked }))}
+              />
+            </li>
+          )}
         </ul>
       )}
 

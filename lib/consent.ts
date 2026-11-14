@@ -24,6 +24,21 @@ export const TRACKERS = {
 export const HAS_ANALYTICS = !!TRACKERS.ga4;
 export const HAS_MARKETING = !!(TRACKERS.googleAds || TRACKERS.meta || TRACKERS.linkedin);
 
+// Wat er echt aan staat. De cookiemelding, de cookieverklaring en de privacyverklaring noemen alleen deze diensten;
+// komt er een ID bij, dan verschijnt die dienst daar vanzelf.
+const only = (items: (string | false)[]) => items.filter((s): s is string => !!s);
+
+/** Advertentiediensten die aan staan, bijv. ["Google Ads", "Meta"]. */
+export const MARKETING_SERVICES = only([!!TRACKERS.googleAds && "Google Ads", !!TRACKERS.meta && "Meta", !!TRACKERS.linkedin && "LinkedIn"]);
+
+/** Bedrijven die na toestemming cookies plaatsen, bijv. ["Google"]. */
+export const TRACKING_COMPANIES = only([(HAS_ANALYTICS || !!TRACKERS.googleAds) && "Google", !!TRACKERS.meta && "Meta", !!TRACKERS.linkedin && "LinkedIn"]);
+
+/** "A", "A en B", "A, B en C". */
+export function joinNl(items: string[]) {
+  return items.length < 2 ? (items[0] ?? "") : `${items.slice(0, -1).join(", ")} en ${items[items.length - 1]}`;
+}
+
 export function parseConsent(raw: string | null): Consent | null {
   if (!raw) return null;
   try {

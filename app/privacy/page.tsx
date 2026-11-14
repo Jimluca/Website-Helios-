@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import LegalPage, { type LegalSection } from "@/components/legal/LegalPage";
 import { COMPANY } from "@/lib/company";
+import { HAS_ANALYTICS, HAS_MARKETING, joinNl, MARKETING_SERVICES, TRACKERS, TRACKING_COMPANIES } from "@/lib/consent";
 
 const TITLE = "Privacyverklaring – Helios";
 const DESCRIPTION = "Hoe Helios omgaat met persoonsgegevens: welke gegevens we verwerken, waarom, hoe lang en welke rechten je hebt.";
@@ -12,6 +13,16 @@ export const metadata: Metadata = {
 };
 
 const mail = <a href={`mailto:${COMPANY.email}`}>{COMPANY.email}</a>;
+
+// Alleen de meet- en advertentiediensten die aan staan (lib/consent.ts).
+const TRACKING = [
+  HAS_ANALYTICS && "Google Analytics",
+  !!TRACKERS.googleAds && "Google Ads",
+  !!TRACKERS.meta && "Meta (Facebook en Instagram)",
+  !!TRACKERS.linkedin && "LinkedIn",
+].filter((s): s is string => !!s);
+const TRACKING_KIND = HAS_ANALYTICS && HAS_MARKETING ? "Advertentie- en analysediensten" : HAS_ANALYTICS ? "Analysediensten" : "Advertentiediensten";
+const SINGLE_COMPANY = TRACKING_COMPANIES.length === 1;
 
 const SECTIONS: LegalSection[] = [
   {
@@ -95,22 +106,26 @@ const SECTIONS: LegalSection[] = [
                 <td>Gerechtvaardigd belang (beveiliging en storingen oplossen)</td>
                 <td>Kort, alleen zolang nodig voor beveiliging en storingen</td>
               </tr>
-              <tr>
-                <td>Meten hoe de website wordt gebruikt (Google Analytics)</td>
-                <td>Cookie-ID, apparaat- en browsergegevens, bezochte pagina&apos;s, globale locatie</td>
-                <td>Toestemming via de cookiemelding</td>
-                <td>
-                  Zie de <a href="/cookies">cookieverklaring</a>
-                </td>
-              </tr>
-              <tr>
-                <td>Advertenties laten zien en meten wat ze opleveren (Google Ads, Meta en LinkedIn)</td>
-                <td>Cookie-ID, apparaat- en browsergegevens, bezochte pagina&apos;s en acties zoals een verstuurd formulier</td>
-                <td>Toestemming via de cookiemelding</td>
-                <td>
-                  Zie de <a href="/cookies">cookieverklaring</a>
-                </td>
-              </tr>
+              {HAS_ANALYTICS && (
+                <tr>
+                  <td>Meten hoe de website wordt gebruikt (Google Analytics)</td>
+                  <td>Cookie-ID, apparaat- en browsergegevens, bezochte pagina&apos;s, globale locatie</td>
+                  <td>Toestemming via de cookiemelding</td>
+                  <td>
+                    Zie de <a href="/cookies">cookieverklaring</a>
+                  </td>
+                </tr>
+              )}
+              {HAS_MARKETING && (
+                <tr>
+                  <td>Advertenties laten zien en meten wat ze opleveren ({joinNl(MARKETING_SERVICES)})</td>
+                  <td>Cookie-ID, apparaat- en browsergegevens, bezochte pagina&apos;s en acties zoals een verstuurd formulier</td>
+                  <td>Toestemming via de cookiemelding</td>
+                  <td>
+                    Zie de <a href="/cookies">cookieverklaring</a>
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
@@ -149,11 +164,14 @@ const SECTIONS: LegalSection[] = [
             <strong>Dienstverleners die in onze opdracht werken</strong> (verwerkers): hosting van de website en het platform (Hetzner Online, in de EU), het
             versturen van e-mail en betalingen (Stripe). Met hen hebben we afspraken gemaakt over beveiliging en geheimhouding.
           </li>
-          <li>
-            <strong>Advertentie- en analysediensten</strong>, alleen als je daar via de cookiemelding toestemming voor geeft: Google (Analytics en Ads), Meta
-            (Facebook en Instagram) en LinkedIn. Deze partijen gebruiken de gegevens deels ook voor hun eigen doelen; daarvoor gelden hun eigen
-            privacyverklaringen.
-          </li>
+          {TRACKING.length > 0 && (
+            <li>
+              <strong>{TRACKING_KIND}</strong>, alleen als je daar via de cookiemelding toestemming voor geeft: {joinNl(TRACKING)}.{" "}
+              {SINGLE_COMPANY
+                ? `${TRACKING_COMPANIES[0]} gebruikt de gegevens deels ook voor eigen doelen; daarvoor geldt de privacyverklaring van ${TRACKING_COMPANIES[0]}.`
+                : "Deze partijen gebruiken de gegevens deels ook voor hun eigen doelen; daarvoor gelden hun eigen privacyverklaringen."}
+            </li>
+          )}
           <li>
             <strong>De organisatie waarmee je via Helios bent verbonden</strong>, zoals je school of loopbaanbegeleider, als die je heeft uitgenodigd. Zij zien
             je uitslagen om je te begeleiden.
@@ -167,8 +185,8 @@ const SECTIONS: LegalSection[] = [
     title: "Gegevens buiten de Europese Unie",
     body: (
       <p>
-        We bewaren de gegevens van het platform binnen de Europese Economische Ruimte (EER). Google, Meta, LinkedIn en Stripe kunnen gegevens ook buiten de EER
-        verwerken, bijvoorbeeld in de Verenigde Staten. Dat gebeurt alleen met passende waarborgen, zoals het EU-VS Data Privacy Framework of de
+        We bewaren de gegevens van het platform binnen de Europese Economische Ruimte (EER). {joinNl([...TRACKING_COMPANIES, "Stripe"])} kunnen gegevens ook
+        buiten de EER verwerken, bijvoorbeeld in de Verenigde Staten. Dat gebeurt alleen met passende waarborgen, zoals het EU-VS Data Privacy Framework of de
         standaardcontractbepalingen van de Europese Commissie.
       </p>
     ),
