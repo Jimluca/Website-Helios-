@@ -118,8 +118,22 @@ function linkedin() {
   loaded.linkedin = true;
 }
 
+// Op een lokaal adres (next dev, next start, een test) laadt niets, zodat testbezoeken niet in Google Analytics en de
+// advertentiediensten komen. De cookiemelding werkt daar wel. Wil je het lokaal toch testen, zet dan in de console
+// localStorage.setItem("helios-tracking-test", "1") en laad de pagina opnieuw.
+function isLocal() {
+  const host = location.hostname;
+  if (!(host === "localhost" || host === "127.0.0.1" || host === "[::1]" || host.endsWith(".localhost"))) return false;
+  try {
+    return localStorage.getItem("helios-tracking-test") !== "1";
+  } catch {
+    return true;
+  }
+}
+
 /** Zet de diensten aan die bij de keuze horen. */
 export function applyConsent(choice: Choice) {
+  if (isLocal()) return;
   google(choice);
   if (choice.marketing) {
     meta();
