@@ -2551,3 +2551,345 @@
 .pg-404 {
     padding: 200px 0 160px;
 }
+
+/* ---------- Contact (app/contact, components/contact/ContactForm.tsx) ----------
+   Links de uitleg, rechts het formulier op een glazen kaart; velden en onderwerpkeuze in hetzelfde glas. */
+
+.ct-hero {
+    padding-bottom: 110px;
+}
+
+.ct-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 42fr) minmax(0, 58fr);
+    align-items: start;
+    gap: 56px;
+}
+
+.ct-grid .pg-hero-copy {
+    padding-top: 28px;
+}
+
+.ct-direct {
+    display: inline-flex;
+    align-items: center;
+    gap: 16px;
+    margin-top: 36px;
+    padding: 16px 24px 16px 16px;
+    border-radius: 20px;
+}
+
+.ct-direct > span:last-child {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.ct-direct-label {
+    font-size: 14px;
+    color: var(--d-muted, #6B6E87);
+}
+
+.ct-direct a {
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--d-link, #4B2BF0);
+}
+
+.ct-card {
+    padding: 36px;
+    border-radius: 28px;
+}
+
+/* De kaart met het formulier tilt niet op bij hover: je werkt erin. */
+.ct-card.glass-card:hover {
+    transform: none;
+}
+
+.ct-topics {
+    margin: 0 0 26px;
+    padding: 0;
+    border: 0;
+    min-width: 0;
+}
+
+.ct-label {
+    display: block;
+    margin-bottom: 8px;
+    padding: 0;
+    font-size: 14.5px;
+    font-weight: 600;
+    color: var(--heading);
+}
+
+.ct-topics .ct-label {
+    margin-bottom: 12px;
+}
+
+.ct-optional {
+    font-weight: 400;
+    color: var(--d-muted, #6B6E87);
+}
+
+.ct-topic-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.ct-topic {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0 18px;
+    border-radius: 999px;
+    border: 1px solid rgb(104 76 230 / .16);
+    background: linear-gradient(180deg, rgb(255 255 255 / .9), rgb(246 243 255 / .7));
+    box-shadow: inset 0 1px 0 #FFFFFF, 0 6px 14px -10px rgb(60 40 160 / .3);
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text);
+    cursor: pointer;
+    transition: background .25s, border-color .25s, color .25s, transform .3s var(--ease);
+}
+
+.ct-topic:hover {
+    border-color: rgb(104 76 230 / .32);
+    transform: translateY(-1px);
+}
+
+.ct-topic input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.ct-topic:has(input:focus-visible) {
+    outline: 2px solid var(--d-link, #4B2BF0);
+    outline-offset: 2px;
+}
+
+.ct-topic.is-on {
+    color: #FFFFFF;
+    border-color: rgb(255 255 255 / .35);
+    background: linear-gradient(180deg, #6A45FA 0%, #4B2BF0 100%);
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / .35), 0 10px 20px -10px rgb(75 43 240 / .6);
+}
+
+.ct-about {
+    margin: 14px 0 0;
+    font-size: 14.5px;
+    color: var(--text-intro);
+}
+
+.ct-about strong {
+    color: var(--heading);
+    font-weight: 600;
+}
+
+.ct-row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+}
+
+.ct-field {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 18px;
+}
+
+.ct-field input,
+.ct-field textarea {
+    box-sizing: border-box;
+    width: 100%;
+    padding: 13px 16px;
+    border-radius: 14px;
+    border: 1px solid rgb(104 76 230 / .16);
+    background: rgb(255 255 255 / .78);
+    box-shadow: inset 0 1px 2px rgb(40 25 120 / .05);
+    font: inherit;
+    font-size: 16px;
+    line-height: 1.45;
+    color: var(--heading);
+    transition: border-color .2s, box-shadow .2s, background .2s;
+}
+
+.ct-field textarea {
+    min-height: 140px;
+    resize: vertical;
+}
+
+.ct-field input:focus,
+.ct-field textarea:focus {
+    outline: none;
+    border-color: #6639EC;
+    background: #FFFFFF;
+    box-shadow: 0 0 0 4px rgb(102 57 236 / .16);
+}
+
+.ct-field.has-error input,
+.ct-field.has-error textarea {
+    border-color: #C4283C;
+}
+
+.ct-error {
+    margin-top: 6px;
+    font-size: 13.5px;
+    color: #C4283C;
+}
+
+.ct-trap {
+    position: absolute;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+}
+
+.ct-failed {
+    margin: 0 0 18px;
+    padding: 12px 16px;
+    border-radius: 14px;
+    background: rgb(196 40 60 / .08);
+    font-size: 14.5px;
+    color: #A3212F;
+}
+
+.ct-failed a {
+    font-weight: 600;
+    color: inherit;
+    text-decoration: underline;
+}
+
+.ct-submit {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 14px 20px;
+    margin-top: 6px;
+}
+
+.ct-submit .pg-btn {
+    border: 0;
+    font: inherit;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.ct-submit .pg-btn:disabled {
+    opacity: .7;
+    cursor: wait;
+    transform: none;
+}
+
+.ct-privacy {
+    margin: 0;
+    font-size: 13.5px;
+    color: var(--d-muted, #6B6E87);
+}
+
+.ct-done {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 48px 40px;
+}
+
+.ct-done-title {
+    margin: 6px 0 0;
+    font-family: var(--font-inter-tight), sans-serif;
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: var(--heading);
+}
+
+.ct-done-text {
+    margin: 0;
+    font-size: 16.5px;
+    line-height: 1.55;
+    color: var(--text-intro);
+}
+
+:root[data-theme='dark'] .ct-topic {
+    border-color: rgb(255 255 255 / .12);
+    background: rgb(255 255 255 / .05);
+}
+
+:root[data-theme='dark'] .ct-topic.is-on {
+    border-color: rgb(255 255 255 / .2);
+    background: linear-gradient(180deg, #6A45FA 0%, #4B2BF0 100%);
+}
+
+:root[data-theme='dark'] .ct-field input,
+:root[data-theme='dark'] .ct-field textarea {
+    border-color: rgb(255 255 255 / .12);
+    background: rgb(255 255 255 / .05);
+}
+
+:root[data-theme='dark'] .ct-field input:focus,
+:root[data-theme='dark'] .ct-field textarea:focus {
+    border-color: #A68FFA;
+    background: rgb(255 255 255 / .08);
+    box-shadow: 0 0 0 4px rgb(166 143 250 / .18);
+}
+
+:root[data-theme='dark'] .ct-field.has-error input,
+:root[data-theme='dark'] .ct-field.has-error textarea {
+    border-color: #FF8FA3;
+}
+
+:root[data-theme='dark'] .ct-error,
+:root[data-theme='dark'] .ct-failed {
+    color: #FF8FA3;
+}
+
+:root[data-theme='dark'] .ct-failed {
+    background: rgb(255 143 163 / .1);
+}
+
+@media (max-width: 1099px) {
+    .ct-grid {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 40px;
+    }
+
+    .ct-grid .pg-hero-copy {
+        padding-top: 0;
+    }
+}
+
+@media (max-width: 699px) {
+    .ct-hero {
+        padding-bottom: 72px;
+    }
+
+    .ct-card {
+        padding: 24px 20px;
+        border-radius: 22px;
+    }
+
+    .ct-row {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 0;
+    }
+
+    .ct-topic {
+        min-height: 40px;
+        padding: 0 14px;
+        font-size: 14.5px;
+    }
+
+    .ct-submit .pg-btn {
+        width: 100%;
+    }
+
+    .ct-direct {
+        display: flex;
+    }
+}
+

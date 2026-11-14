@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { contactUrl } from "@/lib/app-links";
 import { clientOptions, EDUCATION, LEVELS, teamOptions, unitFor, type Answers } from "@/lib/configurator";
 import type { Pricing as PricingData } from "@/lib/pricing-shared";
 
@@ -38,7 +39,7 @@ export default function PriceGuide({
   const isEducation = answers.who === EDUCATION;
   const unit = unitFor(answers);
   const needsLevel = isEducation && !answers.level;
-  // De keuzes: 1 tot 5 professionals en de cliëntentreden uit Helios, telkens met "meer" (dan contact).
+  // De keuzes: 1 tot 5 professionals en de kolommen (aantal cliënten per jaar) uit Helios, telkens met "meer" (dan contact).
   const teams = teamOptions();
   const counts = clientOptions(data, answers.who, unit);
 
@@ -67,7 +68,7 @@ export default function PriceGuide({
 
       {who.length === 0 ? (
         <p className="pg-empty">
-          De pakketten staan hier binnenkort. <a href="mailto:info@helioscareer.nl">Neem contact op</a> voor een pakket op maat.
+          De pakketten staan hier binnenkort. <a href={contactUrl("offerte")}>Neem contact op</a> voor een pakket op maat.
         </p>
       ) : (
         <div className="pg-questions">

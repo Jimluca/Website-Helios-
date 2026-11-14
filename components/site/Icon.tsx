@@ -246,6 +246,12 @@ const PATHS: Record<string, ReactNode> = {
       <circle cx="12" cy="19" r="1" />
     </>
   ),
+  mail: (
+    <>
+      <rect x="3" y="5" width="18" height="14" rx="2.5" />
+      <path d="m3.5 7 8.5 6 8.5-6" />
+    </>
+  ),
   info: (
     <>
       <circle cx="12" cy="12" r="9" />

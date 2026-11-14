@@ -5,6 +5,8 @@ export type Price = {
   amount: number;
   period: "month" | "year";
   perSeat: boolean;
+  /** Een staffel: de prijs per stuk tot een aantal (de laatste zonder einde), in centen; null: één prijs per stuk. */
+  tiers?: { up_to: number | null; amount: number }[] | null;
   trialDays: number;
   label: string;
 };
@@ -17,6 +19,12 @@ export type Package = {
   /** Het soort test van een toevoeging (bijv. "Beroepen"); leeg bij gebruikers of klanten. */
   category?: string | null;
   countable: boolean;
+  /** Wat één stuk is bij een toevoeging per stuk, bijv. "opleidingen" of "professionals". */
+  unit?: string | null;
+  /** De testen die het geeft (ids); een toevoeging zonder testen (bijv. de studiekeuzetest op de website) kan zonder pakket. */
+  tests?: number[];
+  /** De studiekeuzetest op de eigen website van de school. */
+  embed?: boolean;
   prices: Price[];
   orderUrl?: string;
   /** Voor wie het pakket is (sleutel uit `audiences`); leeg bij een pakket zonder doelgroep. */
@@ -49,9 +57,33 @@ export type Pricing = {
   packages: Package[];
   addons: Package[];
   taxPercent: number;
+  /** De doelgroepen zonder btw (Onderwijs, CRKBO): hun prijzen zijn btw-vrij. */
+  vatExempt?: string[];
   noticeMonths: number;
   invoice: { enabled: boolean; days: number };
 };
+
+/** Wat een aantal stuks kost: prijs × aantal, of bij een staffel elk stuk de prijs van zijn trede (zoals in Helios). */
+export function priceTotal(price: Price, units: number): number {
+  const count = Math.max(1, units);
+  if (!price.tiers?.length) return price.amount * count;
+  let sum = 0;
+  let from = 0;
+  for (const tier of price.tiers) {
+    const to = tier.up_to === null ? count : Math.min(count, tier.up_to);
+    if (to > from) {
+      sum += (to - from) * tier.amount;
+      from = to;
+    }
+    if (from >= count) break;
+  }
+  return sum;
+}
+
+/** "excl. 21% btw", of "btw-vrij" voor een doelgroep zonder btw (Onderwijs). */
+export function vatText(data: Pricing, audience: string | null | undefined): string {
+  return audience && data.vatExempt?.includes(audience) ? "btw-vrij" : `excl. ${data.taxPercent}% btw`;
+}
 
 /** Bijv. "€ 49" of "€ 12,50". */
 export function euros(cents: number): string {

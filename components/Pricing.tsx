@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { euros, type Package, type Price, type Pricing as PricingData } from "@/lib/pricing-shared";
+import { euros, priceTotal, vatText, type Package, type Price, type Pricing as PricingData } from "@/lib/pricing-shared";
 import ModuleInfo from "@/components/ModuleInfo";
 import PriceAdvice from "@/components/PriceAdvice";
 import {
@@ -16,16 +16,16 @@ import {
   type Answers,
   type Composed,
 } from "@/lib/configurator";
+import { contactUrl } from "@/lib/app-links";
 import { CHOOSE_EVENT } from "@/lib/pricing-events";
 
 // Prijscalculator (ontwerp: "Prijscalculator Helios"): kies een basispakket, voeg toevoegingen toe en zie meteen wat
 // het kost, per jaar of per maand. Alle pakketten en bedragen komen uit Helios (Admin › Pakketten); hier staat geen
-// enkele prijs vast. Een offerte aanvragen opent een e-mail met de samenstelling; opslaan bewaart hem en zet een link
+// enkele prijs vast. Een offerte aanvragen opent het contactformulier met de samenstelling als bericht; opslaan bewaart hem en zet een link
 // op het klembord; bestellen gaat naar de bestelpagina van Helios met het pakket al gekozen.
 
 type Period = "month" | "year";
 
-const CONTACT = "info@helioscareer.nl";
 export const STORAGE_KEY = "helios-prijscalculator";
 
 const ICONS = {
@@ -48,7 +48,7 @@ const ICONS = {
 };
 const PACKAGE_ICONS = [ICONS.box, ICONS.bars, ICONS.gem];
 // De volgorde van de soorten testen (zoals in Helios); een onbekende soort komt erachter, "Gebruikers" als laatste.
-const GROUP_ORDER = ["Beroepen", "Opleidingen", "Waarden en talenten", "Werk- en studiehouding", "Ondersteuning"];
+const GROUP_ORDER = ["Beroepen", "Opleidingen", "Waarden en talenten", "Werk- en studiehouding", "Ondersteuning", "Website"];
 
 function Icon({ d, size = 18, stroke = 1.9 }: { d: string; size?: number; stroke?: number }) {
   return (
@@ -74,15 +74,16 @@ const priceFor = (item: Package, period: Period): Price | undefined => item.pric
 function cost(item: Package, period: Period, units: number): { cents: number; exact: boolean } | null {
   const direct = priceFor(item, period);
   if (direct) {
-    return { cents: direct.amount * units, exact: true };
+    return { cents: priceTotal(direct, units), exact: true };
   }
   const other = priceFor(item, period === "year" ? "month" : "year");
   if (!other) {
     return null;
   }
+  const cents = priceTotal(other, units);
 
   return {
-    cents: (period === "year" ? other.amount * 12 : Math.round(other.amount / 12)) * units,
+    cents: period === "year" ? cents * 12 : Math.round(cents / 12),
     exact: false,
   };
 }
@@ -94,8 +95,24 @@ function unitText(item: Package, period: Period) {
   if (price?.perSeat) {
     return `per gebruiker ${per}`;
   }
+  // Een staffel (bijv. per opleiding): "vanaf … per jaar"; de prijs per stuk daalt bij meer.
+  if (price?.tiers?.length) {
+    return `vanaf, ${per}`;
+  }
 
-  return item.countable ? `per stuk ${per}` : per;
+  return item.countable ? `per ${item.unit ? item.unit.replace(/en$/, "") : "stuk"} ${per}` : per;
+}
+
+/** Bijv. "1: € 255 · 2 t/m 10: € 85 · …": de staffel van een prijs. */
+function tiersText(price: Price | undefined): string {
+  let from = 1;
+  return (price?.tiers ?? [])
+    .map((tier) => {
+      const range = tier.up_to === null ? `vanaf ${from}` : tier.up_to === from ? `${from}` : `${from} t/m ${tier.up_to}`;
+      from = (tier.up_to ?? from) + 1;
+      return `${range}: ${euros(tier.amount)}`;
+    })
+    .join(" · ");
 }
 
 /** De groottes die een doelgroep heeft, in de volgorde van Helios (klein eerst). */
@@ -107,8 +124,12 @@ const sizesOf = (packages: Package[], audience: string | null) => [
 const visibleFor = (packages: Package[], audience: string | null, size: string | null) =>
   packages.filter((item) => !item.audience || audience === null || (item.audience === audience && (!item.size || item.size === size)));
 
-/** Het gratis pakket om zelf samen te stellen (alle prijzen € 0). */
+/** Het gratis pakket om zelf samen te stellen (alle prijzen € 0); de prijslijst van 2026 heeft er geen. */
 const isOwn = (item: Package) => item.prices.length > 0 && item.prices.every((price) => price.amount === 0);
+
+/** De productlijnen (bijv. Basis, Loopbaan, Compleet) van een doelgroep en grootte, in de volgorde van Helios. */
+const familiesOf = (packages: Package[], audience: string | null, size: string | null) =>
+  visibleFor(packages, audience, size).filter((item) => item.audience === audience);
 
 /** Bij een pakket per gebruiker telt het aantal gebruikers; bij een toevoeging per stuk het aantal stuks. */
 const isPerSeat = (item: Package) => item.prices.some((price) => price.perSeat);
@@ -149,9 +170,10 @@ export default function Pricing({ data, advice = null }: { data: PricingData; ad
   const sizes = sizesOf(data.packages, audience);
   const size = sizeChoice !== null && sizes.includes(sizeChoice) ? sizeChoice : (sizes[0] ?? null);
   const visiblePackages = visibleFor(data.packages, audience, size);
-  // Zelf samenstellen: de basis is het gratis pakket ("Eigen pakket") van die doelgroep en grootte, zonder testen; je
-  // kiest alleen losse modules. Pakketten met testen staan hier niet (die komen uit de vragen of de slimme suggestie).
-  const ownFor = (aud: string | null, sz: string | null) => visibleFor(data.packages, aud, sz).find(isOwn) ?? null;
+  // Zelf samenstellen: je kiest een pakket in de kolom (doelgroep en aantal cliënten) en zet er losse testen bij. Een
+  // gratis pakket ("Eigen pakket") gaat voor; anders het eerste pakket van de kolom.
+  const ownFor = (aud: string | null, sz: string | null) =>
+    visibleFor(data.packages, aud, sz).find(isOwn) ?? familiesOf(data.packages, aud, sz)[0] ?? null;
   const [packageId, setPackageId] = useState<number | null>(
     ownFor(audienceList[0]?.key ?? null, sizesOf(data.packages, audienceList[0]?.key ?? null)[0] ?? null)?.id ?? null,
   );
@@ -294,7 +316,7 @@ export default function Pricing({ data, advice = null }: { data: PricingData; ad
     );
     const own = ownFor(nextAudience, useSize);
     setPackageId(
-      !pkg || isOwn(pkg) ? (own?.id ?? null) : !pkg.audience ? pkg.id : ((same ?? own ?? visibleFor(data.packages, nextAudience, useSize)[0])?.id ?? null),
+      !pkg ? null : isOwn(pkg) ? (own?.id ?? null) : !pkg.audience ? pkg.id : ((same ?? own ?? visibleFor(data.packages, nextAudience, useSize)[0])?.id ?? null),
     );
   };
   const pkgUnits = pkg && isPerSeat(pkg) ? seats : 1;
@@ -327,15 +349,20 @@ export default function Pricing({ data, advice = null }: { data: PricingData; ad
     : null;
 
   // Filters: de soorten testen in de volgorde van Helios, en "Gebruikers" voor wat geen test is.
-  const groupOf = (addon: Package) => addon.category ?? "Gebruikers";
+  const groupOf = (addon: Package) => addon.category ?? (addon.embed ? "Website" : "Gebruikers");
   const rank = (group: string) => (GROUP_ORDER.indexOf(group) + 1 || GROUP_ORDER.length) + (group === "Gebruikers" ? 100 : 0);
   const includedNow = new Set(pkg?.includes ?? []);
   const redundant = (addon: Package) => chosen[addon.id] === undefined && addon.includes.length > 0 && addon.includes.every((line) => includedNow.has(line));
   // Een toevoeging met een grootte (de prijs verschilt per grootte) staat alleen bij pakketten van die grootte.
   // Na de vragen regelen de aantallen bij stap 1 de extra gebruikers en cliënten; die staan dan niet bij de toevoegingen.
+  // Zonder pakket alleen wat los te koop is (de studiekeuzetest op de website van de school).
   const offeredAddons = data.addons.filter(
     (addon) =>
-      !redundant(addon) && (!addon.size || size === null || addon.size === size) && fitsAudience(addon, pkg?.audience ?? audience) && !isLimitAddon(addon),
+      !redundant(addon) &&
+      (!addon.size || addon.size === (pkg?.size ?? size)) &&
+      fitsAudience(addon, pkg?.audience ?? audience) &&
+      !isLimitAddon(addon) &&
+      (pkg !== null || !addon.audience || (addon.tests ?? []).length === 0),
   );
   const sorted = [...offeredAddons].sort((a, b) => rank(groupOf(a)) - rank(groupOf(b)));
   const groups = ["Alles", ...new Set(sorted.map(groupOf))];
@@ -364,11 +391,12 @@ export default function Pricing({ data, advice = null }: { data: PricingData; ad
 
   // Professionals en cliënten: het pakket heeft er een aantal; extra professionals (tot MAX_PROFESSIONALS) en een
   // cliëntentrede zijn toevoegingen. Na de vragen gaat een wijziging terug naar de antwoorden.
-  const profAddon = professionalAddon(data);
+  const profAddon = professionalAddon(data, pkg?.audience ?? audience);
+  // Het aantal cliënten kiest de kolom: hetzelfde pakket in een andere grootte.
   const steps = clientSteps(data, pkg);
   const includedUsers = pkg ? usersOf(pkg) : 1;
   const teamNow = Number.isFinite(includedUsers) ? includedUsers + (profAddon ? (chosen[profAddon.id] ?? 0) * (profAddon.extraUsers || 1) : 0) : Infinity;
-  const stepNow = [...steps].reverse().find((step) => step.addon && chosen[step.addon.id] !== undefined) ?? steps[0];
+  const stepNow = steps.find((step) => step.pkg?.id === pkg?.id) ?? steps[0];
   const setLimits = (team: number, clients: number) => {
     if (!pkg) return;
     if (advice) {
@@ -376,17 +404,21 @@ export default function Pricing({ data, advice = null }: { data: PricingData; ad
       if (clients !== stepNow.total) advice.onClients(clients);
       return;
     }
-    const { extras } = limitExtras(data, pkg, team, clients);
+    const column = steps.find((step) => step.total === clients)?.pkg;
+    if (column && column.id !== pkg.id) {
+      switchTo(column.audience ?? audience, column.size ?? null);
+    }
+    const { extras } = limitExtras(data, column ?? pkg, team, clients);
     setChosen((now) => {
       const next = Object.fromEntries(Object.entries(now).filter(([id]) => !isLimitAddon(data.addons.find((a) => a.id === Number(id)) ?? ({} as Package))));
       for (const extra of extras) next[extra.id] = extra.count;
       return next;
     });
   };
-  // Weghalen in "Toevoegingen": een extra professional of cliëntentrede terug naar wat in het pakket zit.
+  // Weghalen in "Toevoegingen": een extra professional terug naar wat in het pakket zit.
   const removeLine = (addon: Package) => {
     if (!isLimitAddon(addon)) return toggleAddon(addon.id);
-    setLimits((addon.extraUsers ?? 0) > 0 ? includedUsers : teamNow, (addon.extraClients ?? 0) > 0 ? steps[0].total : stepNow.total);
+    setLimits((addon.extraUsers ?? 0) > 0 ? includedUsers : teamNow, stepNow.total);
   };
   // Leerlingen of studenten in het onderwijs, anders cliënten (na de vragen: het woord van het antwoord).
   const unit = advice?.unit ?? ((pkg?.audience ?? audience) === "education" ? "leerlingen of studenten" : "cliënten");
@@ -428,12 +460,12 @@ export default function Pricing({ data, advice = null }: { data: PricingData; ad
           <div className="pc-limit">
             <span className="pc-limit-label">
               <strong>{unit.charAt(0).toUpperCase() + unit.slice(1)}</strong>
-              <small>Standaard tot {steps[0].total.toLocaleString("nl-NL")} per jaar</small>
+              <small>Per jaar; alle professionals samen</small>
             </span>
             <select className="pc-select" value={stepNow.total} onChange={(e) => setLimits(teamNow, Number(e.target.value))} aria-label={`Aantal ${unit}`}>
               {steps.map((step) => (
                 <option key={step.total} value={step.total}>
-                  Tot {step.total.toLocaleString("nl-NL")}
+                  T/m {step.total.toLocaleString("nl-NL")}
                 </option>
               ))}
             </select>
@@ -442,13 +474,13 @@ export default function Pricing({ data, advice = null }: { data: PricingData; ad
         {teamNow >= MAX_PROFESSIONALS && (
           <p className="pc-limit-note">
             Meer dan {MAX_PROFESSIONALS} professionals of {steps[steps.length - 1].total.toLocaleString("nl-NL")} {unit}?{" "}
-            <a href={`mailto:${CONTACT}?subject=${encodeURIComponent("Helios op maat")}`}>Neem contact op</a> voor een pakket op maat.
+            <a href={contactUrl("offerte", "Helios op maat")}>Neem contact op</a> voor een pakket op maat.
           </p>
         )}
       </div>
     ) : null;
   // In het overzicht van een pakket de testen; de aantallen staan in limitsBlock.
-  const isLimitLine = (line: string) => /gebruiker|cliënt|onbeperkt|^tot /i.test(line);
+  const isLimitLine = (line: string) => /gebruiker|cliënt|leerling|onbeperkt|^tot |^t\/m /i.test(line);
 
   const periodWord = period === "year" ? "per jaar" : "per maand";
   const lineText = (item: Package, units: number) => {
@@ -506,13 +538,9 @@ export default function Pricing({ data, advice = null }: { data: PricingData; ad
       pkg ? `Pakket: ${pkg.name}${isPerSeat(pkg) ? ` (${seats} gebruikers)` : ""}, ${lineText(pkg, pkgUnits)}` : "Pakket: nog geen keuze",
       ...selected.map((addon) => `Toevoeging: ${addon.name}${chosen[addon.id] > 1 ? ` (${chosen[addon.id]}×)` : ""}, ${lineText(addon, addonUnits(addon))}`),
       "",
-      `Totaal: ${euros(total(period))} ${periodWord}, excl. ${data.taxPercent}% btw`,
-      "",
-      "Organisatie:",
-      "Naam:",
-      "Telefoon:",
+      `Totaal: ${euros(total(period))} ${periodWord}, ${vatText(data, pkg?.audience ?? audience)}`,
     ];
-    return `mailto:${CONTACT}?subject=${encodeURIComponent(`Offerte Helios${pkg ? ` – ${pkg.name}` : ""}`)}&body=${encodeURIComponent(rows.join("\n"))}`;
+    return contactUrl("offerte", pkg?.name, rows.join("\n"));
   };
 
   // Onderdelen van "Jouw samenstelling": in de zijkolom, of (na de vragen) in "Ons advies" bovenaan.
@@ -600,7 +628,13 @@ export default function Pricing({ data, advice = null }: { data: PricingData; ad
                 <span className="pc-line-text">
                   <strong>
                     {(addon.extraClients ?? 0) > 0 ? addon.name.replace("cliënten", unit) : addon.name}
-                    {chosen[addon.id] > 1 && <span> × {chosen[addon.id]}</span>}
+                    {addon.unit && !isLimitAddon(addon) ? (
+                      <span>
+                        , {chosen[addon.id]} {addon.unit}
+                      </span>
+                    ) : (
+                      chosen[addon.id] > 1 && <span> × {chosen[addon.id]}</span>
+                    )}
                   </strong>
                   <span className="pc-line-price">{lineText(addon, addonUnits(addon))}</span>
                 </span>
@@ -627,7 +661,10 @@ export default function Pricing({ data, advice = null }: { data: PricingData; ad
           <small>{periodWord}</small>
         </p>
         <p className="pc-vat">
-          Excl. {data.taxPercent}% btw.
+          {(() => {
+            const text = vatText(data, pkg?.audience ?? audience);
+            return `${text.charAt(0).toUpperCase()}${text.slice(1)}.`;
+          })()}
           {onlyOther.length > 0 && (
             <>
               {" "}
@@ -690,7 +727,7 @@ export default function Pricing({ data, advice = null }: { data: PricingData; ad
           <h2 className="pc-title">
             Stel jouw <span>Helios-pakket</span> samen.
           </h2>
-          <p className="pc-intro">Kies alleen de modules die je nodig hebt. Zo stel je eenvoudig een pakket samen dat past bij jouw organisatie.</p>
+          <p className="pc-intro">Kies je pakket en het aantal cliënten per jaar, en zet erbij wat je nog nodig hebt. Zo stel je eenvoudig een pakket samen dat past bij jouw organisatie.</p>
           <div className="pc-badge" aria-hidden="true">
             <span className="pc-badge-icon">
               <Icon d={ICONS.pen} size={20} />
@@ -731,11 +768,11 @@ export default function Pricing({ data, advice = null }: { data: PricingData; ad
                   {configured ? 2 : 1}
                 </span>
                 <div className="pc-step-body">
-                  <h2 className="pc-step-title">{configured ? "Voeg nog iets toe" : "Kies jouw losse modules"}</h2>
+                  <h2 className="pc-step-title">{configured ? "Voeg nog iets toe" : "Kies je pakket en wat je erbij wilt"}</h2>
                   <p className="pc-step-text">
                     {configured
                       ? "Zet losse testen aan die nog niet in je pakket zitten. De prijs wordt automatisch berekend."
-                      : "Stel je pakket helemaal zelf samen: zet de modules aan die je nodig hebt. De prijs wordt automatisch berekend."}
+                      : "Kies voor wie, hoeveel cliënten per jaar en welk pakket. Zet daarna losse testen aan die nog niet in je pakket zitten. De prijs wordt automatisch berekend."}
                   </p>
                 </div>
                 {data.addons.length > 6 && (
@@ -768,8 +805,8 @@ export default function Pricing({ data, advice = null }: { data: PricingData; ad
                       )}
                       {sizes.length > 1 && (
                         <div className="pc-sizes">
-                          <span className="pc-sizes-label">Grootte</span>
-                          <div className="pc-chips" role="radiogroup" aria-label="Grootte">
+                          <span className="pc-sizes-label">{audience === "education" ? "Leerlingen of studenten per jaar" : "Cliënten per jaar"}</span>
+                          <div className="pc-chips" role="radiogroup" aria-label={audience === "education" ? "Leerlingen of studenten per jaar" : "Cliënten per jaar"}>
                             {sizes.map((name) => (
                               <button
                                 key={name}
@@ -782,6 +819,37 @@ export default function Pricing({ data, advice = null }: { data: PricingData; ad
                                 {name}
                               </button>
                             ))}
+                          </div>
+                        </div>
+                      )}
+                      {familiesOf(data.packages, audience, size).length > 1 && (
+                        <div className="pc-sizes">
+                          <span className="pc-sizes-label">Pakket</span>
+                          <div className="pc-chips" role="radiogroup" aria-label="Pakket">
+                            {familiesOf(data.packages, audience, size).map((item) => (
+                              <button
+                                key={item.id}
+                                type="button"
+                                role="radio"
+                                aria-checked={packageId === item.id}
+                                className={`pc-chip${packageId === item.id ? " is-on" : ""}`}
+                                onClick={() => setPackageId(item.id)}
+                              >
+                                {item.family ?? item.name}
+                                <span>{euros(cost(item, period, 1)?.cents ?? 0)}</span>
+                              </button>
+                            ))}
+                            {data.addons.some((addon) => addon.embed && fitsAudience(addon, audience) && !addon.size) && (
+                              <button
+                                type="button"
+                                role="radio"
+                                aria-checked={packageId === null}
+                                className={`pc-chip${packageId === null ? " is-on" : ""}`}
+                                onClick={() => setPackageId(null)}
+                              >
+                                Zonder pakket
+                              </button>
+                            )}
                           </div>
                         </div>
                       )}
@@ -810,7 +878,8 @@ export default function Pricing({ data, advice = null }: { data: PricingData; ad
               <div className="pc-addons">
                 {addons.map((addon) => {
                   const on = chosen[addon.id] !== undefined;
-                  const price = cost(addon, period, 1);
+                  const price = cost(addon, period, on && addon.unit ? chosen[addon.id] : 1);
+                  const staffel = tiersText(priceFor(addon, period));
                   return (
                     <div key={addon.id} className={`pc-addon${on ? " is-on" : ""}`}>
                       <button type="button" className="pc-addon-toggle" aria-pressed={on} onClick={() => toggleAddon(addon.id)}>
@@ -833,7 +902,8 @@ export default function Pricing({ data, advice = null }: { data: PricingData; ad
                                 {price.exact ? "" : "± "}
                                 {euros(price.cents)}
                               </strong>
-                              <small>{unitText(addon, period)}</small>
+                              <small>{on && staffel ? `voor ${chosen[addon.id]} ${addon.unit ?? "stuks"} ${periodWord}` : unitText(addon, period)}</small>
+                              {staffel && <small className="pc-staffel">{staffel}</small>}
                             </>
                           ) : (
                             <small>Prijs op aanvraag</small>
@@ -850,7 +920,7 @@ export default function Pricing({ data, advice = null }: { data: PricingData; ad
                               max={999}
                               value={chosen[addon.id]}
                               onChange={(e) => setCount(addon.id, Number(e.target.value))}
-                              aria-label={`Aantal ${addon.name}`}
+                              aria-label={addon.unit ? `Aantal ${addon.unit}` : `Aantal ${addon.name}`}
                             />
                             <button type="button" aria-label={`Eén ${addon.name} meer`} onClick={() => setCount(addon.id, chosen[addon.id] + 1)}>
                               +
@@ -953,7 +1023,7 @@ export default function Pricing({ data, advice = null }: { data: PricingData; ad
                 </a>
               </div>
             ) : (
-              <p className="pc-none">Nog geen basispakket gekozen.</p>
+              <p className="pc-none">Geen pakket gekozen{audience === "education" ? ": alleen de studiekeuzetest op je website" : ""}.</p>
             )}
 
             {linesBlock}
@@ -997,7 +1067,7 @@ export default function Pricing({ data, advice = null }: { data: PricingData; ad
         </li>
         <li>
           <strong>Opzeggen</strong>
-          Met een opzegtermijn van {data.noticeMonths} maanden, tot het einde van een betaalperiode.
+          Jaarabonnement, elk jaar automatisch verlengd. Opzeggen kan tot {data.noticeMonths} maanden voor het einde van het abonnementsjaar.
         </li>
         <li>
           <strong>Meteen aan de slag</strong>

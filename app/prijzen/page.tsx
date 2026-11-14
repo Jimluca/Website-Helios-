@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import PriceConfigurator from "@/components/PriceConfigurator";
-import { SIGNUP_URL } from "@/lib/app-links";
+import PriceTerms from "@/components/PriceTerms";
+import { contactUrl, SIGNUP_URL } from "@/lib/app-links";
 import { getPricing } from "@/lib/pricing";
 import "./prijzen.css";
 
@@ -23,14 +24,17 @@ export default async function PricingPage() {
   return (
     <main className="prc">
       {data && data.packages.length > 0 ? (
-        <PriceConfigurator data={data} />
+        <>
+          <PriceConfigurator data={data} />
+          <PriceTerms data={data} />
+        </>
       ) : (
         <header className="prc-head">
           <h1 className="prc-title">
             Stel jouw <span>Helios-pakket</span> samen
           </h1>
           <p className="prc-empty">
-            De pakketten staan hier binnenkort. Wil je nu al een pakket op maat? <a href="mailto:info@helioscareer.nl">Neem contact op</a>.
+            De pakketten staan hier binnenkort. Wil je nu al een pakket op maat? <a href={contactUrl("offerte")}>Neem contact op</a>.
           </p>
         </header>
       )}

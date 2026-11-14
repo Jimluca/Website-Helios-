@@ -2323,3 +2323,115 @@
         animation: none;
     }
 }
+
+/* ---------- Goed om te weten (PriceTerms): wat inbegrepen is, de afspraken, de oude testnamen en de staffel van de
+   studiekeuzetest op de website van de school ---------- */
+.prt {
+    margin: 64px 0 0;
+}
+
+.prt-title {
+    margin: 0 0 20px;
+    font-family: var(--font-inter-tight), sans-serif;
+    font-size: clamp(26px, 3vw, 34px);
+    font-weight: 700;
+    letter-spacing: -.02em;
+    color: var(--heading);
+}
+
+.prt-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+    gap: 16px;
+}
+
+.prt-card {
+    padding: 22px 24px;
+    border-radius: 18px;
+    background: var(--d-tint-1, #F7F5FF);
+    font-size: 15px;
+    line-height: 1.55;
+    color: var(--text);
+}
+
+.prt-card h3 {
+    margin: 0 0 10px;
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--heading);
+}
+
+.prt-card p {
+    margin: 0 0 10px;
+}
+
+.prt-card ul {
+    margin: 0;
+    padding-left: 18px;
+    display: grid;
+    gap: 6px;
+}
+
+.prt-card a {
+    color: var(--d-link, #4B3CF0);
+    font-weight: 600;
+}
+
+.prt-names {
+    list-style: none;
+    padding-left: 0 !important;
+}
+
+.prt-names li {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    align-items: baseline;
+    gap: 8px;
+}
+
+.prt-names strong {
+    font-weight: 600;
+    color: var(--heading);
+}
+
+.prt-embed {
+    margin-top: 16px;
+}
+
+.prt-table {
+    width: 100%;
+    max-width: 640px;
+    margin: 6px 0 12px;
+    border-collapse: collapse;
+    font-size: 15px;
+}
+
+.prt-table th,
+.prt-table td {
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--d-line, #ECEAF6);
+    text-align: left;
+    font-weight: 400;
+}
+
+.prt-table thead th {
+    font-weight: 600;
+    color: var(--heading);
+}
+
+.prt-table tbody th {
+    color: var(--heading);
+}
+
+.prt-note {
+    font-size: 14px;
+    color: var(--text-intro);
+}
+
+/* De staffel onder de prijs van een toevoeging per stuk (bijv. per opleiding). */
+.pc-staffel {
+    display: block;
+    margin-top: 2px;
+    font-size: 11.5px;
+    line-height: 1.4;
+}

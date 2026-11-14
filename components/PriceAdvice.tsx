@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
+import { contactUrl } from "@/lib/app-links";
 import { EDUCATION, LEVELS, MAX_PROFESSIONALS, surchargeAmount, unitFor, type Answers, type Composed } from "@/lib/configurator";
-import { euros, type Package, type Pricing as PricingData } from "@/lib/pricing-shared";
+import { euros, vatText, type Package, type Pricing as PricingData } from "@/lib/pricing-shared";
 
 // Het advies boven het voorgestelde pakket (ontwerp: "Ons advies"): links welk pakket we adviseren en waarom, rechts
 // de antwoorden met "Wijzig antwoorden". Alles volgt uit de antwoorden en het pakket uit Helios.
@@ -55,7 +56,7 @@ function Icon({ d, size = 18 }: { d: string; size?: number }) {
 /** "Compleet" → "het Compleet pakket", "Eigen pakket" → "het Eigen pakket". */
 const packageWord = (name: string) => (/pakket$/i.test(name) ? name : `${name} pakket`);
 
-const tests = (pkg: Package) => pkg.includes.filter((line) => !/gebruiker|cliënt|onbeperkt|^tot /i.test(line));
+const tests = (pkg: Package) => pkg.includes.filter((line) => !/gebruiker|cliënt|leerling|onbeperkt|^tot |^t\/m /i.test(line));
 
 export default function PriceAdvice({
   data,
@@ -80,7 +81,7 @@ export default function PriceAdvice({
   const education = answers.who === EDUCATION;
   // Wat er nu in de samenstelling zit (de aantallen kun je rechts nog aanpassen).
   const teamText = `${composed.users} ${composed.users === 1 ? "professional" : "professionals"}`;
-  const countText = Number.isFinite(composed.clients) ? `tot ${composed.clients.toLocaleString("nl-NL")} ${unit}` : `onbeperkt ${unit}`;
+  const countText = Number.isFinite(composed.clients) ? `tot en met ${composed.clients.toLocaleString("nl-NL")} ${unit} per jaar` : `onbeperkt ${unit}`;
   const level = LEVELS.find((l) => l.key === answers.level)?.label;
 
   const themes = THEMES.filter(([test]) => tests(pkg).some((line) => test.test(line))).map(([, theme]) => theme);
@@ -114,7 +115,7 @@ export default function PriceAdvice({
       ? `Er zit ${composed.includedUsers} professional in het pakket${professionals ? `; voor jullie team komen er ${professionals.count} bij (${euros(perYear(professionals.addon!)).replace(" ", " ")} per professional per jaar)` : ""}. Professionals voeg je zelf toe, tot ${MAX_PROFESSIONALS} in totaal.`
       : "Onbeperkt professionals voor je hele team.",
     Number.isFinite(composed.includedClients)
-      ? `Standaard tot ${composed.includedClients.toLocaleString("nl-NL")} ${unit} per jaar${tier ? `, met de uitbreiding ${countText}` : ""}. Meer nodig? Dan zet je het later hoger.`
+      ? `Voor tot en met ${composed.includedClients.toLocaleString("nl-NL")} ${unit} per jaar${tier ? `, met de uitbreiding ${countText}` : ""}. Komen er meer? Dan stap je over naar de volgende kolom en betaal je het verschil voor de rest van het jaar.`
       : `Onbeperkt ${unit}.`,
     tests(pkg).length
       ? `Met ${tests(pkg)
@@ -155,13 +156,13 @@ export default function PriceAdvice({
                 : `Meer dan ${composed.clients.toLocaleString("nl-NL")} ${unit}?`}{" "}
             Daar maken we graag een pakket op maat voor. Hieronder zie je alvast de prijs tot {MAX_PROFESSIONALS} professionals
             {Number.isFinite(composed.clients) ? ` en ${composed.clients.toLocaleString("nl-NL")} ${unit}` : ""}.{" "}
-            <a href={`mailto:info@helioscareer.nl?subject=${encodeURIComponent("Helios op maat")}`}>Neem contact op</a>
+            <a href={contactUrl("offerte", "Helios op maat")}>Neem contact op</a>
           </p>
         )}
         <div className="pa-price">
           <p className="pa-price-total">
             <strong>{euros(totalCents)}</strong>
-            <span>per jaar, excl. btw</span>
+            <span>per jaar, {vatText(data, pkg.audience)}</span>
           </p>
           {priceLines.length > 1 && (
             <p className="pa-price-lines">

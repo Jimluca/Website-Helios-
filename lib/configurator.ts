@@ -1,12 +1,11 @@
 import { euros, type Package, type Pricing } from "@/lib/pricing-shared";
 
 // De configurator op de pagina Prijzen: van antwoorden (wie, welk onderwijs, hoeveel professionals, hoeveel leerlingen,
-// studenten of cliënten) naar één pakket uit Helios. Elk pakket heeft 1 professional en een aantal cliënten (25). Daarop
-// komen een cliëntentrede (een toevoeging uit de familie van treden: tot 50, 100 of 250) en extra professionalaccounts,
-// tot MAX_PROFESSIONALS in totaal. Meer professionals of cliënten dan de grootste trede: "neem contact op".
-// Een trede kost een percentage van het pakket en de testen (minimaal een bedrag), en de losse testen en treden hebben
-// een prijs per doelgroep. Pakketten, treden, percentages en prijzen komen uit Helios; alleen het maximum aantal
-// professionals staat hier.
+// studenten of cliënten) naar één pakket uit Helios. De prijslijst heeft kolommen: een pakket bestaat per aantal
+// cliënten per jaar (de grootte, bijv. "t/m 25"), met 1 professional. Het aantal cliënten kiest de kolom; extra
+// professionals zijn een toevoeging (tot MAX_PROFESSIONALS in totaal) en brengen geen cliënten mee. Meer professionals
+// of cliënten dan de grootste kolom: "neem contact op". Pakketten, kolommen en prijzen komen uit Helios; alleen het
+// maximum aantal professionals staat hier.
 
 /** Tot zoveel professionals stel je zelf samen; daarboven maken we een pakket op maat. */
 export const MAX_PROFESSIONALS = 5;
@@ -62,7 +61,7 @@ export const clientsOf = (pkg: Package) => (pkg.clients === undefined ? limit(pk
 /** Een toevoeging voor één doelgroep (bijv. een test tegen de onderwijsprijs) hoort alleen bij een pakket van die doelgroep. */
 export const fitsAudience = (addon: Package, audience: string | null | undefined) => !addon.audience || !audience || addon.audience === audience;
 
-/** Wat een cliëntentrede kost bovenop $base (het pakket en de testen, in centen): ClientSurcharge in Helios. */
+/** Wat een cliëntentrede kost bovenop $base (het pakket en de testen, in centen): ClientSurcharge in Helios (oude prijslijst). */
 export function surchargeAmount(tier: Package, base: number): number {
   const raw = Math.max((base * (tier.surcharge ?? 0)) / 100, tier.surchargeMin ?? 0);
   const round = tier.roundTo || 500;
@@ -71,29 +70,35 @@ export function surchargeAmount(tier: Package, base: number): number {
 }
 
 /** Een toevoeging die professionals of cliënten toevoegt; die regel je met de aantallen, niet bij de losse modules. */
-export const isLimitAddon = (addon: Package) => (addon.extraUsers ?? 0) > 0 || (addon.extraClients ?? 0) > 0 || (addon.countable && !addon.category);
+export const isLimitAddon = (addon: Package) =>
+  (addon.extraUsers ?? 0) > 0 || (addon.extraClients ?? 0) > 0 || (addon.countable && !addon.category && !addon.embed && !addon.unit);
 
-/** De toevoeging voor een extra professional. */
-export const professionalAddon = (data: Pricing) =>
-  data.addons.find((a) => (a.extraUsers ?? 0) > 0) ??
+/** De toevoeging voor een extra professional (bij de doelgroep: in het onderwijs is hij goedkoper). */
+export const professionalAddon = (data: Pricing, audience?: string | null) =>
+  data.addons.find((a) => (a.extraUsers ?? 0) > 0 && fitsAudience(a, audience)) ??
   data.addons.find((a) => a.countable && !a.category && a.includes.some((l) => /gebruiker/i.test(l))) ??
   null;
 
-/** De cliëntentreden bij een pakket: zonder trede het aantal van het pakket, daarna elke trede (klein naar groot). */
-export function clientSteps(data: Pricing, pkg: Package | null): { addon: Package | null; total: number }[] {
-  const base = pkg ? clientsOf(pkg) : Infinity;
-  if (!Number.isFinite(base)) return [{ addon: null, total: Infinity }];
-  const tiers = data.addons
-    .filter((a) => (a.extraClients ?? 0) > 0 && !a.countable && fitsAudience(a, pkg?.audience))
-    .map((addon) => ({ addon: addon as Package | null, total: base + (addon.extraClients ?? 0) }))
+/** De kolommen van een pakket: dezelfde doelgroep en productlijn in elke grootte, van weinig naar veel cliënten. */
+export function clientSteps(data: Pricing, pkg: Package | null): { pkg: Package | null; total: number }[] {
+  if (!pkg || !Number.isFinite(clientsOf(pkg))) return [{ pkg, total: pkg ? clientsOf(pkg) : Infinity }];
+  const columns = data.packages
+    .filter((p) => p.audience === pkg.audience && (p.family ?? p.name) === (pkg.family ?? pkg.name) && Number.isFinite(clientsOf(p)))
+    .map((p) => ({ pkg: p as Package | null, total: clientsOf(p) }))
     .sort((a, b) => a.total - b.total);
-  return [{ addon: null, total: base }, ...tiers];
+  return columns.length ? columns : [{ pkg, total: clientsOf(pkg) }];
 }
 
-/** Het standaardpakket van een doelgroep: het eerste betaalde in de volgorde van Helios (of het gekozen productlijn). */
-export function standardPackage(data: Pricing, who: string | undefined, family: string | null = null): Package | null {
+/**
+ * Het pakket van een doelgroep voor een aantal cliënten: de gekozen productlijn (anders de eerste betaalde in de
+ * volgorde van Helios), in de kleinste kolom waar ze in passen (anders de grootste).
+ */
+export function standardPackage(data: Pricing, who: string | undefined, family: string | null = null, clients = 1): Package | null {
   const packages = data.packages.filter((p) => p.audience === who);
-  return (family && packages.find((p) => p.family === family)) || packages.find((p) => p.prices.some((price) => price.amount > 0)) || packages[0] || null;
+  const first = (family && packages.find((p) => p.family === family)) || packages.find((p) => p.prices.some((price) => price.amount > 0)) || packages[0];
+  if (!first) return null;
+  const steps = clientSteps(data, first);
+  return (steps.find((step) => step.total >= clients) ?? steps[steps.length - 1]).pkg ?? first;
 }
 
 /** De keuzes bij "Hoe groot is het team?": 1 tot MAX_PROFESSIONALS, en meer (dan contact). */
@@ -104,13 +109,13 @@ export function teamOptions(): Option[] {
   ];
 }
 
-/** De keuzes bij "Hoeveel … gebruiken Helios?": de treden van Helios, en meer dan de grootste (dan contact). */
+/** De keuzes bij "Hoeveel … gebruiken Helios?": de kolommen van de prijslijst, en meer dan de grootste (dan contact). */
 export function clientOptions(data: Pricing, who: string | undefined, unit: string): Option[] {
   const steps = clientSteps(data, standardPackage(data, who));
   if (!Number.isFinite(steps[0].total)) return [{ value: Infinity, label: `Onbeperkt ${unit}` }];
   const max = steps[steps.length - 1].total;
   return [
-    ...steps.map((s) => ({ value: s.total, label: `Tot ${s.total.toLocaleString("nl-NL")} ${unit}` })),
+    ...steps.map((s) => ({ value: s.total, label: `Tot en met ${s.total.toLocaleString("nl-NL")} ${unit}` })),
     { value: max + 1, label: `Meer dan ${max.toLocaleString("nl-NL")} ${unit}`, contact: true },
   ];
 }
@@ -124,7 +129,7 @@ export function limitExtras(
 ): { extras: { id: number; count: number }[]; users: number; clients: number } {
   const extras: { id: number; count: number }[] = [];
   const included = usersOf(pkg);
-  const prof = professionalAddon(data);
+  const prof = professionalAddon(data, pkg.audience);
   let users = included;
   if (Number.isFinite(included) && prof) {
     const want = Math.min(Math.max(1, team), MAX_PROFESSIONALS);
@@ -132,10 +137,9 @@ export function limitExtras(
     if (count) extras.push({ id: prof.id, count });
     users = included + count * (prof.extraUsers || 1);
   }
-  const steps = clientSteps(data, pkg);
-  const step = steps.find((s) => s.total >= clients) ?? steps[steps.length - 1];
-  if (step.addon) extras.push({ id: step.addon.id, count: 1 });
-  return { extras, users, clients: step.total };
+  // De cliënten komen uit de kolom van het pakket (compose kiest de kolom bij het aantal).
+  void clients;
+  return { extras, users, clients: clientsOf(pkg) };
 }
 
 const yearCents = (item: Package) => {
@@ -151,10 +155,10 @@ const isComplete = (answers: Answers) =>
 /** Het pakket bij de antwoorden, of null zolang er een antwoord ontbreekt. */
 export function compose(data: Pricing, answers: Answers, family: string | null = null): Composed | null {
   if (!isComplete(answers)) return null;
-  const pkg = standardPackage(data, answers.who, family);
-  if (!pkg) return null;
   const team = Math.max(1, answers.team!);
   const wanted = Math.max(1, answers.users!);
+  const pkg = standardPackage(data, answers.who, family, wanted);
+  if (!pkg) return null;
   const { extras, users, clients } = limitExtras(data, pkg, team, wanted);
   const contact: Composed["contact"] = [];
   if (team > MAX_PROFESSIONALS) contact.push("team");
@@ -165,7 +169,7 @@ export function compose(data: Pricing, answers: Answers, family: string | null =
   const parts = [
     `${pkg.family ?? pkg.name} voor ${audience.toLowerCase()}`,
     `${users} ${users === 1 ? "professional" : "professionals"}`,
-    Number.isFinite(clients) ? `tot ${clients.toLocaleString("nl-NL")} ${unit}` : `onbeperkt ${unit}`,
+    Number.isFinite(clients) ? `tot en met ${clients.toLocaleString("nl-NL")} ${unit} per jaar (${euros(yearCents(pkg))} per jaar)` : `onbeperkt ${unit}`,
   ];
   for (const extra of extras) {
     const addon = data.addons.find((a) => a.id === extra.id)!;
