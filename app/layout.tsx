@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import ConsentManager from "@/components/consent/ConsentManager";
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
 import { SITE_URL } from "@/lib/app-links";
@@ -38,6 +39,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <Header />
         {children}
         <Footer />
+        <ConsentManager />
       </body>
     </html>
   );

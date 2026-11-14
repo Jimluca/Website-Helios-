@@ -36,6 +36,19 @@ een nieuwe **Deploy** (bovenaan staat dan _Changes pending_).
     Zet bij beide het vinkje **Buildtime** juist **aan** (in oudere versies van Coolify: _Build Variable_). Anders dan bij
     Helios gaan deze adressen bij het bouwen vast in de pagina's. Ontbreken ze, dan gebruikt de `Dockerfile` precies
     deze adressen.
+
+    De meet- en advertentiediensten komen erbij zodra de accounts er zijn, ook met **Buildtime** aan:
+
+    ```
+    NEXT_PUBLIC_GA4_ID=GTM-K52LG7V5
+    NEXT_PUBLIC_GOOGLE_ADS_ID=AW-XXXXXXXXX
+    NEXT_PUBLIC_META_PIXEL_ID=000000000000000
+    NEXT_PUBLIC_LINKEDIN_PARTNER_ID=0000000
+    ```
+
+    Ze laden pas als de bezoeker daar in de cookiemelding toestemming voor geeft (Google krijgt de keuze via Consent
+    Mode v2). Zonder deze variabelen laadt er niets en verschijnt er geen cookiemelding. Zet in Google Analytics de
+    bewaartermijn van gegevens op 14 maanden en zet Google-signalen uit, tenzij dat bewust anders is gekozen.
 7. **Auto Deploy** aan (zoals bij Helios): elke push naar `main` zet de nieuwe versie live.
 8. Controleer nog één keer **Ports Exposes** (`3000`) en **Domains**, en klik dan op **Deploy**. Het eerste bouwen duurt
    een paar minuten.
