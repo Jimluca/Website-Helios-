@@ -1573,6 +1573,34 @@
     background: rgb(255 255 255 / .07);
 }
 
+/* Hero: het interactieve dashboard in een iframe (components/professionals/DashboardFrame.tsx). Het frame heeft de
+   verhouding van de app (978 × 735); de app schaalt zichzelf en volgt licht/donker van de site. Schaduw en ronde hoeken
+   komen van hier. */
+.pro-frame {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 978 / 735;
+    border-radius: clamp(14px, 2.2vw, 26px);
+    overflow: hidden;
+    background: #F6F5FC;
+    box-shadow: 0 30px 80px rgb(70 50 190 / .12), 0 2px 6px rgb(70 50 190 / .05);
+    outline: 1px solid rgb(104 76 230 / .08);
+}
+
+:root[data-theme='dark'] .pro-frame {
+    background: #17142E;
+    outline-color: rgb(255 255 255 / .12);
+}
+
+.pro-frame-iframe {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    background: transparent;
+}
+
 /* Concrete mogelijkheden */
 .pro-match {
     display: grid;

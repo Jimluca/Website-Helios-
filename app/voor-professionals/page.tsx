@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { ClientDashboard, ClientsApp, MatchPanels } from "@/components/professionals/Mockups";
+import DashboardFrame from "@/components/professionals/DashboardFrame";
+import { ClientsApp, MatchPanels } from "@/components/professionals/Mockups";
 import Icon from "@/components/site/Icon";
 import { Accent, CheckList, CtaBand, Eyebrow, IconBadge, PrimaryButton, SecondaryButton } from "@/components/site/PageBits";
 import { CONTACT_URL, DEMO_URL, moreInfoUrl } from "@/lib/app-links";
@@ -75,7 +76,7 @@ export default function VoorProfessionalsPage() {
               ))}
             </ul>
           </div>
-          <ClientDashboard />
+          <DashboardFrame />
         </div>
       </section>
 

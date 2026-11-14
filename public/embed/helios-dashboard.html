@@ -1,0 +1,1046 @@
+<!DOCTYPE html>
+<!-- Interactief voorbeeld van het Helios-dashboard voor professionals, in een iframe in de hero van /voor-professionals.
+     Uit het ontwerp "Helios Dashboard - interactief"; aangepast: Inter van de eigen site, het officiële logo, alleen de app (978 × 735), doorzichtige achtergrond.
+     Alle namen en cijfers zijn voorbeeldgegevens. -->
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Helios-dashboard (voorbeeld)</title>
+<meta name="robots" content="noindex">
+<style>
+@font-face{font-family:'Inter';src:url(/fonts/inter-latin-400-normal.woff2) format('woff2');font-weight:400;font-display:swap}@font-face{font-family:'Inter';src:url(/fonts/inter-latin-500-normal.woff2) format('woff2');font-weight:500;font-display:swap}@font-face{font-family:'Inter';src:url(/fonts/inter-latin-600-normal.woff2) format('woff2');font-weight:600;font-display:swap}@font-face{font-family:'Inter';src:url(/fonts/inter-latin-700-normal.woff2) format('woff2');font-weight:700;font-display:swap}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:transparent;font-family:'Inter',system-ui,sans-serif;-webkit-font-smoothing:antialiased;color:#14122e;overflow:hidden}
+button{font-family:inherit;color:inherit;cursor:pointer}
+a{color:#3b1ff5;text-decoration:none}
+#fit{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
+#canvas{position:relative;width:978px;height:735px;flex:none;background:transparent;transform-origin:center}
+#app{position:absolute;left:0;top:0;width:978px;height:735px;border-radius:26px;background:#f6f5fc;overflow:hidden}
+
+/* zijbalk */
+aside{position:absolute;left:0;top:0;width:220px;padding:26px 18px}
+.logo{display:flex;align-items:center;gap:8px;padding-left:4px}
+.logo img{display:block;height:40px;width:auto}
+.logo .logo-dark,html[data-theme=dark] .logo .logo-light{display:none}
+html[data-theme=dark] .logo .logo-dark{display:block}
+nav{display:flex;flex-direction:column;gap:6px;margin-top:32px}
+.nav{display:flex;align-items:center;gap:22px;height:48px;padding:0 14px;border:0;border-radius:12px;background:none;color:#14122e;font-size:15.5px;text-align:left;transition:background .2s}
+.nav svg{color:#5a5880;flex:none}
+.nav:hover{background:#efedfb}
+.nav.is-active{background:#ebe8fb;font-weight:500}
+.nav.is-active svg{color:#3b1ff5}
+
+/* kop */
+header{position:absolute;left:220px;top:0;width:758px;height:133px;background:#fff;border-radius:22px;box-shadow:0 10px 30px rgba(70,50,190,.05)}
+.h-label{position:absolute;left:30px;top:24px;font-size:12.5px;font-weight:500;color:#6b6a8c;display:flex;align-items:center;gap:6px}
+.h-label button{border:0;background:none;padding:0;color:#3b1ff5;font-size:12.5px;font-weight:500;display:flex;align-items:center;gap:4px}
+h1{position:absolute;left:30px;top:36px;margin:0;font-size:29px;font-weight:700;letter-spacing:-.035em}
+h1.low{top:42px}
+.h-sub{position:absolute;left:30px;top:80px;font-size:13.5px;color:#6b6a8c;max-width:470px;line-height:1.4}
+.profile{position:absolute;right:30px;top:28px;display:flex;align-items:center;gap:12px}
+.avatar{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font-size:14px;font-weight:600;color:#fff;background:linear-gradient(135deg,#8b5cf6,#3b1ff5);flex:none}
+.h-tabs{position:absolute;left:0;right:0;bottom:0;display:flex;justify-content:center;gap:4px;font-size:15.5px}
+.h-tab{border:0;background:none;padding:0 14px 18px;color:#5a5880;border-bottom:3px solid transparent;font-size:15.5px}
+.h-tab.is-active{color:#14122e;font-weight:600;border-bottom-color:#3b1ff5}
+.h-action{position:absolute;right:30px;top:80px}
+
+/* algemene bouwstenen */
+.card{position:absolute;background:#fff;border-radius:20px;box-shadow:0 10px 30px rgba(70,50,190,.05)}
+.content{position:absolute;left:234px;top:153px;width:734px;height:564px}
+.t2{margin:0;font-size:17.5px;font-weight:700;letter-spacing:-.02em}
+.t3{margin:0;font-size:15px;font-weight:700;letter-spacing:-.01em}
+.muted{color:#6b6a8c}
+.link{display:inline-flex;align-items:center;gap:6px;border:0;background:none;padding:0;font-size:12.5px;font-weight:500;color:#3b1ff5}
+.link:hover{color:#2a12c9}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:36px;padding:0 16px;border-radius:10px;font-size:13.5px;font-weight:600;border:1px solid transparent;white-space:nowrap;transition:background .2s,border-color .2s}
+.btn-p{background:#3b1ff5;color:#fff}
+.btn-p:hover{background:#2a12c9}
+.btn-s{background:#fff;border-color:#e4e2f0;color:#14122e}
+.btn-s:hover{border-color:#c9c0f7}
+.btn-sm{height:30px;padding:0 12px;font-size:12.5px;border-radius:8px}
+.scroll{overflow:auto;scrollbar-width:thin;scrollbar-color:#d9d4f5 transparent}
+.tile{flex:none;display:grid;place-items:center;border-radius:10px;background:#efedfb;color:#3b1ff5}
+.bar{display:block;height:8px;border-radius:4px;background:#ecebf6;overflow:hidden}
+.bar>i{display:block;height:100%;border-radius:4px;background:#3b1ff5;width:var(--w)}
+.bar.anim>i{width:0;transition:width 1s cubic-bezier(.2,.8,.2,1)}
+.on .bar.anim>i{width:var(--w)}
+.pill{display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 10px;border-radius:999px;font-size:12px;font-weight:500;white-space:nowrap}
+.pill::before{content:'';width:6px;height:6px;border-radius:50%;background:currentColor}
+.pill.nodot::before{display:none}
+.s-actief,.s-afgerond{background:#e9f8ee;color:#13883a}
+.s-niet{background:#fdecee;color:#c4283c}
+.s-uitgenodigd{background:#eaf0ff;color:#2a55d8}
+.s-wacht{background:#fff3e6;color:#c76a0b}
+.s-bezig{background:#efebff;color:#4a2ff6}
+.s-todo{background:#f0eff6;color:#5a5880}
+.tag{display:inline-flex;align-items:center;height:24px;padding:0 10px;border-radius:999px;background:#f2f0fb;color:#3a3858;font-size:12px;white-space:nowrap}
+.tag.green{background:#e9f8ee;color:#13883a}
+.rowbtn{display:flex;align-items:center;width:100%;border:0;background:none;padding:0;text-align:left;border-radius:10px;transition:background .15s}
+.rowbtn:hover{background:#f6f5fc}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{height:30px;padding:0 13px;border-radius:999px;border:1px solid #e4e2f0;background:#fff;font-size:12.5px;color:#3a3858}
+.chip.is-active{background:#ebe8fb;border-color:#ebe8fb;color:#3b1ff5;font-weight:600}
+input,select{font-family:inherit;font-size:13.5px;color:#14122e;height:38px;border:1px solid #e4e2f0;border-radius:10px;background:#fff;padding:0 12px;outline:none}
+input:focus,select:focus{border-color:#8b74f8;box-shadow:0 0 0 3px rgba(91,63,245,.12)}
+ul.dots{margin:0;padding-left:18px;font-size:13px;line-height:1.55;color:#2c2a48}
+ul.dots li+li{margin-top:4px}
+p.body{margin:0;font-size:13.5px;line-height:1.6;color:#2c2a48}
+
+/* overzicht */
+.radar-shape{transform:scale(0);transform-origin:177px 168px;opacity:0;transition:transform 1.3s cubic-bezier(.2,.8,.2,1) .2s,opacity .4s ease .2s}
+.on .radar-shape{transform:scale(1);opacity:1}
+.grow{height:0;transition:height .9s cubic-bezier(.2,.8,.2,1)}
+.on .grow{height:var(--h)}
+.draw{stroke-dashoffset:1;transition:stroke-dashoffset 1.4s ease-in-out .2s}
+.on .draw{stroke-dashoffset:0}
+.fade{opacity:0;transition:opacity .5s ease}
+.on .fade{opacity:1}
+.clickable{cursor:pointer;transition:box-shadow .2s}
+.clickable:hover{box-shadow:0 14px 36px rgba(70,50,190,.12)}
+
+/* tabel cliënten */
+.table{width:100%;border-collapse:collapse;font-size:13px}
+.table th{position:sticky;top:0;background:#faf9fe;text-align:left;font-weight:500;color:#6b6a8c;font-size:12px;padding:10px 12px;z-index:1}
+.table td{padding:9px 12px;border-top:1px solid #f0eff7;vertical-align:middle}
+.table tr.click{cursor:pointer}
+.table tr.click:hover td{background:#f8f7fd}
+.mini-av{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-size:11.5px;font-weight:600;color:#3b1ff5;background:#ebe8fb;flex:none}
+
+/* modaal */
+#modal{position:absolute;inset:0;z-index:20;display:none}
+#modal.open{display:block}
+.backdrop{position:absolute;inset:0;background:rgba(20,18,46,.3);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);animation:fadeIn .2s ease}
+.sheet{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:660px;height:650px;background:#fff;border-radius:22px;box-shadow:0 30px 80px rgba(20,10,80,.25);display:flex;flex-direction:column;overflow:hidden;animation:pop .28s cubic-bezier(.2,.8,.2,1)}
+.sheet.small{width:460px;height:auto;max-height:640px}
+.sheet-head{position:relative;padding:24px 28px 0}
+.sheet-close{position:absolute;right:18px;top:18px;width:34px;height:34px;border-radius:50%;border:0;background:#f4f2fc;display:grid;place-items:center;color:#3a3858}
+.sheet-close:hover{background:#ebe8fb}
+.sheet-tabs{display:flex;gap:22px;margin-top:18px;border-bottom:1px solid #eeecf7;padding:0 28px}
+.sheet-tab{border:0;background:none;padding:0 0 12px;font-size:13.5px;color:#5a5880;border-bottom:2.5px solid transparent;margin-bottom:-1px}
+.sheet-tab.is-active{color:#3b1ff5;font-weight:600;border-bottom-color:#3b1ff5}
+.sheet-body{flex:1;padding:22px 28px 28px}
+.sheet-foot{display:flex;justify-content:flex-end;gap:10px;padding:16px 28px 22px}
+.facts{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.fact{background:#f8f7fd;border-radius:12px;padding:12px 14px}
+.fact b{display:block;font-size:15px;letter-spacing:-.01em}
+.fact span{display:block;font-size:11.5px;color:#6b6a8c;margin-top:3px}
+.sec+.sec{margin-top:22px}
+.sec h4{margin:0 0 9px;font-size:14px;font-weight:700}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.reason{display:flex;gap:12px;align-items:flex-start;padding:12px 14px;border-radius:12px;background:#f8f7fd;font-size:13px;line-height:1.5}
+.reason+.reason{margin-top:8px}
+.reason .tile{width:30px;height:30px;border-radius:9px}
+.reason small{display:block;color:#6b6a8c;font-size:11.5px;margin-top:2px}
+.field{display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:500;color:#3a3858}
+.err{font-size:12px;color:#c4283c;margin-top:8px;min-height:16px}
+.check{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid #eeecf7;border-radius:10px;font-size:13px;cursor:pointer}
+.check input{width:16px;height:16px;padding:0;accent-color:#3b1ff5}
+.check+.check{margin-top:6px}
+
+#toast{position:absolute;left:50%;bottom:22px;transform:translate(-50%,20px);opacity:0;z-index:30;display:flex;align-items:center;gap:10px;padding:11px 16px;border-radius:12px;background:#14122e;color:#fff;font-size:13px;box-shadow:0 14px 30px rgba(20,10,80,.3);transition:opacity .25s,transform .25s;pointer-events:none}
+#toast.show{opacity:1;transform:translate(-50%,0)}
+@keyframes fadeIn{from{opacity:0}}
+@keyframes pop{from{opacity:0;transform:translate(-50%,-47%) scale(.98)}}
+
+/* rapport-voorbeeld */
+.paper{width:206px;aspect-ratio:210/297;background:#fff;border-radius:6px;box-shadow:0 12px 30px rgba(40,30,120,.14),0 0 0 1px #eeecf7;padding:22px 22px;font-size:8px;color:#2c2a48;flex:none;overflow:hidden}
+.paper .p-band{height:64px;margin:-22px -22px 14px;padding:14px 22px;background:linear-gradient(120deg,#3b1ff5,#8b5cf6);color:#fff}
+.paper .p-band b{display:block;font-size:13px;letter-spacing:-.01em}
+.paper h5{margin:10px 0 5px;font-size:9px;font-weight:700;color:#14122e}
+.paper .p-line{height:4px;border-radius:2px;background:#eeecf7;margin-top:4px}
+
+/* ---------- Donker (html[data-theme=dark], volgt de website): gegenereerd uit de lichte kleuren ---------- */
+html[data-theme=dark] body{color:#f3f1ff}
+html[data-theme=dark] {color-scheme:dark}
+html[data-theme=dark] body{color:#f3f1ff}
+html[data-theme=dark] a{color:#b9a8ff}
+html[data-theme=dark] #app{background:#17142e}
+html[data-theme=dark] .nav{color:#f3f1ff}
+html[data-theme=dark] .nav svg{color:#a8a5c8}
+html[data-theme=dark] .nav:hover{background:#312a5e}
+html[data-theme=dark] .nav.is-active{background:#352d66}
+html[data-theme=dark] .nav.is-active svg{color:#b9a8ff}
+html[data-theme=dark] header{background:#221d42;box-shadow:none}
+html[data-theme=dark] .h-label{color:#a8a5c8}
+html[data-theme=dark] .h-label button{color:#b9a8ff}
+html[data-theme=dark] .h-sub{color:#a8a5c8}
+html[data-theme=dark] .h-tab{color:#a8a5c8}
+html[data-theme=dark] .h-tab.is-active{color:#f3f1ff}
+html[data-theme=dark] .card{background:#221d42;box-shadow:none}
+html[data-theme=dark] .muted{color:#a8a5c8}
+html[data-theme=dark] .link{color:#b9a8ff}
+html[data-theme=dark] .link:hover{color:#d2c8ff}
+html[data-theme=dark] .btn-s{background:#221d42;border-color:#3b3468;color:#f3f1ff}
+html[data-theme=dark] .btn-s:hover{border-color:#6d5fc0}
+html[data-theme=dark] .tile{background:#312a5e;color:#b9a8ff}
+html[data-theme=dark] .bar{background:#352f61}
+html[data-theme=dark] .s-actief,html[data-theme=dark] .s-afgerond{background:rgba(31,166,74,.16);color:#6ee7a0}
+html[data-theme=dark] .s-niet{background:rgba(232,69,122,.18);color:#ff8fa3}
+html[data-theme=dark] .s-uitgenodigd{background:rgba(90,130,255,.18);color:#9cb8ff}
+html[data-theme=dark] .s-wacht{background:rgba(240,138,36,.18);color:#fbbf6a}
+html[data-theme=dark] .s-bezig{background:#312a5e;color:#c4b5fd}
+html[data-theme=dark] .s-todo{background:#2e2857;color:#a8a5c8}
+html[data-theme=dark] .tag{background:#2e2857;color:#cfcbe8}
+html[data-theme=dark] .tag.green{background:rgba(31,166,74,.16);color:#6ee7a0}
+html[data-theme=dark] .rowbtn:hover{background:#17142e}
+html[data-theme=dark] .chip{border:1px solid #3b3468;background:#221d42;color:#cfcbe8}
+html[data-theme=dark] .chip.is-active{background:#352d66;border-color:#352d66;color:#b9a8ff}
+html[data-theme=dark] input,html[data-theme=dark] select{color:#f3f1ff;border:1px solid #3b3468;background:#221d42}
+html[data-theme=dark] input:focus,html[data-theme=dark] select:focus{border-color:#8b74f8}
+html[data-theme=dark] ul.dots{color:#dcd9f2}
+html[data-theme=dark] p.body{color:#dcd9f2}
+html[data-theme=dark] .clickable:hover{box-shadow:none}
+html[data-theme=dark] .table th{background:#29234f;color:#a8a5c8}
+html[data-theme=dark] .table td{border-top:1px solid #352f61}
+html[data-theme=dark] .table tr.click:hover td{background:#29234f}
+html[data-theme=dark] .mini-av{color:#b9a8ff;background:#352d66}
+html[data-theme=dark] .sheet{background:#221d42}
+html[data-theme=dark] .sheet-close{background:#29234f;color:#cfcbe8}
+html[data-theme=dark] .sheet-close:hover{background:#352d66}
+html[data-theme=dark] .sheet-tabs{border-bottom:1px solid #352f61}
+html[data-theme=dark] .sheet-tab{color:#a8a5c8}
+html[data-theme=dark] .sheet-tab.is-active{color:#b9a8ff}
+html[data-theme=dark] .fact{background:#29234f}
+html[data-theme=dark] .fact span{color:#a8a5c8}
+html[data-theme=dark] .reason{background:#29234f}
+html[data-theme=dark] .reason small{color:#a8a5c8}
+html[data-theme=dark] .field{color:#cfcbe8}
+html[data-theme=dark] .err{color:#ff8fa3}
+html[data-theme=dark] .check{border:1px solid #352f61}
+html[data-theme=dark] .paper{background:#221d42;color:#dcd9f2}
+html[data-theme=dark] .paper h5{color:#f3f1ff}
+html[data-theme=dark] [style$="background:#ebe8fb"]{background:#352d66!important}
+html[data-theme=dark] [style$="background:#ecebf6"]{background:#352f61!important}
+html[data-theme=dark] [style$="background:#eefbf0"]{background:rgba(31,166,74,.16)!important}
+html[data-theme=dark] [style$="background:#efedfb"]{background:#312a5e!important}
+html[data-theme=dark] [style$="background:#f4f3f9"]{background:#29234f!important}
+html[data-theme=dark] [style$="background:#f8f7fd"]{background:#29234f!important}
+html[data-theme=dark] [style$="background:#fff"]{background:#221d42!important}
+html[data-theme=dark] [style$="border-bottom:1.5px solid #e4e2f0"]{border-bottom-color:#3b3468!important}
+html[data-theme=dark] [style$="border-bottom:1px solid #f0eff7"]{border-bottom-color:#352f61!important}
+html[data-theme=dark] [style$="border:1px solid #eeecf7"]{border-color:#352f61!important}
+html[data-theme=dark] [style$="border:1px solid #f0eff7"]{border-color:#352f61!important}
+html[data-theme=dark] [style$="color:#0f9d24"]{color:#6ee7a0!important}
+html[data-theme=dark] [style$="color:#13883a"]{color:#6ee7a0!important}
+html[data-theme=dark] [style$="color:#14122e"]{color:#f3f1ff!important}
+html[data-theme=dark] [style$="color:#2c2a48"]{color:#dcd9f2!important}
+html[data-theme=dark] [style$="color:#3a3858"]{color:#cfcbe8!important}
+html[data-theme=dark] [style$="color:#3b1ff5"]{color:#b9a8ff!important}
+html[data-theme=dark] [style$="color:#6b6a8c"]{color:#a8a5c8!important}
+html[data-theme=dark] [style*="background:#ebe8fb;"]{background:#352d66!important}
+html[data-theme=dark] [style*="background:#ecebf6;"]{background:#352f61!important}
+html[data-theme=dark] [style*="background:#eefbf0;"]{background:rgba(31,166,74,.16)!important}
+html[data-theme=dark] [style*="background:#efedfb;"]{background:#312a5e!important}
+html[data-theme=dark] [style*="background:#f4f3f9;"]{background:#29234f!important}
+html[data-theme=dark] [style*="background:#f8f7fd;"]{background:#29234f!important}
+html[data-theme=dark] [style*="background:#fff;"]{background:#221d42!important}
+html[data-theme=dark] [style*="border-bottom:1.5px solid #e4e2f0;"]{border-bottom-color:#3b3468!important}
+html[data-theme=dark] [style*="border-bottom:1px solid #f0eff7;"]{border-bottom-color:#352f61!important}
+html[data-theme=dark] [style*="border:1px solid #eeecf7;"]{border-color:#352f61!important}
+html[data-theme=dark] [style*="border:1px solid #f0eff7;"]{border-color:#352f61!important}
+html[data-theme=dark] [style*="color:#0f9d24;"]{color:#6ee7a0!important}
+html[data-theme=dark] [style*="color:#13883a;"]{color:#6ee7a0!important}
+html[data-theme=dark] [style*="color:#14122e;"]{color:#f3f1ff!important}
+html[data-theme=dark] [style*="color:#2c2a48;"]{color:#dcd9f2!important}
+html[data-theme=dark] [style*="color:#3a3858;"]{color:#cfcbe8!important}
+html[data-theme=dark] [style*="color:#3b1ff5;"]{color:#b9a8ff!important}
+html[data-theme=dark] [style*="color:#6b6a8c;"]{color:#a8a5c8!important}
+html[data-theme=dark] [fill="#6b6a8c"]{fill:#a8a5c8}
+html[data-theme=dark] [fill="#14122e"]{fill:#f3f1ff}
+html[data-theme=dark] [fill="#4a2ff6"]{fill:#a68ffa}
+html[data-theme=dark] [stroke="#eeecf7"]{stroke:#3b3468}
+html[data-theme=dark] [stroke="#ecebf6"]{stroke:#352f61}
+html[data-theme=dark] [stroke="#4a2ff6"]{stroke:#a68ffa}
+html[data-theme=dark] [stroke="#3b1ff5"]{stroke:#9f86ff}
+html[data-theme=dark] .backdrop{background:rgba(8,6,20,.55)}
+</style>
+<script>
+// Licht of donker zoals de website eromheen; los geopend: de keuze in localStorage of die van het apparaat.
+(function () {
+  function theme() {
+    var t = null;
+    try { if (window.parent !== window) t = window.parent.document.documentElement.getAttribute('data-theme'); } catch (e) {}
+    if (t !== 'dark' && t !== 'light') { try { t = localStorage.getItem('helios-theme'); } catch (e) {} }
+    if (t !== 'dark' && t !== 'light') t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', t);
+  }
+  theme();
+  try {
+    if (window.parent !== window) new MutationObserver(theme).observe(window.parent.document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+  } catch (e) {}
+  addEventListener('storage', theme);
+})();
+</script>
+</head>
+<body>
+<div id="fit"><div id="canvas">
+  <div id="app">
+    <aside>
+      <div class="logo"><img class="logo-light" src="/assets/logo-helios.png" alt="Helios" width="129" height="40"><img class="logo-dark" src="/assets/logo-helios-dark.png" alt="Helios" width="129" height="40"></div>
+      <nav id="nav"></nav>
+    </aside>
+    <header id="head"></header>
+    <div id="view"></div>
+    <div id="modal"></div>
+    <div id="toast"></div>
+  </div>
+</div></div>
+
+<script>
+'use strict';
+
+/* ---------- Iconen (24 × 24, lijn) ---------- */
+const P = {
+  home: '<path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1Z" fill="currentColor" stroke="none"/>',
+  users: '<circle cx="9" cy="8" r="3.2"/><circle cx="16.5" cy="9" r="2.6"/><path d="M3 19c0-3 2.7-5 6-5s6 2 6 5M15 14.3c3 0 6 1.6 6 4.7"/>',
+  tests: '<rect x="5" y="4.5" width="14" height="16.5" rx="2"/><rect x="9" y="3" width="6" height="3" rx="1"/><path d="M9 12h6M9 16h4"/>',
+  chart: '<path d="M4 20V14M9 20V9M14 20v-7M19 20V4"/>',
+  file: '<path d="M6 3h8l4 4v14H6Z"/><path d="M14 3v4h4M9 12h6M9 16h6"/>',
+  grad: '<path d="M22 9 12 4 2 9l10 5 10-5Z"/><path d="M6 11.5V16c3.5 2.5 8.5 2.5 12 0v-4.5"/>',
+  briefcase: '<rect x="2.5" y="7" width="19" height="13.5" rx="2"/><path d="M16 20.5V5.5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v15"/>',
+  layers: '<path d="M12 3 2.5 8 12 13l9.5-5Z"/><path d="m2.5 13 9.5 5 9.5-5"/>',
+  building: '<path d="M3 21h18M5 21V8l7-5 7 5v13M9 21v-5h6v5M10 10h4"/>',
+  megaphone: '<path d="M3 10.5v3a1 1 0 0 0 1 1h2l6 4.5V5L6 9.5H4a1 1 0 0 0-1 1Z"/><path d="M16 8.5a5 5 0 0 1 0 7M18.8 6a8.5 8.5 0 0 1 0 12"/>',
+  search: '<circle cx="11" cy="11" r="7"/><path d="m20 20-3.6-3.6"/>',
+  arrowR: '<path d="M5 12h14M13 6l6 6-6 6"/>',
+  chevR: '<path d="m9 6 6 6-6 6"/>',
+  chevL: '<path d="m15 6-6 6 6 6"/>',
+  chevD: '<path d="m6 9 6 6 6-6"/>',
+  x: '<path d="M18 6 6 18M6 6l12 12"/>',
+  plus: '<path d="M12 5v14M5 12h14"/>',
+  check: '<path d="M20 6 9 17l-5-5"/>',
+  checkCircle: '<circle cx="12" cy="12" r="9"/><path d="m8.5 12.2 2.4 2.4 4.8-5"/>',
+  clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  download: '<path d="M12 4v11M7 10l5 5 5-5M5 20h14"/>',
+  share: '<circle cx="18" cy="5" r="2.6"/><circle cx="6" cy="12" r="2.6"/><circle cx="18" cy="19" r="2.6"/><path d="m8.4 13.3 7.2 4.2M15.6 6.5l-7.2 4.2"/>',
+  bell: '<path d="M6 9a6 6 0 0 1 12 0c0 6 2.5 7.5 2.5 7.5h-17S6 15 6 9"/><path d="M10 20a2 2 0 0 0 4 0"/>',
+  pin: '<path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21Z"/><circle cx="12" cy="9.5" r="2.5"/>',
+  euro: '<path d="M17.5 6.5A7 7 0 1 0 17.5 17.5M4 10h9M4 14h9"/>',
+  trend: '<path d="m3 17 6-6 4 4 8-8"/><path d="M15 7h6v6"/>',
+  compass: '<circle cx="12" cy="12" r="9"/><path d="m15.5 8.5-2 5-5 2 2-5z"/>',
+  zap: '<path d="M13 2 4 14h7l-1 8 9-12h-7z"/>',
+  cube: '<path d="M21 8 12 3 3 8v8l9 5 9-5Z"/><path d="m3 8 9 5 9-5M12 13v8"/>',
+  swipe: '<rect x="6" y="3.5" width="12" height="17" rx="2.5"/><path d="m9.5 12.2 1.9 1.9 3.3-3.6"/>',
+  user: '<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
+  star: '<path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/>',
+  eye: '<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/>',
+  sparkle: '<path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M6 18l2.5-2.5M15.5 8.5 18 6"/>',
+  mail: '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/>',
+  school: '<path d="M3 21h18M5 21V10l7-5 7 5v11M10 21v-4h4v4"/><circle cx="12" cy="11.5" r="1.6"/>',
+};
+const ic = (n, s = 18, w = 1.8) => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${P[n]}</svg>`;
+const esc = (v) => String(v).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+const bar = (p, w = 84, anim = false, color) => `<span class="bar${anim ? ' anim' : ''}" style="width:${w}px"><i style="--w:${p}%${color ? ';background:' + color : ''}"></i></span>`;
+
+/* ---------- Gegevens ----------
+   Voorbeeldgegevens in de vorm van het platform. Salarissen, scholen en arbeidsmarkt zijn indicaties. */
+const BEROEPEN = {
+  hr: {
+    name: 'HR-adviseur', match: 92, icon: 'users', niveau: 'Hbo-niveau', sector: 'Zakelijke dienstverlening', kans: 'Goede kansen',
+    wat: 'Als HR-adviseur adviseer je leidinggevenden en medewerkers over alles wat met personeel te maken heeft: werving, ontwikkeling, verzuim, arbeidsvoorwaarden en reorganisaties. Je zorgt dat het personeelsbeleid goed wordt uitgevoerd en denkt mee over hoe een organisatie haar mensen zo goed mogelijk inzet.',
+    taken: ['Adviseert leidinggevenden bij personeelsvraagstukken', 'Begeleidt werving en selectie van nieuwe medewerkers', 'Voert gesprekken over ontwikkeling, verzuim en re-integratie', 'Werkt HR-beleid uit en zorgt voor de uitvoering', 'Houdt de cao en arbeidswetgeving bij'],
+    omgeving: 'Je werkt bij een grotere organisatie, de overheid, een zorginstelling of een HR-adviesbureau. Je hebt veel overleg met managers en medewerkers en voert ook vertrouwelijke gesprekken. Meestal werk je deels op kantoor en deels thuis.',
+    omgevingTags: ['Kantoor en thuis', 'Veel contact met mensen', 'Overdag', '32–40 uur'],
+    salaris: [3000, 4500], senior: 5500, arbeid: 4,
+    arbeidTekst: 'Organisaties zoeken veel HR-adviseurs, vooral met kennis van verzuim, arbeidsrecht en verandertrajecten. Met een paar jaar ervaring vind je meestal snel werk.',
+    groei: ['Senior HR-adviseur', 'HR-businesspartner', 'HR-manager'],
+    opl: ['hrm', 'bk', 'psy'],
+    past: [['zap', 'Communiceren is een van je sterkste talenten', 'Talententest'], ['compass', 'Sociale bewogenheid staat bovenaan je loopbaanwaarden', 'Loopbaanwaarden'], ['users', 'Je koos vaak voor werk waarin je mensen helpt en adviseert', 'Beroepentest']],
+  },
+  bc: {
+    name: 'Business consultant', match: 87, icon: 'briefcase', niveau: 'Hbo- of wo-niveau', sector: 'Advies en consultancy', kans: 'Goede kansen',
+    wat: 'Als business consultant help je organisaties bij vragen over strategie, processen of verandering. Je brengt de situatie in kaart, ontdekt waar het beter kan, doet voorstellen en helpt bij de invoering ervan.',
+    taken: ['Analyseert bedrijfsprocessen en knelpunten', 'Interviewt medewerkers en management', 'Schrijft adviesrapporten en presenteert aanbevelingen', 'Begeleidt verandertrajecten', 'Onderhoudt contact met opdrachtgevers'],
+    omgeving: 'Je werkt bij een adviesbureau of als zelfstandige. Je werkt projectmatig, vaak op locatie bij verschillende opdrachtgevers. Het tempo ligt hoog en deadlines zijn belangrijk.',
+    omgevingTags: ['Wisselende locaties', 'Projectmatig', 'Hoog tempo', '40 uur'],
+    salaris: [3300, 6000], senior: 8000, arbeid: 3,
+    arbeidTekst: 'Er is veel vraag naar consultants met kennis van digitalisering en verandermanagement. Starters beginnen vaak via een traineeship.',
+    groei: ['Senior consultant', 'Manager consulting', 'Zelfstandig adviseur'],
+    opl: ['bk', 'bsk'],
+    past: [['zap', 'Analytisch vermogen is een sterk talent', 'Talententest'], ['star', 'Publieke presentatie: je presenteert graag voor een groep', 'Talententest'], ['compass', 'Afwisseling vind je belangrijk in werk', 'Loopbaanwaarden']],
+  },
+  pl: {
+    name: 'Projectleider', match: 84, icon: 'layers', niveau: 'Mbo 4- of hbo-niveau', sector: 'Alle sectoren', kans: 'Goede kansen',
+    wat: 'Als projectleider zorg je dat een project op tijd, binnen het budget en met het juiste resultaat wordt afgerond. Je maakt een plan, verdeelt het werk, houdt het overzicht en stuurt bij als het anders loopt.',
+    taken: ['Stelt een projectplan en planning op', 'Stuurt een projectteam aan', 'Bewaakt tijd, geld en kwaliteit', 'Rapporteert aan de opdrachtgever', 'Signaleert risico’s en lost knelpunten op'],
+    omgeving: 'Projectleiders werken in bijna elke sector: bouw, ICT, overheid en zorg. Je schakelt veel tussen mensen en afdelingen en hebt dagelijks overleg. Je werkt naar deadlines toe.',
+    omgevingTags: ['Veel overleg', 'Deadlines', 'Kantoor en locatie', '36–40 uur'],
+    salaris: [3400, 5800], senior: 7000, arbeid: 4,
+    arbeidTekst: 'Projectleiders zijn in veel sectoren gevraagd, vooral in de bouw, energie en ICT. Ervaring en een certificaat (zoals Prince2) helpen.',
+    groei: ['Senior projectleider', 'Programmamanager', 'Afdelingsmanager'],
+    opl: ['bk', 'bsk'],
+    past: [['zap', 'Samenwerken en ondernemend zijn sterke talenten', 'Talententest'], ['users', 'Je koos vaak voor organiseren en leidinggeven', 'Beroepentest'], ['compass', 'Relaties binnen het werk vind je belangrijk', 'Loopbaanwaarden']],
+  },
+  bm: {
+    name: 'Beleidsmedewerker', match: 76, icon: 'building', niveau: 'Hbo- of wo-niveau', sector: 'Overheid', kans: 'Redelijke kansen',
+    wat: 'Als beleidsmedewerker bedenk en schrijf je beleid, vaak bij een gemeente, provincie of ministerie. Je onderzoekt een maatschappelijk vraagstuk, praat met betrokkenen en werkt plannen uit waar bestuurders een besluit over nemen.',
+    taken: ['Onderzoekt maatschappelijke vraagstukken', 'Schrijft beleidsnotities en adviezen voor bestuurders', 'Overlegt met interne en externe partners', 'Volgt de uitvoering en evalueert beleid', 'Houdt politieke en wettelijke ontwikkelingen bij'],
+    omgeving: 'Je werkt bij de overheid of een maatschappelijke organisatie, op kantoor en thuis. Je hebt vaste werktijden, schrijft veel en hebt regelmatig overleg met collega’s, inwoners en partners.',
+    omgevingTags: ['Kantoor en thuis', 'Vaste werktijden', 'Veel schrijfwerk', '36 uur'],
+    salaris: [3300, 5500], senior: 6500, arbeid: 3,
+    arbeidTekst: 'Gemeenten en provincies zoeken beleidsmedewerkers, vooral voor wonen, zorg en energie. Je salaris volgt meestal een vaste schaal (schaal 9 tot 11).',
+    groei: ['Senior beleidsadviseur', 'Strategisch adviseur', 'Teamleider beleid'],
+    opl: ['bsk', 'psy'],
+    past: [['compass', 'Integriteit staat in je top 3 van loopbaanwaarden', 'Loopbaanwaarden'], ['zap', 'Analytisch vermogen is een sterk talent', 'Talententest'], ['compass', 'Zekerheid en stabiliteit vind je belangrijk', 'Loopbaanwaarden']],
+  },
+  ca: {
+    name: 'Communicatieadviseur', match: 74, icon: 'megaphone', niveau: 'Hbo-niveau', sector: 'Communicatie en media', kans: 'Redelijke kansen',
+    wat: 'Als communicatieadviseur zorg je dat een organisatie helder communiceert met medewerkers, klanten en de pers. Je adviseert over de boodschap, de kanalen en het juiste moment, en schrijft vaak zelf mee.',
+    taken: ['Stelt communicatieplannen op', 'Schrijft teksten voor website, nieuwsbrief en social media', 'Adviseert het management bij gevoelige onderwerpen', 'Onderhoudt contact met de pers', 'Meet het effect van campagnes'],
+    omgeving: 'Je werkt op een communicatieafdeling of bij een bureau, op kantoor en thuis. Het werk is afwisselend en creatief, met deadlines en soms onverwachte situaties waarin snel moet worden gereageerd.',
+    omgevingTags: ['Kantoor en thuis', 'Creatief', 'Deadlines', '32–40 uur'],
+    salaris: [3000, 5000], senior: 6000, arbeid: 3,
+    arbeidTekst: 'Er zijn veel communicatieprofessionals. Wie ervaring heeft met online communicatie, data en crisiscommunicatie, heeft de beste kansen.',
+    groei: ['Senior communicatieadviseur', 'Woordvoerder', 'Communicatiemanager'],
+    opl: ['com', 'psy'],
+    past: [['zap', 'Communiceren en publieke presentatie zijn sterke talenten', 'Talententest'], ['compass', 'Creativiteit in werk vind je belangrijk', 'Loopbaanwaarden'], ['users', 'Je koos vaak voor werk met taal en media', 'Beroepentest']],
+  },
+  rc: {
+    name: 'Recruiter', match: 71, icon: 'search', niveau: 'Mbo 4- of hbo-niveau', sector: 'Zakelijke dienstverlening', kans: 'Goede kansen',
+    wat: 'Als recruiter zoek en selecteer je de juiste mensen voor vacatures. Je schrijft vacatureteksten, zoekt actief naar kandidaten, voert gesprekken en adviseert managers bij hun keuze.',
+    taken: ['Schrijft vacatureteksten', 'Zoekt actief naar kandidaten, onder andere via LinkedIn', 'Voert selectiegesprekken', 'Adviseert managers bij de keuze', 'Bouwt een netwerk van kandidaten op'],
+    omgeving: 'Je werkt bij een werving- en selectiebureau of op de HR-afdeling van een organisatie. Je belt en videobelt veel, werkt vaak met doelen en het tempo ligt hoog.',
+    omgevingTags: ['Veel contact', 'Doelen en targets', 'Kantoor en thuis', '40 uur'],
+    salaris: [2800, 4500], senior: 5500, arbeid: 4,
+    arbeidTekst: 'Door de krappe arbeidsmarkt zijn recruiters veel gevraagd, vooral voor techniek, zorg en ICT.',
+    groei: ['Senior recruiter', 'Recruitment manager', 'Talent acquisition lead'],
+    opl: ['hrm'],
+    past: [['zap', 'Communiceren is een van je sterkste talenten', 'Talententest'], ['zap', 'Ondernemend: je neemt graag initiatief', 'Talententest'], ['compass', 'Relaties binnen het werk vind je belangrijk', 'Loopbaanwaarden']],
+  },
+};
+
+const OPLEIDINGEN = {
+  bk: {
+    name: 'Bedrijfskunde', short: 'HBO Bedrijfskunde', match: 91, niveau: 'HBO Bachelor', duur: '4 jaar', ec: '240 EC', diploma: 'Bachelor of Business Administration', vormen: ['Voltijd', 'Deeltijd', 'Duaal'], start: 'September (sommige scholen ook februari)',
+    wat: 'Bij Bedrijfskunde leer je hoe organisaties werken en hoe je ze beter laat draaien. Je kijkt naar processen, mensen, geld en strategie, en leert problemen te analyseren en verbeteringen voor te stellen en in te voeren. Je werkt veel in projecten voor echte opdrachtgevers en loopt stage.',
+    vakken: ['Organisatiekunde', 'Marketing', 'Financieel management', 'Veranderkunde', 'Onderzoeksvaardigheden'],
+    toelating: ['Havo, elk profiel', 'Vwo, elk profiel', 'Mbo niveau 4'],
+    vervolg: 'Na je bachelor kun je via een premaster doorstromen naar een wo-master, zoals Bedrijfskunde of Business Administration.',
+    scholen: [['Hogeschool Utrecht', 'Utrecht', 'Voltijd, deeltijd'], ['Hanzehogeschool', 'Groningen', 'Voltijd'], ['Hogeschool van Amsterdam', 'Amsterdam', 'Voltijd, deeltijd'], ['Saxion', 'Enschede', 'Voltijd']],
+    beroepen: ['bc', 'pl', 'hr', 'Bedrijfsadviseur', 'Operationeel manager'],
+  },
+  hrm: {
+    name: 'Human Resource Management', short: 'HBO Human Resource Management', match: 89, niveau: 'HBO Bachelor', duur: '4 jaar', ec: '240 EC', diploma: 'Bachelor of Business Administration', vormen: ['Voltijd', 'Deeltijd'], start: 'September',
+    wat: 'Bij Human Resource Management leer je hoe je het beste uit mensen in een organisatie haalt. Je verdiept je in werving, ontwikkeling, gezondheid en arbeidsrecht, en oefent veel met gesprekken en advies geven. In je stage werk je mee op een HR-afdeling.',
+    vakken: ['Arbeidsrecht', 'Organisatiepsychologie', 'Werving en selectie', 'Gespreksvaardigheden', 'HR-analytics'],
+    toelating: ['Havo, elk profiel', 'Vwo, elk profiel', 'Mbo niveau 4'],
+    vervolg: 'Na je bachelor kun je verder met een master, bijvoorbeeld Human Resource Studies (wo, na een premaster).',
+    scholen: [['Hogeschool Rotterdam', 'Rotterdam', 'Voltijd, deeltijd'], ['Fontys', 'Eindhoven', 'Voltijd'], ['Hogeschool Utrecht', 'Utrecht', 'Voltijd'], ['Saxion', 'Deventer', 'Voltijd']],
+    beroepen: ['hr', 'rc', 'HR-businesspartner', 'Loopbaanadviseur'],
+  },
+  bsk: {
+    name: 'Bestuurskunde', short: 'HBO Bestuurskunde', match: 84, niveau: 'HBO Bachelor', duur: '4 jaar', ec: '240 EC', diploma: 'Bachelordiploma (hbo)', vormen: ['Voltijd', 'Deeltijd'], start: 'September',
+    wat: 'Bij Bestuurskunde leer je hoe de overheid werkt en hoe beleid tot stand komt. Je verdiept je in politiek, recht, economie en organisatie, en leert adviezen schrijven en projecten leiden in een politieke omgeving.',
+    vakken: ['Politicologie', 'Staats- en bestuursrecht', 'Beleid en uitvoering', 'Projectmanagement', 'Onderzoek'],
+    toelating: ['Havo, elk profiel', 'Vwo, elk profiel', 'Mbo niveau 4'],
+    vervolg: 'Via een premaster kun je doorstromen naar een wo-master zoals Bestuurskunde of Publiek Management.',
+    scholen: [['De Haagse Hogeschool', 'Den Haag', 'Voltijd, deeltijd'], ['Saxion', 'Enschede', 'Voltijd'], ['Hogeschool van Amsterdam', 'Amsterdam', 'Voltijd']],
+    beroepen: ['bm', 'pl', 'bc', 'Beleidsadviseur', 'Projectmanager overheid'],
+  },
+  psy: {
+    name: 'Psychologie', short: 'WO Psychologie', match: 82, niveau: 'WO Bachelor', duur: '3 jaar', ec: '180 EC', diploma: 'Bachelor of Science', vormen: ['Voltijd'], start: 'September',
+    wat: 'Bij Psychologie bestudeer je hoe mensen denken, voelen en zich gedragen. Je leert over ontwikkeling, emoties, groepen en het brein, en doet zelf onderzoek met statistiek. Na het eerste jaar kies je een richting, zoals arbeids- en organisatiepsychologie of klinische psychologie.',
+    vakken: ['Biologische psychologie', 'Ontwikkelingspsychologie', 'Sociale psychologie', 'Statistiek en methoden', 'Klinische psychologie'],
+    toelating: ['Vwo, elk profiel (wiskunde A of B)', 'Hbo-propedeuse', 'Colloquium doctum (21+)'],
+    vervolg: 'Na je bachelor volg je een master van 1 jaar (of 2 jaar voor een researchmaster). Pas met een master mag je je psycholoog noemen.',
+    scholen: [['Universiteit Utrecht', 'Utrecht', 'Voltijd'], ['Rijksuniversiteit Groningen', 'Groningen', 'Voltijd'], ['Universiteit van Amsterdam', 'Amsterdam', 'Voltijd'], ['Radboud Universiteit', 'Nijmegen', 'Voltijd']],
+    beroepen: ['hr', 'bm', 'Psycholoog (na master)', 'Onderzoeker', 'Loopbaancoach'],
+  },
+  com: {
+    name: 'Communicatie', short: 'HBO Communicatie', match: 80, niveau: 'HBO Bachelor', duur: '4 jaar', ec: '240 EC', diploma: 'Bachelor of Communication', vormen: ['Voltijd', 'Deeltijd'], start: 'September',
+    wat: 'Bij Communicatie leer je hoe organisaties communiceren met hun omgeving. Je schrijft, maakt campagnes, doet onderzoek naar doelgroepen en leert adviseren over de juiste boodschap en kanalen.',
+    vakken: ['Schrijfvaardigheid', 'Strategische communicatie', 'Online marketing', 'Doelgroeponderzoek', 'Crisiscommunicatie'],
+    toelating: ['Havo, elk profiel', 'Vwo, elk profiel', 'Mbo niveau 4'],
+    vervolg: 'Via een premaster kun je verder met een wo-master, zoals Communicatiewetenschap.',
+    scholen: [['Hogeschool Utrecht', 'Utrecht', 'Voltijd, deeltijd'], ['Fontys', 'Eindhoven', 'Voltijd'], ['Hanzehogeschool', 'Groningen', 'Voltijd'], ['Hogeschool Rotterdam', 'Rotterdam', 'Voltijd']],
+    beroepen: ['ca', 'Woordvoerder', 'Contentmarketeer', 'PR-adviseur'],
+  },
+};
+
+const TESTS = {
+  beroep: { name: 'Beroepentest', icon: 'users', cat: 'Beroep', desc: 'Ontdek welke beroepen bij je passen.', dur: '± 10 minuten · 77 vragen', uitkomst: 'Passende beroepen met match' },
+  cube8: { name: 'Cube8 Fotoalbum', icon: 'cube', cat: 'Beroep', desc: 'Kies foto’s van beroepen en zet ze op volgorde.', dur: '± 5 minuten · 9 vragen', uitkomst: 'Beroepsrichtingen die aanspreken' },
+  studie: { name: 'Studiekeuzetest', icon: 'grad', cat: 'Studie', desc: 'Vind opleidingen die bij je passen.', dur: '± 7 minuten · 55 vragen', uitkomst: 'Passende opleidingen met match' },
+  swiper: { name: 'Studieswiper', icon: 'swipe', cat: 'Studie', desc: 'Swipe en ontdek opleidingen.', dur: '± 5 minuten · 81 vragen', uitkomst: 'Opleidingen die de cliënt leuk vindt' },
+  waarden: { name: 'Loopbaanwaarden', icon: 'compass', cat: 'Persoonlijk', desc: 'Wat vind je belangrijk in werk?', dur: '± 10 minuten · 100 vragen', uitkomst: '20 waarden op volgorde en de loopbaancirkel' },
+  talent: { name: 'Talententest', icon: 'zap', cat: 'Persoonlijk', desc: 'Ontdek waar je goed in bent.', dur: '± 20 minuten', uitkomst: 'Talentenprofiel' },
+  persoon: { name: 'Persoonlijkheidstest', icon: 'user', cat: 'Persoonlijk', desc: 'Ontdek hoe je bent en wat dat betekent voor werk.', dur: '± 15 minuten', uitkomst: 'Persoonlijkheidsprofiel' },
+  interesse: { name: 'Interessetest', icon: 'star', cat: 'Beroep', desc: 'Ontdek welke werkzaamheden je leuk vindt.', dur: '± 15 minuten', uitkomst: 'Interesseprofiel' },
+};
+
+const STATUS = { actief: ['Actief', 's-actief'], niet: ['Niet gestart', 's-niet'], uitgenodigd: ['Uitgenodigd', 's-uitgenodigd'], wacht: ['In afwachting', 's-wacht'] };
+const CLIENTS = [
+  { id: 1, first: 'Lars', last: 'Jansen', email: 'lars.jansen@example.com', status: 'actief', created: '15 okt 2026', tests: { beroep: '14 okt', talent: '16 okt', waarden: '20 okt', studie: '22 okt', swiper: 45, cube8: 0 } },
+  { id: 2, first: 'Emma', last: 'de Boer', email: 'emma.deboer@example.net', status: 'actief', created: '12 okt 2026', tests: { waarden: '15 okt', beroep: 60, talent: 0 } },
+  { id: 3, first: 'Noah', last: 'van Dijk', email: 'noah.vandijk@example.com', status: 'actief', created: '10 okt 2026', tests: { beroep: '13 okt', studie: 30, waarden: 0 } },
+  { id: 4, first: 'Sophie', last: 'Bakker', email: 'sophie.bakker@example.com', status: 'wacht', created: '8 okt 2026', tests: { beroep: 0, studie: 0, waarden: 0 } },
+  { id: 5, first: 'Daan', last: 'Visser', email: 'daan.visser@example.net', status: 'actief', created: '6 okt 2026', tests: { talent: '11 okt', beroep: 20, waarden: 0, studie: 0 } },
+  { id: 6, first: 'Mila', last: 'Smit', email: 'mila.smit@example.net', status: 'actief', created: '3 okt 2026', tests: { studie: '17 okt', swiper: '19 okt' } },
+  { id: 7, first: 'Ties', last: 'Mulder', email: 'ties.mulder@example.com', status: 'niet', created: '1 okt 2026', tests: { beroep: 0, waarden: 0, talent: 0 } },
+  { id: 8, first: 'Liv', last: 'de Groot', email: 'liv.degroot@example.net', status: 'actief', created: '28 sep 2026', tests: { beroep: '9 okt', waarden: 70 } },
+  { id: 9, first: 'Sem', last: 'Peters', email: 'sem.peters@example.com', status: 'uitgenodigd', created: '26 sep 2026', tests: { beroep: 0, studie: 0 } },
+  { id: 10, first: 'Julia', last: 'Meijer', email: 'julia.meijer@example.net', status: 'wacht', created: '24 sep 2026', tests: { waarden: 0, beroep: 0 } },
+  { id: 11, first: 'Bram', last: 'Hendriks', email: 'bram.hendriks@example.com', status: 'actief', created: '20 sep 2026', tests: { beroep: '30 sep', waarden: '2 okt' } },
+  { id: 12, first: 'Fleur', last: 'Vos', email: 'fleur.vos@example.net', status: 'uitgenodigd', created: '18 sep 2026', tests: { studie: 0, swiper: 0 } },
+];
+
+const TALENTEN = [['Communiceren', 86], ['Samenwerken', 81], ['Analytisch vermogen', 78], ['Publieke presentatie', 72], ['Ondernemend', 64], ['Creatief denken', 58], ['Plannen en organiseren', 55], ['Technisch inzicht', 31]];
+const WAARDEN = [['Sociale bewogenheid', 97], ['Relaties binnen het werk', 93], ['Integriteit', 87], ['Balans werk en privé', 83], ['Zelfontplooiing', 80], ['Werkomgeving', 73], ['Afwisseling', 70], ['Zekerheid en stabiliteit', 67]];
+const CIRKEL = [['Dynamiek en persoon', 63, '#e8457a'], ['Persoon en evenwicht', 51, '#1fa64a'], ['Evenwicht en werk', 64, '#2a6cf0'], ['Werk en dynamiek', 43, '#f08a24']];
+const SWIPED = ['com', 'psy', 'bk', 'Pedagogiek', 'Toegepaste psychologie', 'Journalistiek'];
+
+let REPORTS = [
+  { id: 1, client: 1, title: 'Loopbaanrapport', date: '22 okt 2026', pages: 12, shared: true, parts: ['Samenvatting', 'Talentenprofiel', 'Loopbaanwaarden', 'Passende beroepen', 'Aanbevolen opleidingen', 'Bespreekpunten'] },
+  { id: 2, client: 6, title: 'Studiekeuzerapport', date: '19 okt 2026', pages: 8, shared: true, parts: ['Samenvatting', 'Aanbevolen opleidingen', 'Studieswiper', 'Bespreekpunten'] },
+  { id: 3, client: 11, title: 'Beroepenrapport', date: '2 okt 2026', pages: 9, shared: false, parts: ['Samenvatting', 'Passende beroepen', 'Loopbaanwaarden'] },
+  { id: 0, client: 0, title: 'Groepsoverzicht', date: '1 okt 2026', pages: 4, shared: false, parts: ['Voortgang per cliënt', 'Afgeronde testen', 'Meest passende beroepen in de groep'] },
+];
+const PARTS = ['Samenvatting', 'Talentenprofiel', 'Loopbaanwaarden', 'Passende beroepen', 'Aanbevolen opleidingen', 'Bespreekpunten'];
+
+/* ---------- Toestand ---------- */
+const S = { screen: 'dashboard', client: 1, ctab: 'overzicht', result: null, report: 1, q: '', status: 'alle', tfilter: 'Alle', rfilter: 'Alle', modal: null };
+const client = (id) => CLIENTS.find((c) => c.id === id);
+const fullName = (c) => `${c.first} ${c.last}`;
+const initials = (c) => (c.first[0] + c.last.split(' ').pop()[0]).toUpperCase();
+const isDone = (v) => typeof v === 'string';
+const progress = (c) => { const k = Object.keys(c.tests); return [k.filter((t) => isDone(c.tests[t])).length, k.length]; };
+
+// Alle afgeronde testen als uitslagen, nieuwste eerst (datums zijn allemaal 2026).
+const MONTHS = { sep: 9, okt: 10, nov: 11 };
+const dateKey = (d) => { const [day, m] = d.split(' '); return MONTHS[m] * 100 + Number(day); };
+function results(clientId) {
+  const out = [];
+  for (const c of CLIENTS) {
+    if (clientId && c.id !== clientId) continue;
+    for (const [t, v] of Object.entries(c.tests)) if (isDone(v)) out.push({ key: `${c.id}-${t}`, client: c.id, test: t, date: v });
+  }
+  return out.sort((a, b) => dateKey(b.date) - dateKey(a.date));
+}
+
+/* ---------- Zijbalk en kop ---------- */
+const NAV = [['dashboard', 'Dashboard', 'home'], ['clients', 'Cliënten', 'users'], ['tests', 'Tests', 'tests'], ['results', 'Resultaten', 'chart'], ['reports', 'Rapportages', 'file']];
+
+function renderNav() {
+  const active = S.screen === 'client' ? 'clients' : S.screen;
+  document.getElementById('nav').innerHTML = NAV.map(([id, label, icon]) =>
+    `<button class="nav${active === id ? ' is-active' : ''}" data-go="${id}">${ic(icon, 22, 1.7)}${label}</button>`).join('');
+}
+
+function profile() {
+  return `<div class="profile"><div class="avatar">SV</div><div><div style="font-size:14.5px;font-weight:600">Sanne de Vries</div><div style="font-size:12px;color:#6b6a8c;margin-top:2px">Loopbaanprofessional</div></div><span style="margin-left:10px;color:#14122e">${ic('chevD', 18, 2)}</span></div>`;
+}
+
+function renderHead() {
+  const h = document.getElementById('head');
+  if (S.screen === 'dashboard' || S.screen === 'client') {
+    const c = client(S.client);
+    const [d, n] = progress(c);
+    const back = S.screen === 'client' ? `<button data-go="clients">${ic('chevL', 14, 2.2)}Cliënten</button><span>/</span>` : '';
+    h.innerHTML = `<div class="h-label">${back}Mijn cliënt · ${d} van ${n} testen afgerond</div>
+      <h1 class="low">${esc(fullName(c))}</h1>${profile()}
+      <div class="h-tabs">${[['overzicht', 'Overzicht'], ['tests', 'Tests'], ['resultaten', 'Resultaten']].map(([id, l]) =>
+        `<button class="h-tab${S.ctab === id ? ' is-active' : ''}" data-ctab="${id}">${l}</button>`).join('')}</div>`;
+    return;
+  }
+  const meta = {
+    clients: ['Cliënten', 'Nodig nieuwe cliënten uit en volg hun voortgang.', `<button class="btn btn-p" data-act="invite">${ic('plus', 16, 2.2)}Nieuwe cliënt uitnodigen</button>`],
+    tests: ['Tests', 'Alle instrumenten die je aan cliënten kunt toewijzen.', ''],
+    results: ['Resultaten', 'De uitslagen van al je cliënten. Klik op een uitslag om hem te bekijken.', ''],
+    reports: ['Rapportages', 'Maak rapporten van de uitslagen en deel ze met je cliënt.', `<button class="btn btn-p" data-act="newReport">${ic('plus', 16, 2.2)}Nieuwe rapportage</button>`],
+  }[S.screen];
+  h.innerHTML = `<h1>${meta[0]}</h1><div class="h-sub">${meta[1]}</div>${profile()}${meta[2] ? `<div class="h-action">${meta[2]}</div>` : ''}`;
+}
+
+/* ---------- Overzicht van een cliënt ---------- */
+function overviewLars() {
+  const jobs = ['hr', 'bc', 'pl', 'bm', 'ca'];
+  const opl = ['bk', 'hrm', 'bsk', 'psy'];
+  const heights = [22, 38, 55, 78, 100];
+  return `
+  <section class="card" style="left:234px;top:155px;width:348px;height:298px">
+    <h2 class="t2" style="position:absolute;left:24px;top:24px">Talentenprofiel</h2>
+    <button class="link" style="position:absolute;right:22px;top:27px" data-result="1-talent">Bekijk uitslag${ic('arrowR', 14, 2.2)}</button>
+    <svg width="348" height="298" viewBox="0 0 348 298" style="position:absolute;left:0;top:0;pointer-events:none">
+      <defs><radialGradient id="rg1" cx="50%" cy="55%" r="55%"><stop offset="0" stop-color="#8b5cf6" stop-opacity=".55"/><stop offset="1" stop-color="#c4b5fd" stop-opacity=".35"/></radialGradient></defs>
+      <g fill="none" stroke="#eeecf7" stroke-width="1"><polygon points="177,82 260,143 228,240 126,240 94,143"/><polygon points="177,108 235,151 213,220 141,220 119,151"/><polygon points="177,135 210,159 198,198 156,198 144,159"/><path d="M177 168V82M177 168l83-25M177 168l51 72M177 168l-51 72M177 168l-83-25"/></g>
+      <g class="radar-shape"><polygon points="177,101 223,154 217,224 149,208 115,149" fill="url(#rg1)" stroke="#4a2ff6" stroke-width="2" stroke-linejoin="round"/>
+      <g fill="#4a2ff6"><circle cx="177" cy="101" r="3.5"/><circle cx="223" cy="154" r="3.5"/><circle cx="217" cy="224" r="3.5"/><circle cx="149" cy="208" r="3.5"/><circle cx="115" cy="149" r="3.5"/></g></g>
+    </svg>
+    <div style="position:absolute;left:0;width:348px;top:56px;text-align:center;font-size:13px;line-height:1.3">Analytisch<br>vermogen</div>
+    <div style="position:absolute;left:16px;top:139px;font-size:13px">Communiceren</div>
+    <div style="position:absolute;left:256px;top:133px;font-size:13px;line-height:1.3;text-align:center">Publieke<br>presentatie</div>
+    <div style="position:absolute;left:50px;top:243px;font-size:13px">Ondernemend</div>
+    <div style="position:absolute;left:226px;top:243px;font-size:13px">Samenwerken</div>
+  </section>
+
+  <section class="card" style="left:600px;top:155px;width:368px;height:298px;padding:22px 16px 0 22px">
+    <div style="display:flex;justify-content:space-between;align-items:center;padding-right:6px">
+      <h2 class="t2">Passende beroepen</h2>
+      <button class="link" data-result="1-beroep">Bekijk alle${ic('arrowR', 14, 2.2)}</button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:5px;margin-top:14px">
+      ${jobs.map((id, i) => { const b = BEROEPEN[id]; return `
+      <button class="rowbtn" style="height:36px;padding-right:6px" data-beroep="${id}">
+        <span class="tile" style="width:36px;height:36px;border-radius:9px">${ic(b.icon, 18)}</span>
+        <span style="margin-left:17px;flex:1;font-size:13px">${b.name}</span>
+        <span class="bar anim" style="width:84px"><i style="--w:${b.match}%;transition-delay:${i * 0.12}s"></i></span>
+        <span style="width:46px;text-align:right;font-size:13px;font-weight:500">${b.match}%</span>
+      </button>`; }).join('')}
+    </div>
+  </section>
+
+  <section class="card" style="left:20px;top:474px;width:310px;height:236px;padding:24px 22px 0">
+    <h2 class="t2">Ontwikkeling over tijd</h2>
+    <div style="position:absolute;left:22px;right:22px;top:50px;height:102px;display:flex;align-items:flex-end;justify-content:space-around;border-bottom:1.5px solid #e4e2f0;padding:0 4px">
+      ${heights.map((hh, i) => `<div class="grow" style="--h:${hh}px;width:28px;border-radius:3px 3px 0 0;background:linear-gradient(${['#e4ddfd,#efeafe', '#d5c9fc,#ebe5fe', '#bba9fa,#e2d9fd', '#9a80f8,#cdbefc', '#6a45f6,#8f6ff8'][i]});transition-delay:${i * 0.1}s"></div>`).join('')}
+    </div>
+    <div style="position:absolute;left:22px;right:22px;top:160px;display:flex;justify-content:space-around;font-size:13px"><span>2023</span><span>2025</span><span>2026</span><span>2027</span><span>2028</span></div>
+    <div style="position:absolute;left:22px;top:186px;display:flex;align-items:center;gap:12px;height:36px;padding:0 16px;border-radius:10px;background:#eefbf0;color:#0f9d24;font-size:15px;font-weight:600">${ic('arrowR', 18, 2.6).replace('<path', '<path transform="rotate(-90 12 12)"')}Groei</div>
+  </section>
+
+  <section class="card clickable" style="left:347px;top:474px;width:283px;height:236px;padding:22px 26px 0" data-beroep="hr">
+    <h2 class="t2">Salarisindicatie</h2>
+    <div style="margin-top:14px;font-size:23px;font-weight:700;letter-spacing:-.03em">€ 3.000 – € 4.500</div>
+    <div style="margin-top:6px;font-size:13px;color:#3a3858">HR-adviseur · bruto per maand</div>
+    <svg width="250" height="110" viewBox="0 0 250 110" style="position:absolute;left:22px;top:110px" fill="none">
+      <defs><linearGradient id="ag1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8b5cf6" stop-opacity=".35"/><stop offset="1" stop-color="#8b5cf6" stop-opacity="0"/></linearGradient></defs>
+      <path class="fade" d="M6 82 L60 59 L98 69 L143 47 L177 55 C200 38 220 20 240 15 L240 110 L6 110Z" fill="url(#ag1)" style="transition-delay:.9s"/>
+      <path class="draw" d="M6 82 L60 59 L98 69 L143 47 L177 55 C200 38 220 20 240 15" stroke="#4a2ff6" stroke-width="2.2" stroke-linejoin="round" pathLength="1" stroke-dasharray="1"/>
+      <g fill="#4a2ff6">${[[6, 82], [60, 59], [98, 69], [143, 47], [177, 55]].map(([x, y], i) => `<circle class="fade" cx="${x}" cy="${y}" r="3.5" style="transition-delay:${0.2 + i * 0.25}s"/>`).join('')}<circle class="fade" cx="240" cy="15" r="5" style="transition-delay:1.45s"/></g>
+    </svg>
+  </section>
+
+  <section class="card" style="left:648px;top:474px;width:320px;height:236px;padding:20px 20px 0">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <h2 class="t2" style="font-size:15.5px">Aanbevolen opleidingen</h2>
+      <button class="link" style="font-size:12px" data-result="1-studie">Bekijk alle${ic('arrowR', 13, 2.2)}</button>
+    </div>
+    <div style="display:flex;flex-direction:column;margin-top:10px">
+      ${opl.map((id) => `<button class="rowbtn" style="gap:14px;height:41px;border-bottom:1px solid #f0eff7;border-radius:0;font-size:12.5px" data-opl="${id}">
+        <span class="tile" style="width:34px;height:34px;border-radius:50%">${ic('grad', 17, 2)}</span><span style="flex:1">${OPLEIDINGEN[id].short}</span><span style="color:#3a3858">${ic('chevR', 16, 2)}</span></button>`).join('')}
+    </div>
+  </section>`;
+}
+
+function overviewOther(c) {
+  const [d, n] = progress(c);
+  const res = results(c.id);
+  const pct = n ? Math.round((d / n) * 100) : 0;
+  const R = 52, C = 2 * Math.PI * R;
+  const waiting = Object.entries(c.tests).filter(([, v]) => !isDone(v));
+  return `<div class="content">
+    <section class="card" style="left:0;top:0;width:300px;height:250px;padding:22px 24px">
+      <h2 class="t2">Voortgang</h2>
+      <div style="display:flex;align-items:center;gap:22px;margin-top:22px">
+        <svg width="128" height="128" viewBox="0 0 128 128"><circle cx="64" cy="64" r="${R}" fill="none" stroke="#ecebf6" stroke-width="12"/><circle cx="64" cy="64" r="${R}" fill="none" stroke="#3b1ff5" stroke-width="12" stroke-linecap="round" stroke-dasharray="${C * pct / 100} ${C}" transform="rotate(-90 64 64)"/><text x="64" y="62" text-anchor="middle" font-size="22" font-weight="700" fill="#14122e">${d}/${n}</text><text x="64" y="81" text-anchor="middle" font-size="11.5" fill="#6b6a8c">afgerond</text></svg>
+        <div style="font-size:13px;line-height:2"><div><span class="pill s-afgerond">${d} afgerond</span></div><div><span class="pill s-bezig">${waiting.filter(([, v]) => v > 0).length} bezig</span></div><div><span class="pill s-todo">${waiting.filter(([, v]) => !v).length} nog te doen</span></div></div>
+      </div>
+    </section>
+    <section class="card" style="left:316px;top:0;width:418px;height:250px;padding:22px 24px">
+      <div style="display:flex;justify-content:space-between;align-items:center"><h2 class="t2">Recente uitslagen</h2>${res.length ? `<button class="link" data-ctab="resultaten">Bekijk alle${ic('arrowR', 14, 2.2)}</button>` : ''}</div>
+      ${res.length ? `<div style="margin-top:14px;display:flex;flex-direction:column;gap:6px">${res.slice(0, 3).map((r) => `<button class="rowbtn" style="gap:14px;padding:8px 10px;background:#f8f7fd" data-result="${r.key}"><span class="tile" style="width:38px;height:38px">${ic(TESTS[r.test].icon, 19)}</span><span style="flex:1"><b style="font-size:13.5px;font-weight:600">${TESTS[r.test].name}</b><span style="display:block;font-size:12px;color:#6b6a8c;margin-top:2px">Afgerond op ${r.date} 2026</span></span>${ic('chevR', 16, 2)}</button>`).join('')}</div>`
+        : `<div style="margin-top:34px;text-align:center"><span class="tile" style="width:52px;height:52px;margin:0 auto;border-radius:14px">${ic('chart', 24)}</span><p class="body muted" style="margin-top:12px">${esc(c.first)} heeft nog geen testen afgerond.<br>Zodra er een uitslag is, zie je die hier.</p></div>`}
+    </section>
+    <section class="card" style="left:0;top:266px;width:734px;height:280px;padding:22px 24px">
+      <div style="display:flex;justify-content:space-between;align-items:center"><h2 class="t2">Toegewezen testen</h2><button class="btn btn-s btn-sm" data-act="assignClient">${ic('plus', 14, 2.2)}Test toewijzen</button></div>
+      <div class="scroll" style="margin-top:12px;max-height:200px">${testRows(c)}</div>
+    </section>
+  </div>`;
+}
+
+function testRows(c) {
+  return Object.entries(c.tests).map(([t, v]) => {
+    const T = TESTS[t];
+    const st = isDone(v) ? `<span class="pill s-afgerond">Afgerond ${v}</span>` : v > 0 ? `<span class="pill s-bezig">Bezig · ${v}%</span>` : `<span class="pill s-todo">Nog te doen</span>`;
+    const act = isDone(v) ? `<button class="btn btn-p btn-sm" data-result="${c.id}-${t}">Bekijk uitslag${ic('arrowR', 14, 2.2)}</button>` : `<button class="btn btn-s btn-sm" data-toast="Herinnering gestuurd naar ${esc(c.first)} voor de ${esc(T.name)}">${ic('bell', 14)}Herinnering sturen</button>`;
+    return `<div style="display:flex;align-items:center;gap:14px;padding:10px 4px;border-bottom:1px solid #f0eff7">
+      <span class="tile" style="width:40px;height:40px">${ic(T.icon, 20)}</span>
+      <div style="flex:1"><div style="font-size:14px;font-weight:600">${T.name}</div><div style="font-size:12px;color:#6b6a8c;margin-top:2px;display:flex;align-items:center;gap:5px">${ic('clock', 13)}${T.dur}</div></div>
+      ${st}<div style="width:170px;display:flex;justify-content:flex-end">${act}</div></div>`;
+  }).join('');
+}
+
+function clientTests(c) {
+  return `<div class="content"><section class="card" style="inset:0;padding:22px 24px">
+    <div style="display:flex;justify-content:space-between;align-items:center"><div><h2 class="t2">Testen van ${esc(c.first)}</h2><div class="muted" style="font-size:13px;margin-top:4px">Volg de voortgang en stuur een herinnering als een test nog openstaat.</div></div>
+    <button class="btn btn-p" data-act="assignClient">${ic('plus', 16, 2.2)}Test toewijzen</button></div>
+    <div class="scroll" style="margin-top:14px;height:440px">${testRows(c)}</div></section></div>`;
+}
+
+/* ---------- Uitslagen ---------- */
+function resultDetail(r) {
+  const c = client(r.client), T = TESTS[r.test];
+  const head = `<div style="display:flex;align-items:flex-start;gap:14px">
+    <span class="tile" style="width:46px;height:46px;border-radius:12px">${ic(T.icon, 22)}</span>
+    <div style="flex:1"><h3 class="t2">${T.name}</h3><div class="muted" style="font-size:12.5px;margin-top:3px">${esc(fullName(c))} · afgerond op ${r.date} 2026</div></div>
+    <button class="btn btn-s btn-sm" data-act="newReport" data-client="${c.id}">${ic('file', 14)}Rapportage</button></div>`;
+  let body = '';
+  if (r.test === 'beroep') {
+    body = `<p class="body muted" style="margin:16px 0 10px">Beroepen die passen bij de interesses en voorkeuren van ${esc(c.first)}. Klik op een beroep voor meer informatie.</p>
+      ${Object.entries(BEROEPEN).map(([id, b]) => `<button class="rowbtn" style="gap:12px;padding:8px 8px;border-bottom:1px solid #f0eff7;border-radius:0" data-beroep="${id}">
+        <span class="tile" style="width:34px;height:34px;border-radius:9px">${ic(b.icon, 17)}</span>
+        <span style="flex:1"><b style="font-size:13.5px;font-weight:600">${b.name}</b><span style="display:block;font-size:11.5px;color:#6b6a8c;margin-top:2px">${b.niveau} · ${b.sector}</span></span>
+        ${bar(b.match, 70)}<span style="width:40px;text-align:right;font-size:13px;font-weight:600">${b.match}%</span>${ic('chevR', 15, 2)}</button>`).join('')}`;
+  } else if (r.test === 'studie') {
+    body = `<p class="body muted" style="margin:16px 0 10px">Opleidingen die passen bij ${esc(c.first)}. Klik op een opleiding voor de duur, toelating en waar je mee kunt worden.</p>
+      ${Object.entries(OPLEIDINGEN).map(([id, o]) => `<button class="rowbtn" style="gap:12px;padding:9px 8px;border-bottom:1px solid #f0eff7;border-radius:0" data-opl="${id}">
+        <span class="tile" style="width:34px;height:34px;border-radius:50%">${ic('grad', 17, 2)}</span>
+        <span style="flex:1"><b style="font-size:13.5px;font-weight:600">${o.name}</b><span style="display:flex;gap:6px;margin-top:4px"><span class="tag" style="height:20px;font-size:11px">${o.niveau}</span><span class="tag" style="height:20px;font-size:11px">${o.duur}</span></span></span>
+        ${bar(o.match, 70)}<span style="width:40px;text-align:right;font-size:13px;font-weight:600">${o.match}%</span>${ic('chevR', 15, 2)}</button>`).join('')}`;
+  } else if (r.test === 'waarden') {
+    body = `<div class="sec" style="margin-top:16px"><h4>Top 8 van de 20 waarden</h4>
+      ${WAARDEN.map(([n, p], i) => `<div style="display:flex;align-items:center;gap:10px;height:28px;font-size:13px"><span style="width:22px;height:22px;border-radius:50%;background:#efedfb;color:#3b1ff5;display:grid;place-items:center;font-size:11px;font-weight:600">${i + 1}</span><span style="flex:1">${n}</span>${bar(p, 120)}<span style="width:36px;text-align:right;font-weight:600">${p}%</span></div>`).join('')}</div>
+      <div class="sec"><h4>De loopbaancirkel</h4><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      ${CIRKEL.map(([n, p, col]) => `<div style="border:1px solid #eeecf7;border-top:3px solid ${col};border-radius:10px;padding:10px 12px"><div style="display:flex;justify-content:space-between;font-size:12.5px;font-weight:600"><span>${n}</span><span style="color:${col}">${p}%</span></div><div style="margin-top:8px">${bar(p, 150, false, col)}</div></div>`).join('')}</div></div>`;
+  } else if (r.test === 'talent') {
+    body = `<div class="sec" style="margin-top:16px"><h4>Sterkste talenten</h4><div class="chips">${TALENTEN.slice(0, 3).map(([n]) => `<span class="tag green">${ic('check', 13, 2.4)}&nbsp;${n}</span>`).join('')}</div></div>
+      <div class="sec"><h4>Alle talenten</h4>${TALENTEN.map(([n, p]) => `<div style="display:flex;align-items:center;gap:10px;height:30px;font-size:13px"><span style="flex:1">${n}</span>${bar(p, 160)}<span style="width:36px;text-align:right;font-weight:600">${p}%</span></div>`).join('')}</div>
+      <div class="sec"><h4>Bespreekpunt</h4><p class="body">${esc(c.first)} scoort hoog op communiceren en samenwerken, en lager op technisch inzicht. Vraag door op situaties waarin ${esc(c.first)} anderen heeft geholpen of overtuigd.</p></div>`;
+  } else if (r.test === 'swiper') {
+    body = `<div style="display:flex;gap:10px;margin-top:16px"><div class="fact" style="flex:1"><b>14 van 81</b><span>opleidingen geliket</span></div><div class="fact" style="flex:1"><b>Mens en maatschappij</b><span>meest gekozen richting</span></div></div>
+      <div class="sec"><h4>Opleidingen die ${esc(c.first)} leuk vindt</h4>${SWIPED.map((id) => { const o = OPLEIDINGEN[id]; return o
+        ? `<button class="rowbtn" style="gap:12px;padding:8px;border-bottom:1px solid #f0eff7;border-radius:0" data-opl="${id}"><span class="tile" style="width:32px;height:32px;border-radius:50%">${ic('grad', 16, 2)}</span><span style="flex:1;font-size:13.5px;font-weight:600">${o.name}</span><span class="tag" style="height:20px;font-size:11px">${o.niveau}</span>${ic('chevR', 15, 2)}</button>`
+        : `<div style="display:flex;align-items:center;gap:12px;padding:8px;border-bottom:1px solid #f0eff7"><span class="tile" style="width:32px;height:32px;border-radius:50%">${ic('grad', 16, 2)}</span><span style="flex:1;font-size:13.5px">${id}</span><span class="tag" style="height:20px;font-size:11px">HBO Bachelor</span></div>`; }).join('')}</div>`;
+  }
+  return head + body;
+}
+
+function resultsView(clientId) {
+  const all = results(clientId);
+  const filters = ['Alle', ...new Set(all.map((r) => TESTS[r.test].name))];
+  const list = clientId || S.rfilter === 'Alle' ? all : all.filter((r) => TESTS[r.test].name === S.rfilter);
+  if (!all.length) {
+    return `<div class="content"><section class="card" style="inset:0;display:grid;place-items:center;text-align:center"><div><span class="tile" style="width:56px;height:56px;margin:0 auto;border-radius:16px">${ic('chart', 26)}</span><h3 class="t2" style="margin-top:14px">Nog geen uitslagen</h3><p class="body muted" style="margin-top:6px">Zodra een test is afgerond, staat de uitslag hier.</p></div></section></div>`;
+  }
+  if (!list.some((r) => r.key === S.result)) S.result = list[0].key;
+  const sel = list.find((r) => r.key === S.result);
+  return `<div class="content">
+    <section class="card" style="left:0;top:0;width:264px;height:564px;padding:18px 12px 12px;display:flex;flex-direction:column">
+      <h3 class="t3" style="padding:0 8px">${clientId ? 'Afgeronde testen' : `${all.length} uitslagen`}</h3>
+      ${clientId ? '' : `<select data-rfilter style="margin:12px 8px 4px;height:34px;font-size:12.5px">${filters.map((f) => `<option${f === S.rfilter ? ' selected' : ''}>${f}</option>`).join('')}</select>`}
+      <div class="scroll" style="flex:1;margin-top:8px;display:flex;flex-direction:column;gap:4px">
+      ${list.map((r) => { const c = client(r.client), T = TESTS[r.test], on = r.key === S.result; return `
+        <button class="rowbtn" style="gap:11px;padding:9px 10px;${on ? 'background:#ebe8fb' : ''}" data-pick="${r.key}">
+          <span class="tile" style="width:34px;height:34px;${on ? 'background:#fff' : ''}">${ic(T.icon, 17)}</span>
+          <span style="flex:1;min-width:0"><b style="display:block;font-size:13px;font-weight:600">${clientId ? T.name : esc(fullName(c))}</b><span style="display:block;font-size:11.5px;color:#6b6a8c;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${clientId ? '' : T.name + ' · '}${r.date}</span></span></button>`; }).join('')}
+      </div>
+    </section>
+    <section class="card scroll" style="left:280px;top:0;width:454px;height:564px;padding:22px 24px">${resultDetail(sel)}</section>
+  </div>`;
+}
+
+/* ---------- Cliënten ---------- */
+function clientsView() {
+  const q = S.q.trim().toLowerCase();
+  const rows = CLIENTS.filter((c) => (S.status === 'alle' || c.status === S.status) && (!q || `${fullName(c)} ${c.email}`.toLowerCase().includes(q)));
+  return `<div class="content"><section class="card" style="inset:0;padding:18px 20px;display:flex;flex-direction:column">
+    <div style="display:flex;gap:10px;align-items:center">
+      <label style="position:relative;flex:1"><span style="position:absolute;left:12px;top:10px;color:#6b6a8c">${ic('search', 17)}</span><input data-q value="${esc(S.q)}" placeholder="Zoek op naam of e-mailadres…" style="width:100%;padding-left:38px"></label>
+      <select data-status style="width:170px"><option value="alle">Alle statussen</option>${Object.entries(STATUS).map(([k, [l]]) => `<option value="${k}"${S.status === k ? ' selected' : ''}>${l}</option>`).join('')}</select>
+      <span class="muted" style="font-size:12.5px;width:86px;text-align:right">${rows.length} resultaten</span>
+    </div>
+    <div class="scroll" style="flex:1;margin-top:14px;border-radius:12px;border:1px solid #f0eff7">
+      <table class="table"><thead><tr><th>Naam</th><th>Status</th><th>Voortgang</th><th>Aangemaakt op</th><th></th></tr></thead><tbody>
+      ${rows.map((c) => { const [d, n] = progress(c); const [l, cls] = STATUS[c.status]; return `<tr class="click" data-client="${c.id}">
+        <td><div style="display:flex;align-items:center;gap:10px"><span class="mini-av">${initials(c)}</span><div><div style="font-weight:600">${esc(fullName(c))}</div><div style="font-size:11.5px;color:#6b6a8c">${esc(c.email)}</div></div></div></td>
+        <td><span class="pill ${cls}">${l}</span></td>
+        <td><div style="display:flex;align-items:center;gap:8px">${bar(n ? (d / n) * 100 : 0, 64)}<span style="font-size:12px;color:#3a3858">${d}/${n}</span></div></td>
+        <td style="color:#3a3858">${c.created}</td><td style="color:#6b6a8c">${ic('chevR', 16, 2)}</td></tr>`; }).join('')}
+      ${rows.length ? '' : `<tr><td colspan="5" style="text-align:center;padding:40px;color:#6b6a8c">Geen cliënten gevonden.</td></tr>`}
+      </tbody></table>
+    </div></section></div>`;
+}
+
+/* ---------- Tests ---------- */
+function testsView() {
+  const cats = ['Alle', 'Beroep', 'Studie', 'Persoonlijk'];
+  const list = Object.entries(TESTS).filter(([, t]) => S.tfilter === 'Alle' || t.cat === S.tfilter);
+  const used = (id) => CLIENTS.filter((c) => id in c.tests).length;
+  return `<div class="content" style="display:flex;flex-direction:column;gap:14px">
+    <div class="chips">${cats.map((c) => `<button class="chip${S.tfilter === c ? ' is-active' : ''}" data-tfilter="${c}">${c}</button>`).join('')}</div>
+    <div class="scroll" style="flex:1;display:grid;grid-template-columns:1fr 1fr;gap:14px;align-content:start;padding-bottom:4px">
+    ${list.map(([id, t]) => `<div style="background:#fff;border-radius:18px;box-shadow:0 10px 30px rgba(70,50,190,.05);padding:18px 18px 16px;display:flex;flex-direction:column;gap:10px">
+      <div style="display:flex;gap:14px;align-items:flex-start"><span class="tile" style="width:46px;height:46px;border-radius:12px">${ic(t.icon, 22)}</span>
+      <div style="flex:1"><div style="display:flex;justify-content:space-between;align-items:center"><b style="font-size:15px">${t.name}</b><span class="tag" style="height:22px;font-size:11px">${t.cat}</span></div><div style="font-size:13px;color:#3a3858;margin-top:3px">${t.desc}</div></div></div>
+      <div style="font-size:12px;color:#6b6a8c;display:flex;align-items:center;gap:6px">${ic('clock', 14)}${t.dur}</div>
+      <div style="font-size:12.5px;padding:9px 11px;border-radius:10px;background:#f8f7fd"><span class="muted">Uitkomst:</span> ${t.uitkomst}</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:2px"><span class="muted" style="font-size:12px">Toegewezen aan ${used(id)} cliënten</span><button class="btn btn-p btn-sm" data-assign="${id}">Toewijzen</button></div>
+    </div>`).join('')}</div></div>`;
+}
+
+/* ---------- Rapportages ---------- */
+function reportsView() {
+  if (!REPORTS.some((r) => r.id === S.report)) S.report = REPORTS[0].id;
+  const r = REPORTS.find((x) => x.id === S.report);
+  const c = r.client ? client(r.client) : null;
+  return `<div class="content">
+    <section class="card" style="left:0;top:0;width:300px;height:564px;padding:18px 12px 12px;display:flex;flex-direction:column">
+      <h3 class="t3" style="padding:0 8px">${REPORTS.length} rapportages</h3>
+      <div class="scroll" style="flex:1;margin-top:10px;display:flex;flex-direction:column;gap:4px">
+      ${REPORTS.map((x) => { const on = x.id === S.report, cc = x.client ? client(x.client) : null; return `<button class="rowbtn" style="gap:12px;padding:10px;${on ? 'background:#ebe8fb' : ''}" data-report="${x.id}">
+        <span class="tile" style="width:38px;height:38px;${on ? 'background:#fff' : ''}">${ic(cc ? 'file' : 'users', 18)}</span>
+        <span style="flex:1;min-width:0"><b style="display:block;font-size:13px;font-weight:600">${x.title}</b><span style="display:block;font-size:11.5px;color:#6b6a8c;margin-top:2px">${cc ? esc(fullName(cc)) : 'Alle cliënten'} · ${x.date}</span></span>
+        ${x.shared ? `<span title="Gedeeld met cliënt" style="color:#13883a">${ic('checkCircle', 16)}</span>` : ''}</button>`; }).join('')}
+      </div>
+    </section>
+    <section class="card" style="left:316px;top:0;width:418px;height:564px;padding:22px 24px;display:flex;flex-direction:column">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px"><div><h3 class="t2">${r.title}</h3><div class="muted" style="font-size:12.5px;margin-top:3px">${c ? esc(fullName(c)) : 'Alle cliënten'} · ${r.date} · ${r.pages} pagina’s</div></div>
+      ${r.shared ? '<span class="pill s-afgerond">Gedeeld</span>' : '<span class="pill s-todo">Niet gedeeld</span>'}</div>
+      <div style="flex:1;display:flex;gap:18px;margin-top:18px;min-height:0">
+        <div class="paper"><div class="p-band"><b>${r.title}</b>${c ? esc(fullName(c)) : 'Groepsoverzicht'} · ${r.date}</div>
+          ${r.parts.slice(0, 4).map((p, i) => `<h5>${i + 1}. ${p}</h5><div class="p-line" style="width:95%"></div><div class="p-line" style="width:80%"></div>${i === 1 ? `<div style="display:flex;gap:4px;margin-top:6px">${[70, 52, 88, 40, 64].map((h) => `<span style="flex:1;height:${h * 0.32}px;align-self:flex-end;background:#c9bdfb;border-radius:2px"></span>`).join('')}</div>` : '<div class="p-line" style="width:88%"></div>'}`).join('')}
+        </div>
+        <div style="flex:1;min-width:0"><h4 style="margin:0 0 8px;font-size:13.5px">Inhoud</h4>
+          ${r.parts.map((p) => `<div style="display:flex;gap:8px;align-items:center;font-size:12.5px;height:26px;color:#2c2a48"><span style="color:#3b1ff5">${ic('check', 14, 2.4)}</span>${p}</div>`).join('')}
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:16px">
+        <button class="btn btn-s" data-toast="De pdf van ${r.title.toLowerCase()} wordt gedownload">${ic('download', 16)}Download pdf</button>
+        ${c ? `<button class="btn btn-p" data-share="${r.id}">${ic('share', 16)}${r.shared ? 'Opnieuw delen' : 'Delen met cliënt'}</button>` : ''}
+      </div>
+    </section></div>`;
+}
+
+/* ---------- Detailvensters ---------- */
+// Kleine letter midden in een zin, behalve bij afkortingen (HR-adviseur blijft HR-adviseur).
+const lc = (s) => (/^[A-Z][a-z]/.test(s) ? s[0].toLowerCase() + s.slice(1) : s);
+function euro(n) { return '€ ' + n.toLocaleString('nl-NL'); }
+
+function beroepSheet(id, tab) {
+  const b = BEROEPEN[id];
+  const c = client(S.client);
+  const tabs = [['overzicht', 'Overzicht'], ['salaris', 'Salaris en arbeidsmarkt'], ['opleidingen', `Opleidingen (${b.opl.length})`], ['past', `Past bij ${esc(c.first)}`]];
+  let body = '';
+  if (tab === 'overzicht') {
+    body = `<div class="facts"><div class="fact"><b>${euro(b.salaris[0])}+</b><span>startsalaris per maand</span></div><div class="fact"><b>${b.niveau.replace('-niveau', '')}</b><span>opleidingsniveau</span></div><div class="fact"><b>${b.kans}</b><span>kans op werk</span></div><div class="fact"><b>${b.omgevingTags[3]}</b><span>per week</span></div></div>
+      <div class="sec" style="margin-top:20px"><h4>Wat doet een ${lc(b.name)}?</h4><p class="body">${b.wat}</p></div>
+      <div class="sec cols"><div><h4>Werkzaamheden</h4><ul class="dots">${b.taken.map((t) => `<li>${t}</li>`).join('')}</ul></div>
+      <div><h4>Werkomgeving</h4><p class="body" style="font-size:13px">${b.omgeving}</p><div class="chips" style="margin-top:10px">${b.omgevingTags.slice(0, 3).map((t) => `<span class="tag">${t}</span>`).join('')}</div></div></div>`;
+  } else if (tab === 'salaris') {
+    const [lo, hi] = b.salaris, max = b.senior + 1000, pos = (v) => ((v - 2000) / (max - 2000)) * 100;
+    body = `<div class="sec"><h4>Salarisindicatie</h4><div style="font-size:26px;font-weight:700;letter-spacing:-.03em">${euro(lo)} – ${euro(hi)}</div><div class="muted" style="font-size:12.5px;margin-top:4px">Bruto per maand bij een volledige werkweek, exclusief vakantiegeld</div>
+      <div style="position:relative;height:46px;margin-top:20px"><div style="position:absolute;left:0;right:0;top:12px;height:10px;border-radius:5px;background:#ecebf6"></div>
+      <div style="position:absolute;left:${pos(lo)}%;width:${pos(hi) - pos(lo)}%;top:12px;height:10px;border-radius:5px;background:linear-gradient(90deg,#8b5cf6,#3b1ff5)"></div>
+      <div style="position:absolute;left:${pos(lo)}%;top:28px;transform:translateX(-50%);font-size:11.5px;color:#3a3858">Starter</div>
+      <div style="position:absolute;left:${pos(hi)}%;top:28px;transform:translateX(-50%);font-size:11.5px;color:#3a3858">Ervaren</div>
+      <div style="position:absolute;left:${pos(b.senior)}%;top:6px;width:2px;height:22px;background:#c9c0f7"></div><div style="position:absolute;left:${pos(b.senior)}%;top:28px;transform:translateX(-50%);font-size:11.5px;color:#6b6a8c;white-space:nowrap">Senior ${euro(b.senior)}</div></div></div>
+      <div class="sec"><h4>Arbeidsmarkt</h4><div style="display:flex;align-items:center;gap:12px;margin-bottom:8px"><div style="display:flex;gap:4px">${[1, 2, 3, 4, 5].map((i) => `<span style="width:26px;height:8px;border-radius:4px;background:${i <= b.arbeid ? '#1fa64a' : '#ecebf6'}"></span>`).join('')}</div><b style="font-size:13.5px;color:#13883a">${b.kans}</b></div><p class="body">${b.arbeidTekst}</p></div>
+      <div class="sec"><h4>Doorgroeien</h4><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">${[b.name, ...b.groei].map((g, i) => `${i ? `<span style="color:#b3a9ef">${ic('arrowR', 14, 2)}</span>` : ''}<span class="tag"${i ? '' : ' style="background:#ebe8fb;color:#3b1ff5;font-weight:600"'}>${g}</span>`).join('')}</div></div>`;
+  } else if (tab === 'opleidingen') {
+    body = `<p class="body muted">Met deze opleidingen kun je ${lc(b.name)} worden. Gevraagd niveau: <b style="color:#14122e">${b.niveau.toLowerCase()}</b>.</p>
+      <div style="margin-top:12px">${b.opl.map((oid) => { const o = OPLEIDINGEN[oid]; return `<button class="rowbtn" style="gap:14px;padding:12px;border:1px solid #eeecf7;margin-bottom:8px" data-opl="${oid}">
+        <span class="tile" style="width:40px;height:40px;border-radius:50%">${ic('grad', 19, 2)}</span>
+        <span style="flex:1"><b style="font-size:14px">${o.name}</b><span style="display:flex;gap:6px;margin-top:5px"><span class="tag" style="height:21px;font-size:11px">${o.niveau}</span><span class="tag" style="height:21px;font-size:11px">${o.duur}</span><span class="tag" style="height:21px;font-size:11px">${o.vormen[0]}</span></span></span>
+        <span style="font-size:13px;font-weight:600">${o.match}%</span>${ic('chevR', 16, 2)}</button>`; }).join('')}</div>`;
+  } else {
+    body = `<p class="body muted" style="margin-bottom:12px">Waarom dit beroep bij ${esc(c.first)} past, op basis van de afgeronde testen.</p>
+      ${b.past.map(([i, t, s]) => `<div class="reason"><span class="tile">${ic(i, 16)}</span><div>${t}<small>Uit de ${s}</small></div></div>`).join('')}
+      <div class="sec"><h4>Bespreekvraag voor het gesprek</h4><p class="body">Wat spreekt ${esc(c.first)} het meest aan in het werk van een ${lc(b.name)}, en wat juist niet?</p></div>`;
+  }
+  return `<div class="sheet"><div class="sheet-head">
+      <button class="sheet-close" data-close aria-label="Sluiten">${ic('x', 16, 2.2)}</button>
+      <div style="display:flex;gap:16px;align-items:center;padding-right:44px">
+        <span class="tile" style="width:54px;height:54px;border-radius:14px">${ic(b.icon, 26)}</span>
+        <div style="flex:1"><div style="font-size:12px;color:#6b6a8c;font-weight:500">Beroep</div><h2 style="margin:2px 0 0;font-size:24px;letter-spacing:-.03em">${b.name}</h2><div style="display:flex;gap:8px;align-items:center;margin-top:6px;font-size:12.5px;color:#3a3858">${b.niveau} · ${b.sector}<span class="tag green" style="height:22px;font-size:11.5px">${b.kans}</span></div></div>
+        <div style="text-align:right"><div style="font-size:24px;font-weight:700;letter-spacing:-.03em">${b.match}%</div><div style="font-size:11.5px;color:#6b6a8c;margin:2px 0 6px">match</div>${bar(b.match, 90)}</div>
+      </div></div>
+    <div class="sheet-tabs">${tabs.map(([t, l]) => `<button class="sheet-tab${tab === t ? ' is-active' : ''}" data-tab="${t}">${l}</button>`).join('')}</div>
+    <div class="sheet-body scroll">${body}</div></div>`;
+}
+
+function oplSheet(id, tab) {
+  const o = OPLEIDINGEN[id];
+  const tabs = [['overzicht', 'Overzicht'], ['duur', 'Duur en toelating'], ['scholen', `Scholen (${o.scholen.length})`], ['beroepen', 'Wat kun je worden']];
+  const beroep = (x) => BEROEPEN[x]
+    ? `<button class="rowbtn" style="gap:12px;padding:10px 12px;border:1px solid #eeecf7;margin-bottom:8px" data-beroep="${x}"><span class="tile" style="width:36px;height:36px;border-radius:9px">${ic(BEROEPEN[x].icon, 18)}</span><span style="flex:1"><b style="font-size:13.5px">${BEROEPEN[x].name}</b><span style="display:block;font-size:11.5px;color:#6b6a8c;margin-top:2px">${euro(BEROEPEN[x].salaris[0])} – ${euro(BEROEPEN[x].salaris[1])} bruto per maand</span></span><span style="font-size:12.5px;font-weight:600">${BEROEPEN[x].match}% match</span>${ic('chevR', 16, 2)}</button>`
+    : `<div style="display:flex;align-items:center;gap:12px;padding:10px 12px;border:1px solid #eeecf7;border-radius:10px;margin-bottom:8px"><span class="tile" style="width:36px;height:36px;border-radius:9px;background:#f4f3f9;color:#6b6a8c">${ic('briefcase', 18)}</span><span style="flex:1;font-size:13.5px">${x}</span></div>`;
+  let body = '';
+  if (tab === 'overzicht') {
+    body = `<div class="facts"><div class="fact"><b>${o.duur}</b><span>studieduur</span></div><div class="fact"><b>${o.ec}</b><span>studiepunten</span></div><div class="fact"><b>${o.niveau}</b><span>niveau</span></div><div class="fact"><b>${o.vormen.length > 1 ? o.vormen.length + ' vormen' : o.vormen[0]}</b><span>${o.vormen.join(', ').toLowerCase()}</span></div></div>
+      <div class="sec" style="margin-top:20px"><h4>Wat houdt de opleiding in?</h4><p class="body">${o.wat}</p></div>
+      <div class="sec cols"><div><h4>Wat leer je?</h4><ul class="dots">${o.vakken.map((v) => `<li>${v}</li>`).join('')}</ul></div>
+      <div><h4>Hiermee kun je worden</h4><div class="chips">${o.beroepen.map((x) => BEROEPEN[x] ? `<button class="tag" style="border:0;cursor:pointer;background:#ebe8fb;color:#3b1ff5;font-weight:500" data-beroep="${x}">${BEROEPEN[x].name}</button>` : `<span class="tag">${x}</span>`).join('')}</div></div></div>`;
+  } else if (tab === 'duur') {
+    body = `<div class="facts" style="grid-template-columns:repeat(3,1fr)"><div class="fact"><b>${o.duur}</b><span>${o.ec}</span></div><div class="fact"><b style="font-size:13px">${o.diploma}</b><span>diploma</span></div><div class="fact"><b style="font-size:13px">${o.start.split(' (')[0]}</b><span>start</span></div></div>
+      <div class="sec" style="margin-top:20px"><h4>Opbouw</h4><div style="display:flex;gap:6px">${Array.from({ length: parseInt(o.duur, 10) }, (_, i) => `<div style="flex:1;border-radius:10px;padding:10px 12px;background:${['#efebff', '#e4ddfd', '#d5c9fc', '#c4b5fd'][i]};font-size:12px"><b style="display:block;font-size:13px">Jaar ${i + 1}</b>${i === 0 ? 'Propedeuse en basisvakken' : i === parseInt(o.duur, 10) - 1 ? 'Afstuderen' : i === 1 ? 'Verdieping' : 'Stage en minor'}</div>`).join('')}</div></div>
+      <div class="sec"><h4>Toelating</h4><ul class="dots">${o.toelating.map((t) => `<li>${t}</li>`).join('')}</ul></div>
+      <div class="sec"><h4>Studievormen</h4><div class="chips">${o.vormen.map((v) => `<span class="tag">${v}</span>`).join('')}</div>${o.start.includes('(') ? `<p class="body muted" style="margin-top:8px;font-size:12.5px">${o.start}</p>` : ''}</div>
+      <div class="sec"><h4>Na je diploma</h4><p class="body">${o.vervolg}</p></div>`;
+  } else if (tab === 'scholen') {
+    body = o.scholen.map(([n, p, v]) => `<div style="display:flex;align-items:center;gap:14px;padding:12px 4px;border-bottom:1px solid #f0eff7"><span class="tile" style="width:40px;height:40px">${ic('school', 20)}</span><div style="flex:1"><b style="font-size:14px">${n}</b><div style="font-size:12px;color:#6b6a8c;margin-top:3px;display:flex;align-items:center;gap:4px">${ic('pin', 13)}${p}</div></div><span class="tag">${v}</span></div>`).join('');
+  } else {
+    body = `<p class="body muted" style="margin-bottom:12px">Met een diploma ${o.name} kun je onder andere aan de slag als:</p>${o.beroepen.map(beroep).join('')}`;
+  }
+  return `<div class="sheet"><div class="sheet-head">
+      <button class="sheet-close" data-close aria-label="Sluiten">${ic('x', 16, 2.2)}</button>
+      <div style="display:flex;gap:16px;align-items:center;padding-right:44px">
+        <span class="tile" style="width:54px;height:54px;border-radius:50%">${ic('grad', 26, 2)}</span>
+        <div style="flex:1"><div style="font-size:12px;color:#6b6a8c;font-weight:500">Opleiding · ${o.scholen.length} scholen</div><h2 style="margin:2px 0 0;font-size:24px;letter-spacing:-.03em">${o.name}</h2><div style="display:flex;gap:6px;margin-top:7px">${[o.niveau, o.duur, ...o.vormen].map((t) => `<span class="tag" style="height:22px;font-size:11.5px">${t}</span>`).join('')}</div></div>
+        <div style="text-align:right"><div style="font-size:24px;font-weight:700;letter-spacing:-.03em">${o.match}%</div><div style="font-size:11.5px;color:#6b6a8c;margin:2px 0 6px">match</div>${bar(o.match, 90)}</div>
+      </div></div>
+    <div class="sheet-tabs">${tabs.map(([t, l]) => `<button class="sheet-tab${tab === t ? ' is-active' : ''}" data-tab="${t}">${l}</button>`).join('')}</div>
+    <div class="sheet-body scroll">${body}</div></div>`;
+}
+
+function inviteSheet() {
+  return `<div class="sheet small"><div class="sheet-head"><button class="sheet-close" data-close aria-label="Sluiten">${ic('x', 16, 2.2)}</button>
+    <h2 style="margin:0;font-size:22px;letter-spacing:-.03em">Nieuwe cliënt uitnodigen</h2><p class="body muted" style="margin-top:4px">De cliënt ontvangt een uitnodiging per e-mail.</p></div>
+    <form data-form="invite" style="padding:18px 28px 0" novalidate>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><label class="field">Voornaam<input name="first" placeholder="Voornaam"></label><label class="field">Achternaam<input name="last" placeholder="Achternaam"></label></div>
+      <label class="field" style="margin-top:10px">E-mailadres<input name="email" type="email" placeholder="naam@voorbeeld.nl"></label>
+      <div class="field" style="margin-top:14px">Testen toewijzen
+        <div class="chips">${Object.entries(TESTS).map(([id, t]) => `<label class="chip" style="display:inline-flex;align-items:center;gap:6px;cursor:pointer"><input type="checkbox" name="t" value="${id}"${['beroep', 'waarden'].includes(id) ? ' checked' : ''} style="width:14px;height:14px;padding:0;accent-color:#3b1ff5">${t.name}</label>`).join('')}</div></div>
+      <div class="err" data-err></div>
+      <div class="sheet-foot" style="padding:6px 0 22px"><button type="button" class="btn btn-s" data-close>Annuleren</button><button class="btn btn-p">${ic('mail', 16)}Uitnodiging versturen</button></div>
+    </form></div>`;
+}
+
+function assignSheet(testId, clientId) {
+  const head = testId ? `${TESTS[testId].name} toewijzen` : `Test toewijzen aan ${esc(client(clientId).first)}`;
+  const items = testId
+    ? CLIENTS.filter((c) => !(testId in c.tests)).map((c) => `<label class="check"><input type="checkbox" name="x" value="${c.id}">${esc(fullName(c))}<span class="muted" style="margin-left:auto;font-size:12px">${STATUS[c.status][0]}</span></label>`)
+    : Object.entries(TESTS).filter(([id]) => !(id in client(clientId).tests)).map(([id, t]) => `<label class="check"><input type="checkbox" name="x" value="${id}">${ic(t.icon, 16)}${t.name}<span class="muted" style="margin-left:auto;font-size:12px">${t.dur.split(' · ')[0]}</span></label>`);
+  return `<div class="sheet small"><div class="sheet-head"><button class="sheet-close" data-close aria-label="Sluiten">${ic('x', 16, 2.2)}</button>
+    <h2 style="margin:0;font-size:22px;letter-spacing:-.03em">${head}</h2><p class="body muted" style="margin-top:4px">${testId ? 'Kies de cliënten die deze test moeten maken.' : 'Kies de testen die erbij komen. De cliënt krijgt een melding.'}</p></div>
+    <form data-form="assign" data-test="${testId || ''}" data-client="${clientId || ''}" style="padding:16px 28px 0" novalidate>
+      <div class="scroll" style="max-height:330px">${items.join('') || '<p class="body muted">Alles is al toegewezen.</p>'}</div>
+      <div class="err" data-err></div>
+      <div class="sheet-foot" style="padding:6px 0 22px"><button type="button" class="btn btn-s" data-close>Annuleren</button><button class="btn btn-p">Toewijzen</button></div>
+    </form></div>`;
+}
+
+function reportSheet(clientId) {
+  const options = CLIENTS.filter((c) => results(c.id).length);
+  return `<div class="sheet small"><div class="sheet-head"><button class="sheet-close" data-close aria-label="Sluiten">${ic('x', 16, 2.2)}</button>
+    <h2 style="margin:0;font-size:22px;letter-spacing:-.03em">Nieuwe rapportage</h2><p class="body muted" style="margin-top:4px">Kies voor wie het rapport is en wat erin komt.</p></div>
+    <form data-form="report" style="padding:16px 28px 0" novalidate>
+      <label class="field">Cliënt<select name="client">${options.map((c) => `<option value="${c.id}"${c.id === clientId ? ' selected' : ''}>${esc(fullName(c))}</option>`).join('')}</select></label>
+      <div class="field" style="margin-top:14px">Onderdelen${PARTS.map((p) => `<label class="check"><input type="checkbox" name="p" value="${p}" checked>${p}</label>`).join('')}</div>
+      <div class="err" data-err></div>
+      <div class="sheet-foot" style="padding:6px 0 22px"><button type="button" class="btn btn-s" data-close>Annuleren</button><button class="btn btn-p">${ic('file', 16)}Rapportage maken</button></div>
+    </form></div>`;
+}
+
+/* ---------- Weergeven ---------- */
+function renderView() {
+  const v = document.getElementById('view');
+  v.classList.remove('on');
+  if (S.screen === 'dashboard' || S.screen === 'client') {
+    const c = client(S.client);
+    if (S.ctab === 'tests') v.innerHTML = clientTests(c);
+    else if (S.ctab === 'resultaten') v.innerHTML = resultsView(c.id);
+    else v.innerHTML = c.id === 1 ? overviewLars() : overviewOther(c);
+  } else if (S.screen === 'clients') v.innerHTML = clientsView();
+  else if (S.screen === 'tests') v.innerHTML = testsView();
+  else if (S.screen === 'results') v.innerHTML = resultsView(0);
+  else v.innerHTML = reportsView();
+  requestAnimationFrame(() => requestAnimationFrame(() => v.classList.add('on')));
+}
+
+function renderModal() {
+  const m = document.getElementById('modal');
+  if (!S.modal) { m.classList.remove('open'); m.innerHTML = ''; return; }
+  const { type, id, tab } = S.modal;
+  const sheet = type === 'beroep' ? beroepSheet(id, tab) : type === 'opl' ? oplSheet(id, tab) : type === 'invite' ? inviteSheet() : type === 'assign' ? assignSheet(id, S.modal.client) : reportSheet(S.modal.client);
+  m.innerHTML = `<div class="backdrop" data-close></div>${sheet}`;
+  m.classList.add('open');
+  const first = m.querySelector('input:not([type=checkbox])');
+  if (first) first.focus();
+}
+
+function render() { renderNav(); renderHead(); renderView(); renderModal(); }
+
+let toastTimer;
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.innerHTML = `<span style="color:#7ee2a0">${ic('checkCircle', 17)}</span>${esc(msg)}`;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2600);
+}
+
+/* ---------- Interactie ---------- */
+document.addEventListener('click', (e) => {
+  const el = e.target.closest('[data-go],[data-ctab],[data-client],[data-result],[data-pick],[data-beroep],[data-opl],[data-tab],[data-close],[data-act],[data-assign],[data-tfilter],[data-report],[data-share],[data-toast]');
+  if (!el || el.closest('form') && !el.matches('[data-close]')) return;
+  const d = el.dataset;
+  if ('close' in d) { S.modal = null; renderModal(); return; }
+  if (d.go) { S.screen = d.go; S.modal = null; if (d.go === 'dashboard') { S.client = 1; S.ctab = 'overzicht'; } render(); return; }
+  if (d.ctab) { S.ctab = d.ctab; render(); return; }
+  if (d.result) {
+    const cid = Number(d.result.split('-')[0]);
+    S.result = d.result; S.modal = null; S.client = cid;
+    // Vanuit een cliënt blijf je bij die cliënt (tab Resultaten); vanaf andere schermen open je de cliënt.
+    if (S.screen !== 'results') { S.ctab = 'resultaten'; if (S.screen !== 'dashboard') S.screen = 'client'; }
+    render(); return;
+  }
+  if (d.pick) { S.result = d.pick; S.client = Number(d.pick.split('-')[0]); renderView(); return; }
+  if (d.beroep) { S.modal = { type: 'beroep', id: d.beroep, tab: 'overzicht' }; renderModal(); return; }
+  if (d.opl) { S.modal = { type: 'opl', id: d.opl, tab: 'overzicht' }; renderModal(); return; }
+  if (d.tab) { S.modal.tab = d.tab; renderModal(); return; }
+  if (d.act === 'invite') { S.modal = { type: 'invite' }; renderModal(); return; }
+  if (d.act === 'newReport') { S.modal = { type: 'report', client: Number(d.client) || S.client }; renderModal(); return; }
+  if (d.act === 'assignClient') { S.modal = { type: 'assign', id: null, client: S.client }; renderModal(); return; }
+  if (d.assign) { S.modal = { type: 'assign', id: d.assign, client: null }; renderModal(); return; }
+  if (d.tfilter) { S.tfilter = d.tfilter; renderView(); return; }
+  if (d.report) { S.report = Number(d.report); renderView(); return; }
+  if (d.share) { const r = REPORTS.find((x) => x.id === Number(d.share)); r.shared = true; renderView(); toast(`Rapport gedeeld met ${client(r.client).first}`); return; }
+  if (d.toast) { toast(d.toast); return; }
+  if (d.client) { S.client = Number(d.client); S.ctab = 'overzicht'; S.screen = 'client'; render(); }
+});
+
+document.addEventListener('input', (e) => {
+  if (e.target.matches('[data-q]')) { S.q = e.target.value; const pos = e.target.selectionStart; renderView(); const i = document.querySelector('[data-q]'); i.focus(); i.setSelectionRange(pos, pos); }
+});
+document.addEventListener('change', (e) => {
+  if (e.target.matches('[data-status]')) { S.status = e.target.value; renderView(); }
+  if (e.target.matches('[data-rfilter]')) { S.rfilter = e.target.value; renderView(); }
+});
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && S.modal) { S.modal = null; renderModal(); } });
+
+document.addEventListener('submit', (e) => {
+  e.preventDefault();
+  const f = e.target, err = f.querySelector('[data-err]');
+  const fail = (msg) => { err.textContent = msg; };
+  f.addEventListener('input', () => { err.textContent = ''; }, { once: true });
+  if (f.dataset.form === 'invite') {
+    const first = f.first.value.trim(), last = f.last.value.trim(), email = f.email.value.trim();
+    const tests = [...f.querySelectorAll('[name=t]:checked')].map((x) => x.value);
+    if (!first || !last) return fail('Vul een voornaam en achternaam in.');
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return fail('Vul een geldig e-mailadres in.');
+    if (!tests.length) return fail('Kies minstens één test.');
+    CLIENTS.unshift({ id: Date.now(), first, last, email, status: 'uitgenodigd', created: '4 nov 2026', tests: Object.fromEntries(tests.map((t) => [t, 0])) });
+    S.modal = null; S.screen = 'clients'; S.q = ''; S.status = 'alle'; render();
+    toast(`Uitnodiging verstuurd naar ${email}`);
+  } else if (f.dataset.form === 'assign') {
+    const picked = [...f.querySelectorAll('[name=x]:checked')].map((x) => x.value);
+    if (!picked.length) return fail('Kies minstens één.');
+    if (f.dataset.test) {
+      picked.forEach((id) => { client(Number(id)).tests[f.dataset.test] = 0; });
+      toast(`${TESTS[f.dataset.test].name} toegewezen aan ${picked.length} ${picked.length === 1 ? 'cliënt' : 'cliënten'}`);
+    } else {
+      const c = client(Number(f.dataset.client));
+      picked.forEach((t) => { c.tests[t] = 0; });
+      toast(`${picked.length === 1 ? TESTS[picked[0]].name : picked.length + ' testen'} toegewezen aan ${c.first}`);
+    }
+    S.modal = null; render();
+  } else if (f.dataset.form === 'report') {
+    const parts = [...f.querySelectorAll('[name=p]:checked')].map((x) => x.value);
+    if (!parts.length) return fail('Kies minstens één onderdeel.');
+    const id = Date.now();
+    REPORTS.unshift({ id, client: Number(f.client.value), title: 'Loopbaanrapport', date: '4 nov 2026', pages: 2 + parts.length * 2, shared: false, parts });
+    S.modal = null; S.screen = 'reports'; S.report = id; render();
+    toast('Rapportage gemaakt');
+  }
+});
+
+/* Schalen: het canvas (1058 × 1030) past altijd in het venster. */
+function fit() { const s = Math.min(innerWidth / 978, innerHeight / 735); document.getElementById('canvas').style.transform = `scale(${s})`; }
+addEventListener('resize', fit);
+fit();
+render();
+</script>
+</body>
+</html>

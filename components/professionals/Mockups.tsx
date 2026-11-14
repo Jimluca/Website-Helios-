@@ -1,7 +1,8 @@
 import Image from "next/image";
 import Icon from "@/components/site/Icon";
 
-// Productbeelden op Voor professionals, opgebouwd uit glazen kaarten (stijlen in app/pages.css, "pro-").
+// Productbeelden op Voor professionals, opgebouwd uit glazen kaarten (stijlen in app/pages.css, "pro-"). Het dashboard
+// in de hero is een apart, interactief voorbeeld (DashboardFrame.tsx).
 // Namen, cijfers en vacatures zijn voorbeelddata.
 
 function Logo() {
@@ -82,146 +83,6 @@ function SalaryChart({ tip }: { tip?: boolean }) {
       ))}
     </svg>
   );
-}
-
-const JOBS = [
-  { name: "Projectmanager", pct: 92, img: "/assets/ber/bouwkundige.png" },
-  { name: "Adviseur duurzaamheid", pct: 88, img: "/assets/ber/productontwerper.png" },
-  { name: "HR-adviseur", pct: 84, img: "/assets/ber/docent.png" },
-  { name: "Beleidsmedewerker", pct: 78, img: "/assets/ber/marketing-specialist.png" },
-  { name: "Communicatieadviseur", pct: 74, img: "/assets/ber/software-developer.png" },
-];
-
-// Hero: het dashboard "Mijn cliënt" van de professional.
-export function ClientDashboard() {
-  return (
-    <div className="pro-dash" aria-label="Voorbeeld van het cliëntdashboard in Helios" role="img">
-      <div className="pro-dash-top">
-        <div className="pro-side glass-card">
-          <Logo />
-          <ul className="pro-nav">
-            {[
-              ["home", "Dashboard"],
-              ["user", "Cliënten"],
-              ["clipboard", "Tests"],
-              ["chart-l", "Resultaten"],
-              ["briefcase", "Beroepen"],
-              ["cap", "Opleidingen"],
-              ["file", "Rapporten"],
-            ].map(([icon, label], i) => (
-              <li key={label} className={i === 0 ? "is-active" : undefined}>
-                <Icon name={icon} size={16} />
-                {label}
-              </li>
-            ))}
-          </ul>
-        </div>
-        <div className="pro-dash-main">
-          <div className="pro-head glass-card">
-            <div className="pro-head-row">
-              <span className="pro-head-title">Mijn cliënt</span>
-              <span className="pro-user">
-                <Avatar name="Sanne de Vries" />
-                <span>
-                  <b>Sanne de Vries</b>
-                  <small>Loopbaancoach</small>
-                </span>
-                <Icon name="chevron-down" size={14} />
-              </span>
-            </div>
-            <div className="pro-tabs">
-              {["Overzicht", "Tests", "Beroepen", "Vacatures", "Opleidingen", "Rapportage"].map((t, i) => (
-                <span key={t} className={i === 0 ? "is-active" : undefined}>
-                  {t}
-                </span>
-              ))}
-            </div>
-          </div>
-          <div className="pro-dash-cards">
-            <div className="pro-card glass-card">
-              <CardHead title="Talentprofiel" />
-              <svg className="pro-radar" viewBox="0 0 240 170" aria-hidden="true">
-                {[1, 0.75, 0.5, 0.25].map((k) => (
-                  <polygon key={k} points={radar(k)} className="pro-radar-grid" />
-                ))}
-                <polygon points="120,40 166,72 150,128 96,132 76,74" className="pro-radar-area" />
-                {[
-                  [120, 40],
-                  [166, 72],
-                  [150, 128],
-                  [96, 132],
-                  [76, 74],
-                ].map(([x, y]) => (
-                  <circle key={x} cx={x} cy={y} r="2.6" className="pro-radar-dot" />
-                ))}
-                <text x="120" y="14" textAnchor="middle">Analytisch</text>
-                <text x="120" y="24" textAnchor="middle">vermogen</text>
-                <text x="202" y="72" textAnchor="middle">Praktisch</text>
-                <text x="202" y="82" textAnchor="middle">inzicht</text>
-                <text x="176" y="164" textAnchor="middle">Samenwerken</text>
-                <text x="64" y="164" textAnchor="middle">Zelfstandigheid</text>
-                <text x="34" y="76" textAnchor="middle">Communicatie</text>
-              </svg>
-            </div>
-            <div className="pro-card glass-card">
-              <CardHead title="Passende beroepen" link />
-              <ul className="pro-jobs">
-                {JOBS.map((j) => (
-                  <li key={j.name}>
-                    <Avatar name={j.name} src={j.img} />
-                    <span className="pro-job-name">{j.name}</span>
-                    <span className="pro-meter">
-                      <span style={{ width: `${j.pct}%` }} />
-                    </span>
-                    <span className="pro-pct">{j.pct}%</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div className="pro-dash-bottom">
-        <div className="pro-card glass-card">
-          <CardHead title="Arbeidsmarktperspectief" />
-          <Bars values={[22, 40, 56, 76, 100]} />
-          <span className="pro-growth">
-            <Icon name="arrow-up" size={15} stroke={2.6} /> Groeiende vraag
-          </span>
-        </div>
-        <div className="pro-card glass-card">
-          <CardHead title="Salaris indicatie" />
-          <span className="pro-salary">€ 2.800 - € 4.500</span>
-          <small className="pro-muted">Gemiddeld bruto p/m</small>
-          <SalaryChart />
-        </div>
-        <div className="pro-card glass-card">
-          <CardHead title="Passende opleidingen" link />
-          <ul className="pro-list">
-            {["HBO Projectmanagement", "Duurzaamheidsmanagement", "Communicatie en gedrag", "HRM en organisatie"].map((t) => (
-              <li key={t}>
-                <span className="pro-list-icon">
-                  <Icon name="box" size={12} stroke={2.2} />
-                </span>
-                {t}
-                <Icon name="chevron" size={14} className="pro-chev" />
-              </li>
-            ))}
-          </ul>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function radar(k: number) {
-  const cx = 120;
-  const cy = 88;
-  const r = 50 * k;
-  return Array.from({ length: 5 }, (_, i) => {
-    const a = -Math.PI / 2 + (i * 2 * Math.PI) / 5;
-    return `${(cx + r * Math.cos(a)).toFixed(1)},${(cy + r * Math.sin(a)).toFixed(1)}`;
-  }).join(" ");
 }
 
 const MATCHES = [
