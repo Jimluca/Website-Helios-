@@ -1,1079 +1,724 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
-import { euros, priceTotal, vatText, type Package, type Price, type Pricing as PricingData } from "@/lib/pricing-shared";
-import ModuleInfo from "@/components/ModuleInfo";
-import PriceAdvice from "@/components/PriceAdvice";
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { createPortal } from "react-dom";
+import { CONTACT_URL, ORDER_URL, SIGNUP_URL, contactUrl } from "@/lib/app-links";
 import {
-  clientSteps,
-  fitsAudience,
-  isLimitAddon,
-  limitExtras,
-  MAX_PROFESSIONALS,
-  professionalAddon,
-  surchargeAmount,
-  usersOf,
-  type Answers,
-  type Composed,
-} from "@/lib/configurator";
-import { contactUrl } from "@/lib/app-links";
-import { CHOOSE_EVENT } from "@/lib/pricing-events";
+  CONTENTS,
+  PLANS,
+  STUDY_TESTS,
+  addOnPrice,
+  euro,
+  euroCents,
+  packagePrice,
+  cheapestPackage,
+  schoolSitePrice,
+  testByName,
+  testsFor,
+  type Segment,
+  type TestName,
+} from "@/lib/pricing";
+import s from "./Pricing.module.css";
 
-// Prijscalculator (ontwerp: "Prijscalculator Helios"): kies een basispakket, voeg toevoegingen toe en zie meteen wat
-// het kost, per jaar of per maand. Alle pakketten en bedragen komen uit Helios (Admin › Pakketten); hier staat geen
-// enkele prijs vast. Een offerte aanvragen opent het contactformulier met de samenstelling als bericht; opslaan bewaart hem en zet een link
-// op het klembord; bestellen gaat naar de bestelpagina van Helios met het pakket al gekozen.
+// Prijzenpagina: kies doelgroep en aantal cliënten, dan staan de pakketten met prijs meteen naast elkaar.
+// Kies je een pakket, dan opent rechts "Jouw pakket": daar tel je extra testen en professionals op.
+// Elke testnaam heeft een i-knop met wat de test doet en wat de cliënt eraan heeft. Prijzen: lib/pricing.ts.
 
-type Period = "month" | "year";
-
-export const STORAGE_KEY = "helios-prijscalculator";
-
-const ICONS = {
-  box: "M21 8 12 3 3 8v8l9 5 9-5V8zM3 8l9 5 9-5M12 13v8",
-  bars: "M4 20h16M7 17v-5M11 17V6M15 17V9M19 17v-3",
-  gem: "M6 3h12l4 6-10 12L2 9l4-6zM2 9h20M12 21 8 9l4-6 4 6-4 12",
-  test: "M9 3h6M10 3v6l-5 9a2 2 0 0 0 1.7 3h10.6a2 2 0 0 0 1.7-3l-5-9V3M7.5 15h9",
-  users: "M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8",
-  check: "M20 6 9 17l-5-5",
-  x: "M18 6 6 18M6 6l12 12",
-  arrow: "M5 12h14M12 5l7 7-7 7",
-  mail: "M4 5h16v14H4zM4 7l8 6 8-6",
-  bookmark: "M6 3h12v18l-6-4-6 4z",
-  pen: "M16 3l5 5L9 20H4v-5L16 3z",
-  search: "M11 4a7 7 0 1 0 0 14a7 7 0 1 0 0-14zM21 21l-4.3-4.3",
-  advice: "M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z",
-  heart: "M19 14c1.5-1.5 3-3.2 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.8 0-3 .5-4.5 2-1.5-1.5-2.7-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4 3 5.5l7 7z",
-  bolt: "M13 2 3 14h9l-1 8 10-12h-9l1-8z",
-  info: "M12 2a10 10 0 1 0 0 20a10 10 0 1 0 0-20zM12 16v-5M12 8h.01",
-};
-const PACKAGE_ICONS = [ICONS.box, ICONS.bars, ICONS.gem];
-// De volgorde van de soorten testen (zoals in Helios); een onbekende soort komt erachter, "Gebruikers" als laatste.
-const GROUP_ORDER = ["Beroepen", "Opleidingen", "Waarden en talenten", "Werk- en studiehouding", "Ondersteuning", "Website"];
-
-function Icon({ d, size = 18, stroke = 1.9 }: { d: string; size?: number; stroke?: number }) {
+function Icon({ children, size = 18 }: { children: ReactNode; size?: number }) {
   return (
-    <svg
-      viewBox="0 0 24 24"
-      width={size}
-      height={size}
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={stroke}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <path d={d} />
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      {children}
     </svg>
   );
 }
+const Check = () => <Icon size={16}><path d="m5 12.5 4.5 4.5L19 7.5" /></Icon>;
+const Arrow = () => <Icon size={17}><path d="M5 12h14" /><path d="m13 6 6 6-6 6" /></Icon>;
+const Plus = () => <Icon size={16}><path d="M12 5v14M5 12h14" /></Icon>;
+const Close = () => <Icon size={18}><path d="M6 6l12 12M18 6 6 18" /></Icon>;
+const Bag = () => <Icon size={18}><path d="M6 7h12l-1 13H7L6 7Z" /><path d="M9 7a3 3 0 0 1 6 0" /></Icon>;
 
-const priceFor = (item: Package, period: Period): Price | undefined => item.prices.find((price) => price.period === period);
+// i-knop met uitleg. Het venster staat vast op het scherm (position: fixed, via een portal in body), zodat het
+// niet wegvalt in een tabel, glazen kaart of paneel dat zelf scrolt. Sluit bij klikken ernaast, Escape of scrollen.
+function InfoTip({ name, what, benefit, unitOne }: { name: string; what: string; benefit: string; unitOne: string }) {
+  const [pos, setPos] = useState<CSSProperties | null>(null);
+  const btn = useRef<HTMLButtonElement>(null);
+  const pop = useRef<HTMLDivElement>(null);
 
-/** Wat iets kost in een periode, voor een aantal (gebruikers of stuks). Zonder prijs in die periode: omgerekend. */
-function cost(item: Package, period: Period, units: number): { cents: number; exact: boolean } | null {
-  const direct = priceFor(item, period);
-  if (direct) {
-    return { cents: priceTotal(direct, units), exact: true };
-  }
-  const other = priceFor(item, period === "year" ? "month" : "year");
-  if (!other) {
-    return null;
-  }
-  const cents = priceTotal(other, units);
-
-  return {
-    cents: period === "year" ? cents * 12 : Math.round(cents / 12),
-    exact: false,
-  };
-}
-
-/** "per jaar", "per gebruiker per maand", "per stuk per jaar". */
-function unitText(item: Package, period: Period) {
-  const per = period === "year" ? "per jaar" : "per maand";
-  const price = priceFor(item, period) ?? item.prices[0];
-  if (price?.perSeat) {
-    return `per gebruiker ${per}`;
-  }
-  // Een staffel (bijv. per opleiding): "vanaf … per jaar"; de prijs per stuk daalt bij meer.
-  if (price?.tiers?.length) {
-    return `vanaf, ${per}`;
-  }
-
-  return item.countable ? `per ${item.unit ? item.unit.replace(/en$/, "") : "stuk"} ${per}` : per;
-}
-
-/** Bijv. "1: € 255 · 2 t/m 10: € 85 · …": de staffel van een prijs. */
-function tiersText(price: Price | undefined): string {
-  let from = 1;
-  return (price?.tiers ?? [])
-    .map((tier) => {
-      const range = tier.up_to === null ? `vanaf ${from}` : tier.up_to === from ? `${from}` : `${from} t/m ${tier.up_to}`;
-      from = (tier.up_to ?? from) + 1;
-      return `${range}: ${euros(tier.amount)}`;
-    })
-    .join(" · ");
-}
-
-/** De groottes die een doelgroep heeft, in de volgorde van Helios (klein eerst). */
-const sizesOf = (packages: Package[], audience: string | null) => [
-  ...new Set(packages.filter((item) => item.audience === audience && item.size).map((item) => item.size as string)),
-];
-
-/** De pakketten die bij de keuze van doelgroep en grootte horen; een pakket zonder doelgroep staat er altijd bij. */
-const visibleFor = (packages: Package[], audience: string | null, size: string | null) =>
-  packages.filter((item) => !item.audience || audience === null || (item.audience === audience && (!item.size || item.size === size)));
-
-/** Het gratis pakket om zelf samen te stellen (alle prijzen € 0); de prijslijst van 2026 heeft er geen. */
-const isOwn = (item: Package) => item.prices.length > 0 && item.prices.every((price) => price.amount === 0);
-
-/** De productlijnen (bijv. Basis, Loopbaan, Compleet) van een doelgroep en grootte, in de volgorde van Helios. */
-const familiesOf = (packages: Package[], audience: string | null, size: string | null) =>
-  visibleFor(packages, audience, size).filter((item) => item.audience === audience);
-
-/** Bij een pakket per gebruiker telt het aantal gebruikers; bij een toevoeging per stuk het aantal stuks. */
-const isPerSeat = (item: Package) => item.prices.some((price) => price.perSeat);
-
-/** Wat de configurator meegeeft: de antwoorden, het samengestelde pakket en terug naar de vragen. */
-export type AdviceInput = {
-  answers: Answers;
-  composed: Composed;
-  onEdit: () => void;
-  /** leerlingen, studenten of cliënten */
-  unit: string;
-  /** De aantallen in de samenstelling aanpassen = de antwoorden aanpassen (dan stelt de configurator opnieuw samen). */
-  onTeam: (team: number) => void;
-  onClients: (clients: number) => void;
-};
-
-/**
- * advice: het pakket komt uit de vragen (PriceConfigurator). Dan staat "Ons advies" bovenaan, met "Jouw samenstelling"
- * erin, en begint de calculator meteen bij de toevoegingen (geen stap 1 en geen zijkolom).
- */
-export default function Pricing({ data, advice = null }: { data: PricingData; advice?: AdviceInput | null }) {
-  const configured = advice !== null;
-  const summary = advice?.composed.summary ?? null;
-  const periods = useMemo(() => {
-    const all = new Set([...data.packages, ...data.addons].flatMap((item) => item.prices.map((price) => price.period)));
-
-    return (["year", "month"] as const).filter((period) => all.has(period));
-  }, [data.packages, data.addons]);
-
-  const [period, setPeriod] = useState<Period>(periods[0] ?? "year");
-  // De doelgroepen die pakketten hebben, en de gekozen doelgroep en grootte; zonder doelgroepen is er één lijst.
-  const audienceList = useMemo(
-    () => (data.audiences ?? []).filter((item) => data.packages.some((pack) => pack.audience === item.key)),
-    [data.audiences, data.packages],
-  );
-  const [audience, setAudience] = useState<string | null>(audienceList[0]?.key ?? null);
-  const [sizeChoice, setSizeChoice] = useState<string | null>(null);
-  const sizes = sizesOf(data.packages, audience);
-  const size = sizeChoice !== null && sizes.includes(sizeChoice) ? sizeChoice : (sizes[0] ?? null);
-  const visiblePackages = visibleFor(data.packages, audience, size);
-  // Zelf samenstellen: je kiest een pakket in de kolom (doelgroep en aantal cliënten) en zet er losse testen bij. Een
-  // gratis pakket ("Eigen pakket") gaat voor; anders het eerste pakket van de kolom.
-  const ownFor = (aud: string | null, sz: string | null) =>
-    visibleFor(data.packages, aud, sz).find(isOwn) ?? familiesOf(data.packages, aud, sz)[0] ?? null;
-  const [packageId, setPackageId] = useState<number | null>(
-    ownFor(audienceList[0]?.key ?? null, sizesOf(data.packages, audienceList[0]?.key ?? null)[0] ?? null)?.id ?? null,
-  );
-  // Gekozen toevoegingen met hun aantal (1 voor een toevoeging die je niet per stuk koopt).
-  const [chosen, setChosen] = useState<Record<number, number>>({});
-  const [seats, setSeats] = useState(5);
-  const [query, setQuery] = useState("");
-  const [filter, setFilter] = useState("Alles");
-  const [saved, setSaved] = useState<string | null>(null);
-  // De uitleg ("i") die open staat: van een module, of van een test (een regel) in een pakket.
-  const [infoFor, setInfoFor] = useState<{ id: number; line?: string } | null>(null);
-
-  // Na de vragen staat de samenstelling bovenaan in het advies. Ben je bij de toevoegingen en is het totaal daarvan uit
-  // beeld, dan staat onderin een balk met het totaal. (Vast in beeld: position: sticky werkt niet, omdat html en body
-  // overflow-x: hidden hebben.)
-  const mainRef = useRef<HTMLElement>(null);
-  const [atAddons, setAtAddons] = useState(false);
-  const [compositionVisible, setCompositionVisible] = useState(true);
   useEffect(() => {
-    if (!configured || !("IntersectionObserver" in window)) return;
-    const main = mainRef.current;
-    const composition = document.querySelector(".pa-composition .pc-total");
-    const mainObserver = new IntersectionObserver(([entry]) => setAtAddons(entry.isIntersecting), { rootMargin: "0px 0px -35% 0px" });
-    const compositionObserver = new IntersectionObserver(([entry]) => setCompositionVisible(entry.isIntersecting));
-    if (main) mainObserver.observe(main);
-    if (composition) compositionObserver.observe(composition);
-    return () => {
-      mainObserver.disconnect();
-      compositionObserver.disconnect();
+    if (!pos) return;
+    const close = () => setPos(null);
+    const onDown = (e: PointerEvent) => {
+      const t = e.target as Node;
+      if (!btn.current?.contains(t) && !pop.current?.contains(t)) close();
     };
-  }, [configured]);
-
-  // Wat er nu gekozen is, voor als de vragen bovenaan opnieuw samenstellen (zie restore).
-  const chosenRef = useRef(chosen);
-  useEffect(() => {
-    chosenRef.current = chosen;
-  }, [chosen]);
-
-  // Een opgeslagen samenstelling (of een gedeelde link) terugzetten; pas na de eerste weergave, zodat server en
-  // browser eerst hetzelfde tonen.
-  // De keuzehulp bovenaan (PriceGuide) zet een pakket in de adresbalk en vraagt dan om het hier te kiezen.
-  useEffect(() => {
-    const frame = requestAnimationFrame(() => restore());
-    window.addEventListener(CHOOSE_EVENT, restore);
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && close();
+    document.addEventListener("pointerdown", onDown);
+    document.addEventListener("keydown", onKey);
+    window.addEventListener("scroll", close, true);
+    window.addEventListener("resize", close);
     return () => {
-      cancelAnimationFrame(frame);
-      window.removeEventListener(CHOOSE_EVENT, restore);
+      document.removeEventListener("pointerdown", onDown);
+      document.removeEventListener("keydown", onKey);
+      window.removeEventListener("scroll", close, true);
+      window.removeEventListener("resize", close);
     };
+  }, [pos]);
 
-    function restore(event?: Event) {
-      // Opnieuw samengesteld door een ander antwoord: wat je zelf had toegevoegd blijft staan.
-      const fromGuide = event instanceof Event;
-      let state: {
-        pakket?: number | null;
-        extra?: Record<number, number>;
-        gebruikers?: number;
-        periode?: Period;
-      } = {};
-      try {
-        state = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "{}");
-      } catch {}
-      const url = new URLSearchParams(window.location.search);
-      if (url.has("pakket")) {
-        state.pakket = Number(url.get("pakket")) || null;
-        state.extra = Object.fromEntries(
-          (url.get("extra") ?? "")
-            .split(",")
-            .filter(Boolean)
-            .map((part) => {
-              const [id, qty] = part.split(":");
-              return [Number(id), Math.max(1, Number(qty) || 1)];
-            }),
-        );
-        state.gebruikers = Number(url.get("gebruikers")) || undefined;
-        state.periode = url.get("periode") === "maand" ? "month" : url.get("periode") === "jaar" ? "year" : undefined;
-      }
-      const known = (id: number, list: Package[]) => list.some((item) => item.id === id);
-      if (state.pakket === null || (state.pakket && known(state.pakket, data.packages))) {
-        setPackageId(state.pakket ?? null);
-        const restored = data.packages.find((item) => item.id === state.pakket);
-        if (restored?.audience) {
-          setAudience(restored.audience);
-        }
-        if (restored?.size) {
-          setSizeChoice(restored.size);
-        }
-      }
-      if (state.extra) {
-        const next: Record<number, number> = Object.fromEntries(Object.entries(state.extra).filter(([id]) => known(Number(id), data.addons)));
-        if (fromGuide) {
-          // Dezelfde toevoeging in de nieuwe grootte (de prijs verschilt per grootte), behalve wat het nieuwe pakket al
-          // heeft en de extra gebruikers (die rekenen de vragen zelf uit).
-          const target = data.packages.find((item) => item.id === state.pakket);
-          const covered = new Set(target?.includes ?? []);
-          for (const [id, qty] of Object.entries(chosenRef.current)) {
-            const old = data.addons.find((addon) => addon.id === Number(id));
-            if (!old || isLimitAddon(old)) continue;
-            const match = data.addons.find(
-              (addon) => addon.name === old.name && (!addon.size || !target?.size || addon.size === target.size) && fitsAudience(addon, target?.audience),
-            );
-            if (match && next[match.id] === undefined && !match.includes.every((line) => covered.has(line))) {
-              next[match.id] = qty;
-            }
-          }
-        }
-        setChosen(next);
-      }
-      if (state.gebruikers && state.gebruikers > 0) {
-        setSeats(Math.min(999, state.gebruikers));
-      }
-      if (state.periode && periods.includes(state.periode)) {
-        setPeriod(state.periode);
-      }
-    }
-  }, [data.packages, data.addons, periods]);
-
-  const pkg = data.packages.find((item) => item.id === packageId) ?? null;
-
-  // Een andere doelgroep of grootte: dezelfde productlijn in de nieuwe keuze, anders het eerste pakket daarvan.
-  const switchTo = (nextAudience: string | null, nextSize: string | null) => {
-    const nextSizes = sizesOf(data.packages, nextAudience);
-    const useSize = nextSize !== null && nextSizes.includes(nextSize) ? nextSize : (nextSizes[0] ?? null);
-    const same = pkg?.family ? data.packages.find((item) => item.audience === nextAudience && item.family === pkg.family && item.size === useSize) : undefined;
-    setAudience(nextAudience);
-    setSizeChoice(useSize);
-    // Gekozen modules gaan mee naar de nieuwe grootte en doelgroep (zelfde naam, prijs van die grootte en doelgroep).
-    setChosen((now) =>
-      Object.fromEntries(
-        Object.entries(now).map(([id, qty]) => {
-          const old = data.addons.find((addon) => addon.id === Number(id));
-          const match =
-            old?.size || old?.audience
-              ? data.addons.find(
-                  (addon) => addon.name === old.name && (!old.size || addon.size === useSize) && (!old.audience || addon.audience === nextAudience),
-                )
-              : undefined;
-          return [match?.id ?? Number(id), qty];
-        }),
-      ),
-    );
-    const own = ownFor(nextAudience, useSize);
-    setPackageId(
-      !pkg ? null : isOwn(pkg) ? (own?.id ?? null) : !pkg.audience ? pkg.id : ((same ?? own ?? visibleFor(data.packages, nextAudience, useSize)[0])?.id ?? null),
-    );
+  const toggle = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    if (pos) return setPos(null);
+    const r = btn.current!.getBoundingClientRect();
+    const w = 300;
+    const left = Math.min(Math.max(12, r.left + r.width / 2 - w / 2), window.innerWidth - w - 12);
+    const below = r.bottom + 220 < window.innerHeight;
+    setPos(below ? { left, top: r.bottom + 8, width: w } : { left, bottom: window.innerHeight - r.top + 8, width: w });
   };
-  const pkgUnits = pkg && isPerSeat(pkg) ? seats : 1;
-  const addonUnits = (addon: Package) => (isPerSeat(addon) ? seats : 1) * (chosen[addon.id] ?? 1);
-  const selected = data.addons.filter((addon) => chosen[addon.id] !== undefined);
-
-  // Het totaal per jaar en per maand, en wat jaarlijks betalen scheelt (alleen voor wat beide prijzen heeft).
-  const lines = [...(pkg ? [{ item: pkg, units: pkgUnits }] : []), ...selected.map((addon) => ({ item: addon, units: addonUnits(addon) }))];
-  // Een cliëntentrede kost een percentage van het pakket en de testen (de andere regels behalve professionals).
-  const surchargeBase = (p: Period) =>
-    lines.reduce((sum, line) => sum + (line.item.countsForSurcharge === false ? 0 : (cost(line.item, p, line.units)?.cents ?? 0)), 0);
-  const lineCost = (item: Package, p: Period, units: number) =>
-    item.surcharge ? { cents: surchargeAmount(item, surchargeBase(p)), exact: true } : cost(item, p, units);
-  const total = (p: Period) => lines.reduce((sum, line) => sum + (lineCost(line.item, p, line.units)?.cents ?? 0), 0);
-  const savings = lines.reduce((sum, { item, units }) => {
-    const month = priceFor(item, "month");
-    const year = priceFor(item, "year");
-    return month && year ? sum + Math.max(0, month.amount * 12 - year.amount) * units : sum;
-  }, 0);
-  const onlyOther = lines.filter((line) => !priceFor(line.item, period) && !line.item.surcharge).map((line) => line.item.name);
-
-  // Slimme suggestie: alles wat je los kiest, zit ook in een ander pakket dat goedkoper uitkomt.
-  const wanted = selected.flatMap((addon) => addon.includes.map((line) => line.toLowerCase()));
-  const suggestion = selected.length
-    ? (visiblePackages.find((other) => {
-        const has = new Set([...other.includes, other.name].map((line) => line.toLowerCase()));
-        const price = cost(other, "year", isPerSeat(other) ? seats : 1);
-        return other.id !== packageId && wanted.every((line) => has.has(line)) && price !== null && price.cents < total("year");
-      }) ?? null)
-    : null;
-
-  // Filters: de soorten testen in de volgorde van Helios, en "Gebruikers" voor wat geen test is.
-  const groupOf = (addon: Package) => addon.category ?? (addon.embed ? "Website" : "Gebruikers");
-  const rank = (group: string) => (GROUP_ORDER.indexOf(group) + 1 || GROUP_ORDER.length) + (group === "Gebruikers" ? 100 : 0);
-  const includedNow = new Set(pkg?.includes ?? []);
-  const redundant = (addon: Package) => chosen[addon.id] === undefined && addon.includes.length > 0 && addon.includes.every((line) => includedNow.has(line));
-  // Een toevoeging met een grootte (de prijs verschilt per grootte) staat alleen bij pakketten van die grootte.
-  // Na de vragen regelen de aantallen bij stap 1 de extra gebruikers en cliënten; die staan dan niet bij de toevoegingen.
-  // Zonder pakket alleen wat los te koop is (de studiekeuzetest op de website van de school).
-  const offeredAddons = data.addons.filter(
-    (addon) =>
-      !redundant(addon) &&
-      (!addon.size || addon.size === (pkg?.size ?? size)) &&
-      fitsAudience(addon, pkg?.audience ?? audience) &&
-      !isLimitAddon(addon) &&
-      (pkg !== null || !addon.audience || (addon.tests ?? []).length === 0),
-  );
-  const sorted = [...offeredAddons].sort((a, b) => rank(groupOf(a)) - rank(groupOf(b)));
-  const groups = ["Alles", ...new Set(sorted.map(groupOf))];
-  const q = query.trim().toLowerCase();
-  const addons = sorted.filter(
-    (addon) =>
-      (filter === "Alles" || groupOf(addon) === filter) &&
-      (!q || addon.name.toLowerCase().includes(q) || addon.includes.some((line) => line.toLowerCase().includes(q))),
-  );
-
-  const toggleAddon = (id: number) =>
-    setChosen((now) => {
-      const next = { ...now };
-      if (next[id] !== undefined) {
-        delete next[id];
-      } else {
-        next[id] = 1;
-      }
-      return next;
-    });
-  const setCount = (id: number, qty: number) =>
-    setChosen((now) => ({
-      ...now,
-      [id]: Math.max(1, Math.min(999, qty || 1)),
-    }));
-
-  // Professionals en cliënten: het pakket heeft er een aantal; extra professionals (tot MAX_PROFESSIONALS) en een
-  // cliëntentrede zijn toevoegingen. Na de vragen gaat een wijziging terug naar de antwoorden.
-  const profAddon = professionalAddon(data, pkg?.audience ?? audience);
-  // Het aantal cliënten kiest de kolom: hetzelfde pakket in een andere grootte.
-  const steps = clientSteps(data, pkg);
-  const includedUsers = pkg ? usersOf(pkg) : 1;
-  const teamNow = Number.isFinite(includedUsers) ? includedUsers + (profAddon ? (chosen[profAddon.id] ?? 0) * (profAddon.extraUsers || 1) : 0) : Infinity;
-  const stepNow = steps.find((step) => step.pkg?.id === pkg?.id) ?? steps[0];
-  const setLimits = (team: number, clients: number) => {
-    if (!pkg) return;
-    if (advice) {
-      if (team !== teamNow) advice.onTeam(team);
-      if (clients !== stepNow.total) advice.onClients(clients);
-      return;
-    }
-    const column = steps.find((step) => step.total === clients)?.pkg;
-    if (column && column.id !== pkg.id) {
-      switchTo(column.audience ?? audience, column.size ?? null);
-    }
-    const { extras } = limitExtras(data, column ?? pkg, team, clients);
-    setChosen((now) => {
-      const next = Object.fromEntries(Object.entries(now).filter(([id]) => !isLimitAddon(data.addons.find((a) => a.id === Number(id)) ?? ({} as Package))));
-      for (const extra of extras) next[extra.id] = extra.count;
-      return next;
-    });
-  };
-  // Weghalen in "Toevoegingen": een extra professional terug naar wat in het pakket zit.
-  const removeLine = (addon: Package) => {
-    if (!isLimitAddon(addon)) return toggleAddon(addon.id);
-    setLimits((addon.extraUsers ?? 0) > 0 ? includedUsers : teamNow, stepNow.total);
-  };
-  // Leerlingen of studenten in het onderwijs, anders cliënten (na de vragen: het woord van het antwoord).
-  const unit = advice?.unit ?? ((pkg?.audience ?? audience) === "education" ? "leerlingen of studenten" : "cliënten");
-  const limitsBlock =
-    pkg && (Number.isFinite(includedUsers) || steps.length > 1) ? (
-      <div className="pc-limits">
-        {Number.isFinite(includedUsers) && profAddon && (
-          <div className="pc-limit">
-            <span className="pc-limit-label">
-              <strong>Professionals</strong>
-              <small>
-                {includedUsers} in het pakket{teamNow > includedUsers ? `, ${teamNow - includedUsers} extra` : ""}
-              </small>
-            </span>
-            <span className="pc-qty">
-              <button
-                type="button"
-                aria-label="Eén professional minder"
-                disabled={teamNow <= includedUsers}
-                onClick={() => setLimits(teamNow - 1, stepNow.total)}
-              >
-                −
-              </button>
-              <span className="pc-qty-value" aria-live="polite">
-                {teamNow}
-              </span>
-              <button
-                type="button"
-                aria-label="Eén professional meer"
-                disabled={teamNow >= MAX_PROFESSIONALS}
-                onClick={() => setLimits(teamNow + 1, stepNow.total)}
-              >
-                +
-              </button>
-            </span>
-          </div>
-        )}
-        {steps.length > 1 && (
-          <div className="pc-limit">
-            <span className="pc-limit-label">
-              <strong>{unit.charAt(0).toUpperCase() + unit.slice(1)}</strong>
-              <small>Per jaar; alle professionals samen</small>
-            </span>
-            <select className="pc-select" value={stepNow.total} onChange={(e) => setLimits(teamNow, Number(e.target.value))} aria-label={`Aantal ${unit}`}>
-              {steps.map((step) => (
-                <option key={step.total} value={step.total}>
-                  T/m {step.total.toLocaleString("nl-NL")}
-                </option>
-              ))}
-            </select>
-          </div>
-        )}
-        {teamNow >= MAX_PROFESSIONALS && (
-          <p className="pc-limit-note">
-            Meer dan {MAX_PROFESSIONALS} professionals of {steps[steps.length - 1].total.toLocaleString("nl-NL")} {unit}?{" "}
-            <a href={contactUrl("offerte", "Helios op maat")}>Neem contact op</a> voor een pakket op maat.
-          </p>
-        )}
-      </div>
-    ) : null;
-  // In het overzicht van een pakket de testen; de aantallen staan in limitsBlock.
-  const isLimitLine = (line: string) => /gebruiker|cliënt|leerling|onbeperkt|^tot |^t\/m /i.test(line);
-
-  const periodWord = period === "year" ? "per jaar" : "per maand";
-  const lineText = (item: Package, units: number) => {
-    const c = lineCost(item, period, units);
-    return c ? `${c.exact ? "" : "± "}${euros(c.cents)} ${periodWord}` : "prijs op aanvraag";
-  };
-
-  const shareUrl = () => {
-    const url = new URL(window.location.href);
-    url.search = "";
-    url.searchParams.set("pakket", String(packageId ?? 0));
-    if (selected.length) {
-      url.searchParams.set("extra", selected.map((addon) => (chosen[addon.id] > 1 ? `${addon.id}:${chosen[addon.id]}` : String(addon.id))).join(","));
-    }
-    if ((pkg && isPerSeat(pkg)) || selected.some(isPerSeat)) {
-      url.searchParams.set("gebruikers", String(seats));
-    }
-    url.searchParams.set("periode", period === "year" ? "jaar" : "maand");
-    return url.toString();
-  };
-
-  // De bestelpagina van Helios met het pakket en de gekozen toevoegingen (een trede rekent Helios zelf uit).
-  const orderHref = (base: string) => {
-    if (!selected.length) return base;
-    const extra = selected.map((addon) => (!addon.surcharge && chosen[addon.id] > 1 ? `${addon.id}:${chosen[addon.id]}` : String(addon.id))).join(",");
-    return `${base}${base.includes("?") ? "&" : "?"}extra=${encodeURIComponent(extra)}`;
-  };
-
-  const save = async () => {
-    const link = shareUrl();
-    try {
-      localStorage.setItem(
-        STORAGE_KEY,
-        JSON.stringify({
-          pakket: packageId,
-          extra: chosen,
-          gebruikers: seats,
-          periode: period,
-        }),
-      );
-    } catch {}
-    window.history.replaceState(null, "", link);
-    try {
-      await navigator.clipboard.writeText(link);
-      setSaved("Opgeslagen. De link naar deze samenstelling staat op je klembord.");
-    } catch {
-      setSaved("Opgeslagen in deze browser. Je kunt ook de link in de adresbalk bewaren.");
-    }
-  };
-
-  const quoteHref = () => {
-    const rows = [
-      "Graag ontvang ik een offerte voor deze samenstelling:",
-      "",
-      pkg ? `Pakket: ${pkg.name}${isPerSeat(pkg) ? ` (${seats} gebruikers)` : ""}, ${lineText(pkg, pkgUnits)}` : "Pakket: nog geen keuze",
-      ...selected.map((addon) => `Toevoeging: ${addon.name}${chosen[addon.id] > 1 ? ` (${chosen[addon.id]}×)` : ""}, ${lineText(addon, addonUnits(addon))}`),
-      "",
-      `Totaal: ${euros(total(period))} ${periodWord}, ${vatText(data, pkg?.audience ?? audience)}`,
-    ];
-    return contactUrl("offerte", pkg?.name, rows.join("\n"));
-  };
-
-  // Onderdelen van "Jouw samenstelling": in de zijkolom, of (na de vragen) in "Ons advies" bovenaan.
-  // De testen in een pakket, elk met een "i" als Helios er uitleg bij heeft.
-  const featureLines = (item: Package) =>
-    item.includes
-      .filter((line) => !isLimitLine(line))
-      .map((line) => (
-        <span key={line}>
-          <Icon d={ICONS.check} size={14} stroke={2.6} />
-          <span className="pc-feature-text">{line}</span>
-          {item.info?.some((test) => test.line === line) && (
-            <button type="button" className="pc-info pc-info-sm" aria-label={`Wat is ${line}?`} onClick={() => setInfoFor({ id: item.id, line })}>
-              <Icon d={ICONS.info} size={14} stroke={2} />
-            </button>
-          )}
-        </span>
-      ));
-
-  // Het venster bij de "i": de uitleg van een module (met toevoegen of weghalen) of van een test in een pakket.
-  const infoDialog = (() => {
-    if (!infoFor) return null;
-    const close = () => setInfoFor(null);
-    if (infoFor.line) {
-      const item = data.packages.find((p) => p.id === infoFor.id);
-      const tests = item?.info?.filter((test) => test.line === infoFor.line) ?? [];
-      if (!item || !tests.length) return null;
-      return (
-        <ModuleInfo
-          title={infoFor.line}
-          eyebrow={`In het pakket ${item.family ?? item.name}`}
-          info={tests}
-          onClose={close}
-          foot={
-            <>
-              <span className="mi-price">Zit al in je pakket</span>
-              <button type="button" className="pc-ghost mi-btn" onClick={close}>
-                Sluiten
-              </button>
-            </>
-          }
-        />
-      );
-    }
-    const addon = data.addons.find((item) => item.id === infoFor.id);
-    if (!addon) return null;
-    const on = chosen[addon.id] !== undefined;
-    return (
-      <ModuleInfo
-        title={addon.name}
-        eyebrow={addon.category ?? "Module"}
-        info={addon.info ?? []}
-        fallback={addon.description ?? addon.includes.join(", ")}
-        onClose={close}
-        foot={
-          <>
-            <span className="mi-price">{lineText(addon, 1)}</span>
-            <button
-              type="button"
-              className={on ? "pc-ghost mi-btn" : "pc-cta mi-btn"}
-              onClick={() => {
-                toggleAddon(addon.id);
-                close();
-              }}
-            >
-              {on ? "Weghalen uit je pakket" : "Toevoegen aan je pakket"}
-            </button>
-          </>
-        }
-      />
-    );
-  })();
-
-  const linesBlock = (
-    <>
-      {data.addons.length > 0 && (
-        <>
-          <h3 className="pc-side-sub">Toevoegingen ({selected.length})</h3>
-          <div className="pc-lines">
-            {selected.map((addon) => (
-              <div key={addon.id} className="pc-line">
-                <span className="pc-icon">
-                  <Icon d={isLimitAddon(addon) || isPerSeat(addon) ? ICONS.users : ICONS.test} size={16} stroke={2} />
-                </span>
-                <span className="pc-line-text">
-                  <strong>
-                    {(addon.extraClients ?? 0) > 0 ? addon.name.replace("cliënten", unit) : addon.name}
-                    {addon.unit && !isLimitAddon(addon) ? (
-                      <span>
-                        , {chosen[addon.id]} {addon.unit}
-                      </span>
-                    ) : (
-                      chosen[addon.id] > 1 && <span> × {chosen[addon.id]}</span>
-                    )}
-                  </strong>
-                  <span className="pc-line-price">{lineText(addon, addonUnits(addon))}</span>
-                </span>
-                <button type="button" className="pc-remove" aria-label={`${addon.name} weghalen`} onClick={() => removeLine(addon)}>
-                  <Icon d={ICONS.x} size={12} stroke={2.4} />
-                </button>
-              </div>
-            ))}
-            {!selected.length && <p className="pc-none pc-none-sm">Nog geen toevoegingen.</p>}
-          </div>
-        </>
-      )}
-    </>
-  );
-  const totalBlock = (
-    <>
-      <div className="pc-total">
-        <div className="pc-total-head">
-          <span>{period === "year" ? "Totaal per jaar" : "Totaal per maand"}</span>
-          {period === "year" && savings > 0 && <span className="pc-save">Je bespaart {euros(savings)}</span>}
-        </div>
-        <p className="pc-total-amount" aria-live="polite">
-          <strong>{euros(total(period))}</strong>
-          <small>{periodWord}</small>
-        </p>
-        <p className="pc-vat">
-          {(() => {
-            const text = vatText(data, pkg?.audience ?? audience);
-            return `${text.charAt(0).toUpperCase()}${text.slice(1)}.`;
-          })()}
-          {onlyOther.length > 0 && (
-            <>
-              {" "}
-              {onlyOther.join(", ")}: alleen {period === "year" ? "per maand" : "per jaar"} te betalen, hier omgerekend (±).
-            </>
-          )}
-        </p>
-      </div>
-      {periods.length > 1 && (
-        <div className="pc-periods" role="radiogroup" aria-label="Betalen per">
-          {(["year", "month"] as const).map((option) => (
-            <button
-              key={option}
-              type="button"
-              role="radio"
-              aria-checked={period === option}
-              className={`pc-period${period === option ? " is-on" : ""}`}
-              onClick={() => setPeriod(option)}
-            >
-              <span className="pc-radio" aria-hidden="true" />
-              <span>
-                <strong>{option === "year" ? "Jaarlijks" : "Maandelijks"}</strong>
-                <small>{option === "year" ? (savings > 0 ? "Voordeligst" : "Eén keer per jaar") : `${euros(total("month"))} per maand`}</small>
-              </span>
-            </button>
-          ))}
-        </div>
-      )}
-    </>
-  );
-  const actionsBlock = (
-    <>
-      <a className="pc-cta" href={quoteHref()}>
-        Offerte aanvragen <Icon d={ICONS.arrow} size={16} stroke={2} />
-      </a>
-      <button type="button" className="pc-ghost pc-ghost-wide" onClick={save}>
-        <Icon d={ICONS.bookmark} size={16} stroke={2} />
-        Samenstelling opslaan
-      </button>
-      {saved && (
-        <p className="pc-saved" role="status">
-          {saved}
-        </p>
-      )}
-      {data.orderable && pkg && priceFor(pkg, period) && (
-        <a className="pc-order" href={orderHref(pkg.orderUrl ?? data.orderUrl)}>
-          Liever direct bestellen? Bestel {pkg.name} <Icon d={ICONS.arrow} size={14} stroke={2} />
-        </a>
-      )}
-    </>
-  );
 
   return (
-    <div className="pc">
-      {infoDialog}
-      {/* Na de vragen staat het advies (PriceAdvice) boven de calculator; dan heeft hij geen eigen kop. */}
-      {!summary && (
-        <header className="pc-head">
-          <p className="pc-eyebrow">ZELF SAMENSTELLEN</p>
-          <h2 className="pc-title">
-            Stel jouw <span>Helios-pakket</span> samen.
-          </h2>
-          <p className="pc-intro">Kies je pakket en het aantal cliënten per jaar, en zet erbij wat je nog nodig hebt. Zo stel je eenvoudig een pakket samen dat past bij jouw organisatie.</p>
-          <div className="pc-badge" aria-hidden="true">
-            <span className="pc-badge-icon">
-              <Icon d={ICONS.pen} size={20} />
-            </span>
-            <span>
-              <strong>Flexibel samenstellen</strong>
-              <small>Betaal alleen voor wat je nodig hebt.</small>
-            </span>
-          </div>
-        </header>
-      )}
+    <>
+      <button
+        ref={btn}
+        type="button"
+        className={pos ? s.infoOn : s.info}
+        aria-label={`Uitleg over ${name}`}
+        aria-expanded={!!pos}
+        onClick={toggle}
+      >
+        i
+      </button>
+      {pos &&
+        createPortal(
+          // In document.body: glazen kaarten (backdrop-filter) zouden een vast venster anders binnen de kaart houden.
+          <div ref={pop} className={s.pop} style={pos} role="dialog" aria-label={name}>
+            <b className={s.popTitle}>{name}</b>
+            <p>{what}</p>
+            <span className={s.popLabel}>Wat heeft je {unitOne} eraan?</span>
+            <p>{benefit}</p>
+          </div>,
+          document.body,
+        )}
+    </>
+  );
+}
 
-      {advice && (
-        <PriceAdvice data={data} answers={advice.answers} composed={advice.composed} onEdit={advice.onEdit}>
-          <div className="pa-composition">
-            <h3 className="pa-comp-title">Jouw samenstelling</h3>
-            {pkg && (
-              <>
-                <p className="pa-comp-sub">In het pakket {pkg.family ?? pkg.name}</p>
-                <div className="pc-features pa-tests">{featureLines(pkg)}</div>
-              </>
-            )}
-            {limitsBlock}
-            {linesBlock}
-            {totalBlock}
-            {actionsBlock}
-          </div>
-        </PriceAdvice>
-      )}
+const FAQ: { q: string; a: string }[] = [
+  { q: "Wat telt als cliënt of leerling?", a: "Eén persoon die in het abonnementsjaar minstens één test maakt. Maakt iemand meer testen, dan telt die nog steeds als één." },
+  { q: "Wat als ik in de loop van het jaar boven mijn aantal kom?", a: "Dan stap je over naar de volgende staffel en betaal je het verschil voor de rest van het jaar. Je hoeft niets op te zeggen of opnieuw af te sluiten." },
+  { q: "Hoe werkt een extra professional?", a: "Een extra professional is een extra gebruiker. Alle professionals gebruiken samen de cliënten van je staffel; een extra professional brengt geen extra cliënten mee." },
+  { q: "Hoe lang loopt een abonnement en hoe zeg ik op?", a: "Een abonnement loopt per jaar en wordt automatisch verlengd. Opzeggen kan tot 3 maanden voor het einde van het abonnementsjaar." },
+  { q: "Hoe zit het met btw?", a: "Voor Loopbaan & Re-integratie zijn de prijzen exclusief 21% btw. Onderwijs is btw-vrij (CRKBO-registratie)." },
+  { q: "Hoe kan ik betalen?", a: "Met iDEAL, SEPA-incasso of creditcard, of op factuur binnen 30 dagen." },
+];
 
-      <div className={`pc-layout${configured ? " is-single" : ""}`}>
-        <section className="pc-main" aria-label="Samenstellen" ref={mainRef}>
-          {data.addons.length > 0 && (
-            <>
-              {/* Na de vragen (advies erboven) is dit stap 2; zelf samenstellen begint hier, met alleen de losse modules. */}
-              <div className="pc-step pc-step-2 is-first" id="pakketten">
-                <span className="pc-step-num" aria-hidden="true">
-                  {configured ? 2 : 1}
-                </span>
-                <div className="pc-step-body">
-                  <h2 className="pc-step-title">{configured ? "Voeg nog iets toe" : "Kies je pakket en wat je erbij wilt"}</h2>
-                  <p className="pc-step-text">
-                    {configured
-                      ? "Zet losse testen aan die nog niet in je pakket zitten. De prijs wordt automatisch berekend."
-                      : "Kies voor wie, hoeveel cliënten per jaar en welk pakket. Zet daarna losse testen aan die nog niet in je pakket zitten. De prijs wordt automatisch berekend."}
-                  </p>
-                </div>
-                {data.addons.length > 6 && (
-                  <label className="pc-search">
-                    <Icon d={ICONS.search} size={15} stroke={2} />
-                    <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Zoek een test…" aria-label="Zoek een test" />
-                  </label>
-                )}
+type Cart = { pkgId: string | null; extras: TestName[]; pros: number };
+const EMPTY: Cart = { pkgId: null, extras: [], pros: 0 };
+
+export default function Pricing() {
+  const [segment, setSegment] = useState<Segment>("lr");
+  const [tierBySeg, setTierBySeg] = useState<Record<Segment, number>>({ lr: PLANS.lr.defaultTier, onderwijs: PLANS.onderwijs.defaultTier });
+  const [cart, setCart] = useState<Cart>(EMPTY);
+  const [open, setOpen] = useState(false);
+  const [courses, setCourses] = useState(20);
+  const [higherEd, setHigherEd] = useState(false);
+
+  const plan = PLANS[segment];
+  const tier = tierBySeg[segment];
+  const count = plan.tiers[tier];
+  const setTier = (i: number) => setTierBySeg({ ...tierBySeg, [segment]: i });
+
+  // Het pakket waar "Mis je een test?" over gaat: het gekozen pakket, anders het meest gekozen.
+  // Een los product (Alleen Skills) is niet uit te breiden; dan gaat "Mis je een test?" over het meest gekozen pakket.
+  const mainPkgs = plan.packages.filter((p) => !p.standalone);
+  const standalone = plan.packages.filter((p) => p.standalone);
+  const focusPkg = mainPkgs.find((p) => p.id === cart.pkgId) ?? mainPkgs.find((p) => p.popular) ?? mainPkgs[0];
+  const included = CONTENTS[focusPkg.id];
+  const missing = testsFor(plan).filter((t) => !included.includes(t.name));
+
+  const chosen = plan.packages.find((p) => p.id === cart.pkgId);
+  const extras = chosen && !chosen.standalone ? cart.extras.filter((n) => !CONTENTS[chosen.id].includes(n)) : [];
+  const extrasTotal = extras.reduce((sum, n) => sum + addOnPrice(plan, testByName(n)!, tier, chosen), 0);
+  const total = chosen ? packagePrice(chosen, tier) + extrasTotal + cart.pros * plan.extras.professional : 0;
+  // Bij een eigen pakket: is een vast pakket (met testen erbij) goedkoper voor dezelfde testen?
+  const bestDeal = chosen?.custom && extras.length ? cheapestPackage(plan, extras, tier) : null;
+  const deal = bestDeal && bestDeal.total < extrasTotal ? bestDeal : null;
+  // Samenvatting van "Jouw pakket" als begin van het bericht bij "Offerte aanvragen".
+  const summary = chosen
+    ? [
+        `${plan.label}: ${chosen.name}, t/m ${count} ${plan.unit}`,
+        ...extras.map((n) => `+ ${n}`),
+        cart.pros ? `+ ${cart.pros} extra professional${cart.pros > 1 ? "s" : ""}` : "",
+        `Totaal: ${euro(total)} ${plan.vat}`,
+      ]
+        .filter(Boolean)
+        .join("\n")
+    : "";
+  const switchSegment = (k: Segment) => {
+    setSegment(k);
+    setCart(EMPTY);
+    setOpen(false);
+  };
+  const choose = (id: string) => {
+    setCart((c) => ({ ...c, pkgId: id }));
+    setOpen(true);
+  };
+  const toggleExtra = (n: TestName) => {
+    setCart((c) => ({
+      pkgId: c.pkgId && mainPkgs.some((p) => p.id === c.pkgId) ? c.pkgId : focusPkg.id,
+      pros: c.pros,
+      extras: c.extras.includes(n) ? c.extras.filter((x) => x !== n) : [...c.extras, n],
+    }));
+    setOpen(true);
+  };
+  // Vinkje op de kaart "Eigen pakket": kiest het eigen pakket, zet de test aan of uit en opent het paneel.
+  const toggleCustom = (id: string, n: TestName) => {
+    setCart((c) => {
+      const current = c.pkgId === id ? c.extras : [];
+      return { pkgId: id, pros: c.pros, extras: current.includes(n) ? current.filter((x) => x !== n) : [...current, n] };
+    });
+    setOpen(true);
+  };
+
+  // Escape sluit het paneel.
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [open]);
+
+  const tip = (name: string) => {
+    const t = testByName(name);
+    return t ? <InfoTip name={t.name} what={t.what} benefit={t.benefit} unitOne={plan.unitOne} /> : null;
+  };
+
+  return (
+    <main className={s.page}>
+      {/* ---------- Kop en keuzes ---------- */}
+      <section className={s.hero}>
+        <div className={s.inner}>
+          <p className={s.eyebrow}>Prijzen</p>
+          <h1 className={s.title}>
+            Eén abonnement, <span className={s.grad}>passend bij jouw aantal</span>.
+          </h1>
+          <p className={s.intro}>
+            Kies voor wie je Helios gebruikt en hoeveel {plan.unit} je per jaar begeleidt. Je ziet meteen wat elk pakket kost. Een
+            vast pakket is altijd het voordeligst.
+          </p>
+
+          <div className={s.controls}>
+            <div className={s.segment} role="radiogroup" aria-label="Voor wie">
+              {(Object.keys(PLANS) as Segment[]).map((k) => (
+                <button key={k} type="button" role="radio" aria-checked={segment === k} className={segment === k ? s.segOn : s.segBtn} onClick={() => switchSegment(k)}>
+                  {PLANS[k].label}
+                </button>
+              ))}
+            </div>
+
+            <div className={s.tierWrap}>
+              <span className={s.tierLabel}>Aantal {plan.unit} per jaar</span>
+              <div className={s.tiers} role="radiogroup" aria-label={`Aantal ${plan.unit} per jaar`}>
+                {plan.tiers.map((t, i) => (
+                  <button key={t} type="button" role="radio" aria-checked={tier === i} className={tier === i ? s.tierOn : s.tierBtn} onClick={() => setTier(i)}>
+                    t/m {t}
+                  </button>
+                ))}
               </div>
+            </div>
+          </div>
+        </div>
+      </section>
 
-              {!configured && (
-                <>
-                  {audienceList.length > 0 && (
-                    <div className="pc-audience">
-                      {audienceList.length > 1 && (
-                        <div className="pc-chips" role="radiogroup" aria-label="Doelgroep">
-                          {audienceList.map((item) => (
-                            <button
-                              key={item.key}
-                              type="button"
-                              role="radio"
-                              aria-checked={audience === item.key}
-                              className={`pc-chip${audience === item.key ? " is-on" : ""}`}
-                              onClick={() => switchTo(item.key, size)}
-                            >
-                              {item.label}
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                      {sizes.length > 1 && (
-                        <div className="pc-sizes">
-                          <span className="pc-sizes-label">{audience === "education" ? "Leerlingen of studenten per jaar" : "Cliënten per jaar"}</span>
-                          <div className="pc-chips" role="radiogroup" aria-label={audience === "education" ? "Leerlingen of studenten per jaar" : "Cliënten per jaar"}>
-                            {sizes.map((name) => (
-                              <button
-                                key={name}
-                                type="button"
-                                role="radio"
-                                aria-checked={size === name}
-                                className={`pc-chip${size === name ? " is-on" : ""}`}
-                                onClick={() => switchTo(audience, name)}
-                              >
-                                {name}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                      {familiesOf(data.packages, audience, size).length > 1 && (
-                        <div className="pc-sizes">
-                          <span className="pc-sizes-label">Pakket</span>
-                          <div className="pc-chips" role="radiogroup" aria-label="Pakket">
-                            {familiesOf(data.packages, audience, size).map((item) => (
-                              <button
-                                key={item.id}
-                                type="button"
-                                role="radio"
-                                aria-checked={packageId === item.id}
-                                className={`pc-chip${packageId === item.id ? " is-on" : ""}`}
-                                onClick={() => setPackageId(item.id)}
-                              >
-                                {item.family ?? item.name}
-                                <span>{euros(cost(item, period, 1)?.cents ?? 0)}</span>
-                              </button>
-                            ))}
-                            {data.addons.some((addon) => addon.embed && fitsAudience(addon, audience) && !addon.size) && (
-                              <button
-                                type="button"
-                                role="radio"
-                                aria-checked={packageId === null}
-                                className={`pc-chip${packageId === null ? " is-on" : ""}`}
-                                onClick={() => setPackageId(null)}
-                              >
-                                Zonder pakket
-                              </button>
-                            )}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </>
-              )}
+      {/* ---------- Pakketten ---------- */}
+      <section className={`${s.inner} ${s.stage}`} aria-label="Pakketten">
+        <div className={s.orbs} aria-hidden="true"><i /><i /><i /></div>
+        <div className={s.cards}>
+          {mainPkgs.map((p) => {
+            const price = p.prices[tier];
+            const isChosen = cart.pkgId === p.id;
 
-              {groups.length > 2 && (
-                <div className="pc-chips" role="group" aria-label="Soort toevoeging">
-                  {groups.map((group) => (
-                    <button
-                      key={group}
-                      type="button"
-                      className={`pc-chip${filter === group ? " is-on" : ""}`}
-                      aria-pressed={filter === group}
-                      onClick={() => setFilter(group)}
-                    >
-                      {group}
-                      <span>{group === "Alles" ? offeredAddons.length : offeredAddons.filter((addon) => groupOf(addon) === group).length}</span>
-                    </button>
-                  ))}
-                </div>
-              )}
-
-              <div className="pc-addons">
-                {addons.map((addon) => {
-                  const on = chosen[addon.id] !== undefined;
-                  const price = cost(addon, period, on && addon.unit ? chosen[addon.id] : 1);
-                  const staffel = tiersText(priceFor(addon, period));
-                  return (
-                    <div key={addon.id} className={`pc-addon${on ? " is-on" : ""}`}>
-                      <button type="button" className="pc-addon-toggle" aria-pressed={on} onClick={() => toggleAddon(addon.id)}>
-                        <span className="pc-icon">
-                          <Icon d={isLimitAddon(addon) || isPerSeat(addon) ? ICONS.users : ICONS.test} size={17} stroke={2} />
-                        </span>
-                        <span className="pc-addon-name">
-                          <strong>{addon.name}</strong>
-                          <small>{addon.description ?? addon.includes.join(", ")}</small>
-                        </span>
-                        <span className="pc-check" aria-hidden="true">
-                          <Icon d={ICONS.check} size={11} stroke={3.4} />
-                        </span>
-                      </button>
-                      <div className="pc-addon-foot">
-                        <span className="pc-addon-price">
-                          {price ? (
-                            <>
-                              <strong>
-                                {price.exact ? "" : "± "}
-                                {euros(price.cents)}
-                              </strong>
-                              <small>{on && staffel ? `voor ${chosen[addon.id]} ${addon.unit ?? "stuks"} ${periodWord}` : unitText(addon, period)}</small>
-                              {staffel && <small className="pc-staffel">{staffel}</small>}
-                            </>
-                          ) : (
-                            <small>Prijs op aanvraag</small>
-                          )}
-                        </span>
-                        {on && addon.countable && (
-                          <span className="pc-qty">
-                            <button type="button" aria-label={`Eén ${addon.name} minder`} onClick={() => setCount(addon.id, chosen[addon.id] - 1)}>
-                              −
-                            </button>
-                            <input
-                              type="number"
-                              min={1}
-                              max={999}
-                              value={chosen[addon.id]}
-                              onChange={(e) => setCount(addon.id, Number(e.target.value))}
-                              aria-label={addon.unit ? `Aantal ${addon.unit}` : `Aantal ${addon.name}`}
-                            />
-                            <button type="button" aria-label={`Eén ${addon.name} meer`} onClick={() => setCount(addon.id, chosen[addon.id] + 1)}>
-                              +
-                            </button>
-                          </span>
-                        )}
-                        <button type="button" className="pc-info" aria-label={`Wat is ${addon.name}?`} onClick={() => setInfoFor({ id: addon.id })}>
-                          <Icon d={ICONS.info} size={16} stroke={1.9} />
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-              {addons.length === 0 && <p className="pc-empty">Geen toevoegingen gevonden.</p>}
-
-              {suggestion && (
-                <div className="pc-suggest">
-                  <span className="pc-suggest-icon">
-                    <Icon d={ICONS.bolt} size={24} stroke={1.7} />
+            // Eigen pakket: geen vaste prijs. Drie testen om meteen aan te vinken; de rest kies je in het paneel.
+            if (p.custom) {
+              const picks: TestName[] = ["Beroepentest", "Skills", "Enneagram"];
+              return (
+                <article key={p.id} className={`${s.cardCustom}`}>
+                  <svg className={s.customWaves} viewBox="0 0 200 160" aria-hidden="true">
+                    <path d="M40 0c10 40 40 60 80 70s70 40 80 90V0Z" />
+                    <path d="M95 0c8 30 30 45 60 52s40 25 45 48V0Z" />
+                  </svg>
+                  <span className={s.customIcon} aria-hidden="true">
+                    <Icon size={26}>
+                      <path d="m12 3 9 4.5-9 4.5-9-4.5Z" />
+                      <path d="m3 12 9 4.5 9-4.5" />
+                      <path d="m3 16.5 9 4.5 9-4.5" />
+                    </Icon>
                   </span>
-                  <div>
-                    <strong>Slimme suggestie</strong>
-                    <p>
-                      Wat je los hebt gekozen, zit ook in het <b>{suggestion.name}</b>-pakket. Dat is voordeliger dan losse toevoegingen.
-                    </p>
+                  <h2 className={s.customName}>Eigen pakket</h2>
+                  <p className={s.customPitch}>Stel zelf je ideale pakket samen en betaal alleen voor de testen die je nodig hebt.</p>
+                  <div className={s.customPicks} role="group" aria-label={`Testen voor je eigen pakket, prijzen bij ${count} ${plan.unit}`}>
+                    {picks.map((n) => {
+                      const on = isChosen && cart.extras.includes(n);
+                      return (
+                        <label key={n} className={s.pick}>
+                          <input type="checkbox" checked={on} onChange={() => toggleCustom(p.id, n)} />
+                          <span className={s.box} aria-hidden="true"><Check /></span>
+                          <span className={s.pickName}>{n}</span>
+                          <span className={s.pickPrice}>{euro(addOnPrice(plan, testByName(n)!, tier, p))}</span>
+                        </label>
+                      );
+                    })}
                   </div>
+                  <button type="button" className={s.ctaCustom} onClick={() => choose(p.id)}>
+                    <span>{isChosen && extras.length ? `Bekijk je pakket · ${euro(total)}` : "Stel je pakket samen"}</span>
+                    <Arrow />
+                  </button>
+                  <div className={s.customFeat}>
+                    <span className={s.featIcon} aria-hidden="true">
+                      <Icon size={22}>
+                        <path d="M4 6h16M4 12h16M4 18h16" />
+                        <circle cx="9" cy="6" r="2" />
+                        <circle cx="15" cy="12" r="2" />
+                        <circle cx="10" cy="18" r="2" />
+                      </Icon>
+                    </span>
+                    <span>
+                      <b>Volledig op maat</b>
+                      Flexibel, schaalbaar en altijd uit te breiden.
+                    </span>
+                  </div>
+                </article>
+              );
+            }
+
+            return (
+              <article key={p.id} className={`${p.popular ? s.cardHi : s.card}`}>
+                {p.popular && <span className={s.badge}>Meest gekozen</span>}
+                <h2 className={s.cardName}>{p.name}</h2>
+                <p className={s.pitch}>{p.pitch}</p>
+                <div className={s.priceRow}>
+                  <span key={`${segment}-${tier}-${p.id}`} className={s.price}>{euro(price)}</span>
+                  <span className={s.per}>{plan.vat}</span>
+                </div>
+                <p className={s.perUnit}>
+                  {euro(Math.round(price / count))} per {plan.unitOne} bij {count} {plan.unit}
+                </p>
+                <button type="button" className={p.popular ? s.ctaHi : s.cta} onClick={() => choose(p.id)}>
+                  <span>{isChosen ? "Gekozen, bekijk je pakket" : `Kies ${p.name}`}</span>
+                  {isChosen ? <Check /> : <Arrow />}
+                </button>
+                <ul className={s.list}>
+                  {p.highlights.map((h) => (
+                    <li key={h}>
+                      <Check />
+                      <span className={s.liText}>{h}</span>
+                      {tip(h)}
+                    </li>
+                  ))}
+                  {plan.freeTests.map((n) => (
+                    <li key={n} className={s.freeItem}>
+                      <Check />
+                      <span className={s.liText}>{n} <b>gratis</b></span>
+                      {tip(n)}
+                    </li>
+                  ))}
+                  {segment === "onderwijs" && (
+                    <li className={s.freeItem}>
+                      <Check />
+                      <span className={s.liText}>Studiekeuzetest <b>gratis</b></span>
+                      <InfoTip {...STUDY_TESTS} unitOne={plan.unitOne} />
+                    </li>
+                  )}
+                </ul>
+              </article>
+            );
+          })}
+
+          {segment === "onderwijs" && (
+            <article className={s.card}>
+              <h2 className={s.cardName}>Studiekeuzetest op je website</h2>
+              <p className={s.pitch}>Aankomende leerlingen doen de test op jullie eigen site en zien welke van jullie opleidingen passen.</p>
+              <div className={s.priceRow}>
+                <span className={s.from}>vanaf</span>
+                <span className={s.price}>{euro(255)}</span>
+                <span className={s.per}>per jaar, btw-vrij</span>
+              </div>
+              <p className={s.perUnit}>Los af te nemen, ook zonder pakket</p>
+              <a className={s.cta} href="#schoolsite">
+                <span>Bereken je prijs</span>
+                <Arrow />
+              </a>
+              <ul className={s.list}>
+                <li><Check /><span className={s.liText}>Gekoppeld aan jullie opleidingen</span></li>
+                <li><Check /><span className={s.liText}>Bezoekers tellen niet mee als leerling</span></li>
+              </ul>
+            </article>
+          )}
+        </div>
+
+        {standalone.map((p) => (
+          <div key={p.id} className={s.solo}>
+            <span className={s.soloIcon} aria-hidden="true">
+              <Icon size={22}>
+                <path d="M12 3l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.4 6.8 19.1l1-5.8L3.5 9.2l5.9-.9Z" />
+              </Icon>
+            </span>
+            <div className={s.soloText}>
+              <b>
+                {p.name} nodig? {tip("Skills")}
+              </b>
+              <span>{p.pitch} Voor wie alleen wil zien welke beroepen bij iemands skills passen.</span>
+            </div>
+            <div className={s.soloPrice}>
+              <b key={`${p.id}-${tier}`}>{euro(p.prices[tier])}</b>
+              <span>per jaar bij {count} {plan.unit}</span>
+            </div>
+            <button type="button" className={s.soloCta} onClick={() => choose(p.id)}>
+              {cart.pkgId === p.id ? "Bekijk je pakket" : `Kies ${p.name}`}
+              <Arrow />
+            </button>
+          </div>
+        ))}
+
+        <div className={s.includedBar}>
+          <span className={s.includedTitle}>Altijd inbegrepen</span>
+          {plan.included.map((i) => (
+            <span key={i} className={s.chip}><Check />{i}</span>
+          ))}
+          <span className={s.maxNote}>
+            {plan.maxNote} <a href={contactUrl("offerte", `Meer dan ${plan.tiers[plan.tiers.length - 1]} ${plan.unit}`)}>Neem contact op</a>
+          </span>
+        </div>
+      </section>
+
+      {/* ---------- Mis je een test? ---------- */}
+      <section className={`${s.inner} ${s.stage}`} aria-labelledby="erbij">
+        <div className={s.orbs} aria-hidden="true"><i /><i /><i /></div>
+        <div className={s.head}>
+          <p className={s.eyebrow}>Uitbreiden</p>
+          <h2 id="erbij" className={s.h2}>
+            {focusPkg.custom ? "Kies de testen voor je eigen pakket." : `Mis je een test in ${focusPkg.name}? Zet hem erbij.`}
+          </h2>
+          <p className={s.sub}>
+            {focusPkg.custom
+              ? `Klik op een test om hem aan je eigen pakket toe te voegen. Prijzen bij ${count} ${plan.unit}, per jaar.`
+              : missing.length
+              ? `Klik op een test om hem aan je pakket toe te voegen. Prijzen bij ${count} ${plan.unit}, per jaar.`
+              : `In ${focusPkg.name} zitten alle testen al. Je kunt alleen nog extra professionals toevoegen.`}
+          </p>
+        </div>
+        <div className={s.addGrid}>
+          {missing.map((t) => {
+            const on = extras.includes(t.name) || (!chosen && cart.extras.includes(t.name));
+            return (
+              <div key={t.name} className={on ? s.addOn : s.add}>
+                <button type="button" className={s.addHit} aria-pressed={on} onClick={() => toggleExtra(t.name)}>
+                  <span className={s.addName}>{t.name}</span>
+                  <span className={s.addWhat}>{t.what}</span>
+                  <span className={s.addFoot}>
+                    <span className={s.addPrice}>+ {euro(addOnPrice(plan, t, tier, focusPkg))}</span>
+                    <span className={s.addState}>{on ? <><Check /> Toegevoegd</> : <><Plus /> Toevoegen</>}</span>
+                  </span>
+                </button>
+                <span className={s.addInfo}>
+                  <InfoTip name={t.name} what={t.what} benefit={t.benefit} unitOne={plan.unitOne} />
+                </span>
+              </div>
+            );
+          })}
+          <div className={cart.pros ? s.addOn : s.add}>
+            <div className={s.addHit}>
+              <span className={s.addName}>Extra professional</span>
+              <span className={s.addWhat}>Een extra {plan.professionalLabel}, met dezelfde {plan.unit}.</span>
+              <span className={s.addFoot}>
+                <span className={s.addPrice}>+ {euro(plan.extras.professional)}</span>
+                <span className={s.stepper}>
+                  <button type="button" aria-label="Eén professional minder" disabled={!cart.pros} onClick={() => setCart((c) => ({ ...c, pros: Math.max(0, c.pros - 1) }))}>−</button>
+                  <b>{cart.pros}</b>
                   <button
                     type="button"
-                    className="pc-ghost"
+                    aria-label="Eén professional meer"
                     onClick={() => {
-                      setPackageId(suggestion.id);
-                      setChosen({});
+                      setCart((c) => ({ ...c, pkgId: c.pkgId ?? focusPkg.id, pros: c.pros + 1 }));
+                      setOpen(true);
                     }}
                   >
-                    Kies {suggestion.name}
-                    <Icon d={ICONS.arrow} size={15} stroke={2} />
+                    +
+                  </button>
+                </span>
+              </span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ---------- Vergelijken ---------- */}
+      <section className={s.inner} aria-labelledby="vergelijk">
+        <div className={s.head}>
+          <p className={s.eyebrow}>Vergelijken</p>
+          <h2 id="vergelijk" className={s.h2}>Welke test zit in welk pakket?</h2>
+          <p className={s.sub}>Klik op de i voor uitleg over een test.</p>
+        </div>
+        <div className={s.tableWrap}>
+          <table className={s.table}>
+            <thead>
+              <tr>
+                <th>Test</th>
+                {mainPkgs.map((p) => (
+                  <th key={p.id} className={p.popular ? s.thHi : undefined}>{p.name}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {testsFor(plan).map((t) => (
+                <tr key={t.name}>
+                  <td>
+                    <span className={s.testName}>
+                      {t.name}
+                      <InfoTip name={t.name} what={t.what} benefit={t.benefit} unitOne={plan.unitOne} />
+                    </span>
+                    <span className={s.testWhat}>{t.what}</span>
+                  </td>
+                  {mainPkgs.map((p) => (
+                    <td key={p.id} className={s.cell}>
+                      {plan.freeTests.includes(t.name) ? (
+                        <span className={s.freeTag}>gratis</span>
+                      ) : CONTENTS[p.id].includes(t.name) ? (
+                        <span className={s.yes}><Check /></span>
+                      ) : p.custom ? (
+                        <span className={s.choice}>naar keuze</span>
+                      ) : (
+                        <span className={s.no}>–</span>
+                      )}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+              {segment === "onderwijs" && (
+                <tr>
+                  <td>
+                    <span className={s.testName}>
+                      {STUDY_TESTS.name}
+                      <InfoTip {...STUDY_TESTS} unitOne={plan.unitOne} />
+                    </span>
+                    <span className={s.testWhat}>{STUDY_TESTS.what}</span>
+                  </td>
+                  {mainPkgs.map((p) => (
+                    <td key={p.id} className={s.cell}><span className={s.freeTag}>gratis</span></td>
+                  ))}
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      {/* ---------- Studiekeuzetest op de schoolsite ---------- */}
+      {segment === "onderwijs" && (
+        <section id="schoolsite" className={s.inner} aria-labelledby="schoolsite-kop">
+          <div className={s.calc}>
+            <div className={s.calcText}>
+              <p className={s.eyebrow}>Rekenhulp</p>
+              <h2 id="schoolsite-kop" className={s.h2}>Studiekeuzetest op jullie eigen website</h2>
+              <p className={s.sub}>Je betaalt per gekoppelde opleiding. Hoe meer opleidingen, hoe lager de prijs per opleiding.</p>
+              <ul className={s.steps}>
+                <li><span>1e opleiding</span><b>{euro(255)}</b></li>
+                <li><span>2 t/m 10</span><b>+ {euro(85)}</b></li>
+                <li><span>11 t/m 20</span><b>+ {euro(45)}</b></li>
+                <li><span>21 t/m 150</span><b>+ {euro(20)}</b></li>
+                <li><span>151 t/m 300</span><b>+ {euro(12)}</b></li>
+              </ul>
+            </div>
+            <div className={s.calcBox}>
+              <label htmlFor="opleidingen" className={s.calcLabel}>
+                Aantal opleidingen <b>{courses}</b>
+              </label>
+              <input id="opleidingen" type="range" min={1} max={300} value={courses} onChange={(e) => setCourses(Number(e.target.value))} className={s.range} />
+              <label className={s.toggle} htmlFor="hbo">
+                <input id="hbo" type="checkbox" checked={higherEd} onChange={(e) => setHigherEd(e.target.checked)} />
+                Hbo of wo (+ {euro(100)} vanaf 2 opleidingen)
+              </label>
+              <div className={s.calcTotal}>
+                <span className={s.calcPrice}>{euro(schoolSitePrice(courses, higherEd))}</span>
+                <span className={s.per}>per jaar, btw-vrij</span>
+              </div>
+              <p className={s.perUnit}>
+                {euro(Math.round(schoolSitePrice(courses, higherEd) / courses))} per opleiding · meer dan 300: maatwerk
+              </p>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ---------- Veelgestelde vragen ---------- */}
+      <section className={s.inner} aria-labelledby="faq">
+        <div className={s.faqGrid}>
+          <div className={s.head}>
+            <p className={s.eyebrow}>Veelgestelde vragen</p>
+            <h2 id="faq" className={s.h2}>Goed om te weten</h2>
+            <p className={s.sub}>
+              Staat je vraag er niet bij? <a href={CONTACT_URL}>Neem contact op</a>, we denken graag mee.
+            </p>
+          </div>
+          <div className={s.faq}>
+            {FAQ.map((f) => (
+              <details key={f.q} className={s.qa}>
+                <summary>
+                  {f.q}
+                  <span className={s.plus} aria-hidden="true" />
+                </summary>
+                <p>{f.a}</p>
+              </details>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <p className={s.personal}>
+        Ben je cliënt of leerling en wil je zelf testen doen? <a href={SIGNUP_URL}>Maak een gratis account</a>.
+      </p>
+
+      {/* ---------- Knop naar het paneel als het dicht is ---------- */}
+      {chosen && !open && (
+        <button type="button" className={s.cartFab} onClick={() => setOpen(true)}>
+          <Bag />
+          <span>Jouw pakket</span>
+          <b>{euro(total)}</b>
+        </button>
+      )}
+
+      {/* ---------- Paneel "Jouw pakket" ---------- */}
+      <div className={open ? s.backdropOn : s.backdrop} onClick={() => setOpen(false)} aria-hidden="true" />
+      <aside className={open ? s.drawerOn : s.drawer} aria-label="Jouw pakket" aria-hidden={!open} inert={!open}>
+        <div className={s.drawerHead}>
+          <div>
+            <span className={s.drawerEyebrow}>{plan.label}</span>
+            <h2 className={s.drawerTitle}>Jouw pakket</h2>
+          </div>
+          <button type="button" className={s.drawerClose} aria-label="Sluiten" onClick={() => setOpen(false)}>
+            <Close />
+          </button>
+        </div>
+
+        {chosen && (
+          <div className={s.drawerBody}>
+            <div className={s.dGroup}>
+              <span className={s.dLabel}>Pakket</span>
+              <div className={s.dPkgs}>
+                {plan.packages.filter((p) => !p.standalone || p.id === chosen.id).map((p) => (
+                  <button key={p.id} type="button" className={p.id === chosen.id ? s.dPkgOn : s.dPkg} onClick={() => setCart((c) => ({ ...c, pkgId: p.id }))}>
+                    {p.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className={s.dGroup}>
+              <label className={s.dLabel} htmlFor="d-tier">Aantal {plan.unit} per jaar</label>
+              <select id="d-tier" className={s.dSelect} value={tier} onChange={(e) => setTier(Number(e.target.value))}>
+                {plan.tiers.map((t, i) => (
+                  <option key={t} value={i}>t/m {t} {plan.unit}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className={s.dLines}>
+              <div className={s.dLine}>
+                <span><b>{chosen.name}</b> · t/m {count} {plan.unit}</span>
+                {chosen.custom ? <span className={s.dHint}>je betaalt per test</span> : <b>{euro(chosen.prices[tier])}</b>}
+              </div>
+              <ul className={s.dIncluded}>
+                {CONTENTS[chosen.id].map((n) => (
+                  <li key={n}><Check />{n}{plan.freeTests.includes(n) ? " (gratis)" : ""}</li>
+                ))}
+                {segment === "onderwijs" && <li><Check />Studiekeuzetest, Studieswiper en RIASEC (studie) gratis</li>}
+              </ul>
+              {chosen.custom && extras.length === 0 && (
+                <p className={s.dEmpty}>Je hebt nog geen testen gekozen. Kies hieronder welke testen je wilt.</p>
+              )}
+              {deal && (
+                <div className={s.dDeal}>
+                  <p>
+                    <b>Voordeliger met {deal.pkg.name}.</b> Met {deal.pkg.name}
+                    {deal.extras.length ? ` en ${deal.extras.length === 1 ? "1 test" : `${deal.extras.length} testen`} erbij` : ""} krijg je dezelfde
+                    testen voor {euro(deal.total)} in plaats van {euro(extrasTotal)}. Je bespaart {euro(extrasTotal - deal.total)}
+                    {CONTENTS[deal.pkg.id].filter((n) => !plan.freeTests.includes(n)).length > extras.length ? " en je krijgt er nog testen bij" : ""}.
+                  </p>
+                  <button type="button" onClick={() => setCart((c) => ({ ...c, pkgId: deal.pkg.id }))}>
+                    Wissel naar {deal.pkg.name}
+                    <Arrow />
                   </button>
                 </div>
               )}
-            </>
-          )}
-          {/* Tijdens het toevoegen het totaal in beeld; de samenstelling staat in het advies bovenaan. */}
-          {configured && (
-            <div className={`pc-sticky${atAddons && !compositionVisible ? " is-shown" : ""}`} aria-live="polite">
-              <span>
-                Totaal <strong>{euros(total(period))}</strong> {periodWord}
-              </span>
-              <a href="#pa-title">
-                Bekijk je samenstelling <Icon d={ICONS.arrow} size={14} stroke={2} />
-              </a>
-            </div>
-          )}
-        </section>
 
-        {!configured && (
-          <aside className="pc-side" aria-labelledby="pc-side-title">
-            <h2 className="pc-side-title" id="pc-side-title">
-              Jouw samenstelling
-            </h2>
-            <p className="pc-side-text">Hier zie je direct wat je hebt gekozen.</p>
-
-            {pkg ? (
-              <div className="pc-chosen">
-                <div className="pc-chosen-top">
-                  <span className="pc-icon pc-icon-lg">
-                    <Icon d={PACKAGE_ICONS[data.packages.indexOf(pkg) % PACKAGE_ICONS.length]} size={24} stroke={1.8} />
+              {extras.map((n) => (
+                <div key={n} className={s.dLine}>
+                  <span>{n}</span>
+                  <span className={s.dRight}>
+                    <b>{euro(addOnPrice(plan, testByName(n)!, tier, chosen))}</b>
+                    <button type="button" className={s.dRemove} aria-label={`${n} verwijderen`} onClick={() => toggleExtra(n)}>
+                      <Close />
+                    </button>
                   </span>
-                  <strong className="pc-chosen-name">{pkg.name}</strong>
-                  <span className="pc-chosen-price">{lineText(pkg, pkgUnits)}</span>
-                  <button type="button" className="pc-remove" aria-label={`${pkg.name} weghalen`} onClick={() => setPackageId(null)}>
-                    <Icon d={ICONS.x} size={14} stroke={2.2} />
-                  </button>
                 </div>
-                {isPerSeat(pkg) && (
-                  <label className="pc-seats">
-                    Aantal gebruikers
-                    <span className="pc-qty">
-                      <button type="button" aria-label="Eén gebruiker minder" onClick={() => setSeats((n) => Math.max(1, n - 1))}>
-                        −
-                      </button>
-                      <input
-                        type="number"
-                        min={1}
-                        max={999}
-                        value={seats}
-                        onChange={(e) => setSeats(Math.max(1, Math.min(999, Number(e.target.value) || 1)))}
-                        aria-label="Aantal gebruikers"
-                      />
-                      <button type="button" aria-label="Eén gebruiker meer" onClick={() => setSeats((n) => Math.min(999, n + 1))}>
-                        +
-                      </button>
-                    </span>
-                  </label>
-                )}
-                <div className="pc-features">{featureLines(pkg)}</div>
-                {limitsBlock}
-                <a className="pc-link" href={configured ? "#pg-title" : "#pakketten"}>
-                  {configured ? "Wijzig antwoorden" : "Andere keuze maken"} <Icon d={ICONS.arrow} size={14} stroke={2} />
-                </a>
+              ))}
+
+              <div className={s.dLine}>
+                <span>Extra professionals</span>
+                <span className={s.dRight}>
+                  {cart.pros > 0 && <b>{euro(cart.pros * plan.extras.professional)}</b>}
+                  <span className={s.stepper}>
+                    <button type="button" aria-label="Eén professional minder" disabled={!cart.pros} onClick={() => setCart((c) => ({ ...c, pros: Math.max(0, c.pros - 1) }))}>−</button>
+                    <b>{cart.pros}</b>
+                    <button type="button" aria-label="Eén professional meer" onClick={() => setCart((c) => ({ ...c, pros: c.pros + 1 }))}>+</button>
+                  </span>
+                </span>
               </div>
-            ) : (
-              <p className="pc-none">Geen pakket gekozen{audience === "education" ? ": alleen de studiekeuzetest op je website" : ""}.</p>
+            </div>
+
+            {chosen.standalone && (
+              <p className={s.dNote}>{chosen.name} is een los product. Wil je meer testen? Kies hierboven een pakket of stel je eigen pakket samen.</p>
             )}
-
-            {linesBlock}
-
-            {totalBlock}
-
-            {actionsBlock}
-
-            <ul className="pc-trust">
-              <li>
-                <span className="pc-icon">
-                  <Icon d={ICONS.mail} size={17} stroke={1.8} />
-                </span>
-                <strong>Vrijblijvende offerte</strong>
-                <small>Binnen 1 werkdag</small>
-              </li>
-              <li>
-                <span className="pc-icon">
-                  <Icon d={ICONS.advice} size={17} stroke={1.8} />
-                </span>
-                <strong>Persoonlijk advies</strong>
-                <small>Van een specialist</small>
-              </li>
-              <li>
-                <span className="pc-icon">
-                  <Icon d={ICONS.heart} size={17} stroke={1.8} />
-                </span>
-                <strong>Maatwerk mogelijk</strong>
-                <small>Voor grotere organisaties</small>
-              </li>
-            </ul>
-          </aside>
+            {!chosen.standalone && testsFor(plan).some((t) => !CONTENTS[chosen.id].includes(t.name) && !extras.includes(t.name)) && (
+              <div className={s.dGroup}>
+                <span className={s.dLabel}>Voeg een test toe</span>
+                <div className={s.dAdd}>
+                  {testsFor(plan).filter((t) => !CONTENTS[chosen.id].includes(t.name) && !extras.includes(t.name)).map((t) => (
+                    <span key={t.name} className={s.dAddItem}>
+                      <button type="button" className={s.dAddBtn} onClick={() => toggleExtra(t.name)}>
+                        <Plus />
+                        <span>{t.name}</span>
+                        <span className={s.dAddPrice}>{euro(addOnPrice(plan, t, tier, chosen))}</span>
+                      </button>
+                      <InfoTip name={t.name} what={t.what} benefit={t.benefit} unitOne={plan.unitOne} />
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
         )}
-      </div>
 
-      <ul className="prc-facts">
-        <li>
-          <strong>Betalen</strong>
-          Met iDEAL, creditcard of incasso
-          {data.invoice.enabled ? `, of op factuur (binnen ${data.invoice.days} dagen)` : ""}.
-        </li>
-        <li>
-          <strong>Opzeggen</strong>
-          Jaarabonnement, elk jaar automatisch verlengd. Opzeggen kan tot {data.noticeMonths} maanden voor het einde van het abonnementsjaar.
-        </li>
-        <li>
-          <strong>Meteen aan de slag</strong>
-          Na het bestellen nodig je zelf je collega&apos;s uit en zet je cliënten of leerlingen klaar.
-        </li>
-      </ul>
-    </div>
+        {chosen && (
+          <div className={s.drawerFoot}>
+            <div className={s.dTotal}>
+              <span>Totaal per jaar</span>
+              <b key={total}>{euro(total)}</b>
+            </div>
+            <p className={s.dVat}>
+              {plan.vatRate ? `Excl. btw. Incl. 21% btw: ${euroCents(total * (1 + plan.vatRate))}` : "Btw-vrij (CRKBO)"}
+            </p>
+            {total > 0 ? (
+              <a className={s.dCta} href={ORDER_URL}>
+                <span>Bestellen</span>
+                <Arrow />
+              </a>
+            ) : (
+              <span className={s.dCtaOff} aria-disabled="true">Kies eerst een test</span>
+            )}
+            <a className={s.dCta2} href={contactUrl("offerte", `Prijzen: ${chosen.name}`, summary)}>Offerte aanvragen</a>
+          </div>
+        )}
+      </aside>
+    </main>
   );
 }

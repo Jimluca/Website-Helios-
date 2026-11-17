@@ -1,0 +1,1950 @@
+/* Prijzenpagina. Licht en donker via de --d-*-variabelen uit globals.css (licht staat als terugvalwaarde).
+   De uitgelichte kaart ("Meest gekozen") is in beide thema's diep paars met witte tekst. */
+
+.page {
+    --ink: var(--d-ink, #0D0E24);
+    --body: var(--d-text, #3A3D57);
+    --muted: var(--d-muted, #6B6E88);
+    --line: var(--d-line, #E6E4F2);
+    --card: var(--d-card, #FFFFFF);
+    --tint: var(--d-tint-1, #F4F2FF);
+    --tint-2: var(--d-tint-2, #ECE8FF);
+    --ok: #1F8A5B;
+    --deep: linear-gradient(160deg, #2A1873 0%, #1C1250 55%, #150D3B 100%);
+    display: flex;
+    flex-direction: column;
+    gap: clamp(64px, 8vw, 104px);
+    padding-bottom: 120px;
+    color: var(--body);
+    font-family: var(--font-inter), system-ui, sans-serif;
+    background:
+        radial-gradient(900px 520px at 85% 0%, var(--d-tint-2, #EFEBFF) 0%, transparent 70%),
+        radial-gradient(700px 420px at 0% 12%, var(--d-tint-1, #F5F3FF) 0%, transparent 70%),
+        var(--d-page, #FBFBFE);
+}
+
+:global(:root[data-theme='dark']) .page {
+    --ok: #6FD3A0;
+}
+
+.inner {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 max(24px, env(safe-area-inset-left, 0px));
+}
+
+/* ---------- Kop ---------- */
+
+.hero {
+    padding-top: clamp(130px, 11vw, 170px);
+}
+
+.eyebrow,
+.eyebrowLight {
+    margin: 0 0 14px;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--d-link, #5B4BEA);
+}
+
+.eyebrowLight {
+    color: #C9BEFF;
+}
+
+.title {
+    max-width: 860px;
+    margin: 0;
+    font-family: var(--font-inter-tight), var(--font-inter), system-ui, sans-serif;
+    font-size: clamp(38px, 5.4vw, 64px);
+    font-weight: 800;
+    line-height: 1.04;
+    letter-spacing: -.035em;
+    color: var(--heading);
+    text-wrap: balance;
+}
+
+.grad {
+    background: var(--purple-text);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+.intro {
+    max-width: 620px;
+    margin: 20px 0 0;
+    font-size: 18px;
+    line-height: 1.6;
+    color: var(--text-intro);
+}
+
+.controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 20px 32px;
+    margin-top: 36px;
+}
+
+.segment {
+    display: inline-flex;
+    padding: 5px;
+    border-radius: 999px;
+    background: var(--card);
+    border: 1px solid var(--line);
+    box-shadow: 0 6px 20px rgb(var(--d-shadow, 60 50 160) / .07);
+}
+
+.segBtn,
+.segOn {
+    border: 0;
+    border-radius: 999px;
+    padding: 11px 20px;
+    font: 600 15px/1 var(--font-inter), system-ui, sans-serif;
+    cursor: pointer;
+    transition: background .25s var(--ease), color .25s var(--ease);
+}
+
+.segBtn {
+    background: transparent;
+    color: var(--muted);
+}
+
+.segBtn:hover {
+    color: var(--ink);
+}
+
+.segOn {
+    background: var(--primary);
+    color: #FFFFFF;
+    box-shadow: 0 8px 20px rgb(75 60 240 / .3);
+}
+
+.tierWrap {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.tierLabel {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--muted);
+}
+
+.tiers {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.tierBtn,
+.tierOn {
+    min-width: 72px;
+    padding: 10px 14px;
+    border-radius: 12px;
+    font: 600 14px/1 var(--font-inter), system-ui, sans-serif;
+    font-variant-numeric: tabular-nums;
+    cursor: pointer;
+    transition: all .2s var(--ease);
+}
+
+.tierBtn {
+    background: var(--card);
+    border: 1px solid var(--line);
+    color: var(--ink);
+}
+
+.tierBtn:hover {
+    border-color: var(--d-line-strong, #B9B0F7);
+    transform: translateY(-1px);
+}
+
+.tierOn {
+    background: var(--tint-2);
+    border: 1px solid var(--primary);
+    color: var(--d-link, var(--primary));
+}
+
+.segBtn:focus-visible,
+.segOn:focus-visible,
+.tierBtn:focus-visible,
+.tierOn:focus-visible,
+.cta:focus-visible,
+.ctaHi:focus-visible {
+    outline: 3px solid #A68FFA;
+    outline-offset: 2px;
+}
+
+/* ---------- Pakketkaarten ---------- */
+
+.cards {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+    align-items: stretch;
+}
+
+/* Eigen pakket (ontwerp "Eigen pakket"): paarse rand, lila verloop met golven rechtsboven, paars icoon,
+   een witte lijst met vinkjes en een paarse knop. */
+.cardCustom {
+    /* altijd de laatste kaart, ook bij Onderwijs (na "Studiekeuzetest op je website") */
+    order: 1;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    min-width: 0;
+    padding: 28px 22px 24px;
+    border-radius: 28px;
+    border: 3px solid #6A3FF0;
+    background: linear-gradient(165deg, var(--d-tint-2, #F1ECFF) 0%, var(--d-tint-1, #EAE3FF) 55%, var(--d-tint-2, #E2D8FF) 100%);
+    box-shadow: 0 18px 44px rgb(106 63 240 / .16);
+}
+
+.customWaves {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 70%;
+    height: auto;
+    pointer-events: none;
+}
+
+.customWaves path:first-child {
+    fill: rgb(150 120 250 / .16);
+}
+
+.customWaves path:last-child {
+    fill: rgb(150 120 250 / .2);
+}
+
+.customIcon {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 58px;
+    height: 58px;
+    border-radius: 18px;
+    background: linear-gradient(150deg, #8A63F8 0%, #5B30E6 100%);
+    color: #FFFFFF;
+    box-shadow: 0 10px 24px rgb(91 48 230 / .35), inset 0 1px 0 rgb(255 255 255 / .35);
+}
+
+.customName {
+    position: relative;
+    margin: 0;
+    font-family: var(--font-inter-tight), var(--font-inter), system-ui, sans-serif;
+    font-size: 30px;
+    font-weight: 800;
+    letter-spacing: -.03em;
+    color: var(--ink);
+}
+
+.customPitch {
+    position: relative;
+    margin: -4px 0 0;
+    font-size: 15px;
+    line-height: 1.5;
+    color: var(--body);
+}
+
+.customPicks {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    border-radius: 18px;
+    background: var(--card);
+    box-shadow: 0 8px 22px rgb(var(--d-shadow, 60 40 160) / .1);
+}
+
+.pick {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 13px 16px;
+    border-top: 1px solid var(--line);
+    cursor: pointer;
+}
+
+.pick:first-child {
+    border-top: 0;
+}
+
+.pick input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.box {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 7px;
+    border: 2px solid var(--d-line-strong, #B8B3CC);
+    background: var(--card);
+    color: transparent;
+    transition: all .2s var(--ease);
+}
+
+.box svg {
+    width: 15px;
+    height: 15px;
+}
+
+.pick input:checked + .box {
+    border-color: #6A3FF0;
+    background: #6A3FF0;
+    color: #FFFFFF;
+}
+
+.pick input:focus-visible + .box {
+    outline: 3px solid #A68FFA;
+    outline-offset: 2px;
+}
+
+.pickName {
+    flex: 1;
+    min-width: 0;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--ink);
+}
+
+.pickPrice {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.ctaCustom {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    height: 54px;
+    margin-top: 4px;
+    border: 0;
+    border-radius: 999px;
+    background: linear-gradient(180deg, #6D43F2 0%, #4F25D4 100%);
+    color: #FFFFFF;
+    font: 700 16px/1 var(--font-inter), system-ui, sans-serif;
+    box-shadow: 0 12px 26px rgb(79 37 212 / .35);
+    cursor: pointer;
+    transition: all .25s var(--ease);
+}
+
+.ctaCustom:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 16px 32px rgb(79 37 212 / .45);
+}
+
+.ctaCustom:focus-visible {
+    outline: 3px solid #A68FFA;
+    outline-offset: 2px;
+}
+
+.customFeat {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-top: 2px;
+    font-size: 13.5px;
+    line-height: 1.45;
+    color: var(--body);
+}
+
+.customFeat b {
+    display: block;
+    font-size: 15px;
+    color: var(--ink);
+}
+
+.featIcon {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 50px;
+    height: 50px;
+    border-radius: 14px;
+    background: var(--card);
+    color: #6A3FF0;
+    box-shadow: 0 6px 16px rgb(var(--d-shadow, 60 40 160) / .1);
+}
+
+.dHint {
+    font-size: 13px;
+    color: var(--muted);
+}
+
+.dEmpty {
+    margin: 0;
+    padding: 12px 16px;
+    border-top: 1px solid var(--line);
+    font-size: 14px;
+    color: var(--muted);
+}
+
+.dCtaOff {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 50px;
+    border-radius: 999px;
+    background: var(--tint);
+    color: var(--muted);
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.choice {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--d-link, var(--primary));
+    white-space: nowrap;
+}
+
+.card,
+.cardHi {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    min-width: 0;
+    padding: 30px 24px 26px;
+    border-radius: 24px;
+}
+
+.card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    box-shadow: 0 10px 30px rgb(var(--d-shadow, 60 50 160) / .06);
+}
+
+.cardHi {
+    background: var(--deep);
+    color: #D9D3FF;
+    box-shadow: 0 24px 60px rgb(40 20 140 / .35);
+    transform: translateY(-10px);
+}
+
+.badge {
+    position: absolute;
+    top: -14px;
+    left: 28px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #FFFFFF;
+    background: linear-gradient(90deg, #6639EC, #A68FFA);
+    box-shadow: 0 6px 16px rgb(102 57 236 / .4);
+}
+
+.cardName {
+    margin: 0;
+    font-family: var(--font-inter-tight), var(--font-inter), system-ui, sans-serif;
+    font-size: 26px;
+    font-weight: 800;
+    letter-spacing: -.02em;
+    color: var(--ink);
+}
+
+.cardHi .cardName {
+    color: #FFFFFF;
+}
+
+.pitch {
+    margin: 0;
+    min-height: 3.2em;
+    font-size: 15px;
+    line-height: 1.55;
+    color: var(--muted);
+}
+
+.cardHi .pitch {
+    color: #C4BCF2;
+}
+
+.priceRow {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 4px 10px;
+    margin-top: 6px;
+}
+
+.price {
+    font-family: var(--font-inter-tight), var(--font-inter), system-ui, sans-serif;
+    font-size: clamp(40px, 4vw, 52px);
+    font-weight: 800;
+    letter-spacing: -.035em;
+    line-height: 1;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+    animation: pop .45s var(--ease);
+}
+
+.cardHi .price {
+    color: #FFFFFF;
+}
+
+@keyframes pop {
+    from {
+        opacity: .2;
+        transform: translateY(6px);
+    }
+
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+.from {
+    width: 100%;
+    font-size: 13px;
+    color: var(--muted);
+}
+
+.per {
+    font-size: 14px;
+    color: var(--muted);
+}
+
+.cardHi .per {
+    color: #B3A9EA;
+}
+
+.perUnit {
+    margin: -6px 0 0;
+    font-size: 14px;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+}
+
+.cardHi .perUnit {
+    color: #B3A9EA;
+}
+
+.cta,
+.ctaHi {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    height: 52px;
+    margin: 6px 0 4px;
+    border-radius: 999px;
+    font: 600 16px/1 var(--font-inter), system-ui, sans-serif;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all .25s var(--ease);
+}
+
+.cta {
+    background: var(--tint);
+    border: 1px solid var(--line);
+    color: var(--d-link, var(--primary));
+}
+
+.cta:hover {
+    background: var(--tint-2);
+    border-color: var(--d-line-strong, #B9B0F7);
+    color: var(--d-link-hover, var(--primary-hover));
+    transform: translateY(-2px);
+}
+
+.ctaHi {
+    border: 0;
+    background: #FFFFFF;
+    color: #2A1873;
+    box-shadow: 0 10px 24px rgb(0 0 0 / .25);
+}
+
+
+.ctaHi:hover {
+    color: #2A1873;
+    transform: translateY(-2px);
+    box-shadow: 0 16px 32px rgb(0 0 0 / .32);
+}
+
+.list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 0;
+    padding: 18px 0 0;
+    border-top: 1px solid var(--line);
+    list-style: none;
+    font-size: 15px;
+    color: var(--ink);
+}
+
+.cardHi .list {
+    border-top-color: rgb(255 255 255 / .14);
+    color: #FFFFFF;
+}
+
+.list li {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+}
+
+.liText {
+    flex: 0 1 auto;
+}
+
+/* ---------- i-knop en uitleg ---------- */
+
+.info,
+.infoOn {
+    flex: none;
+    display: inline-grid;
+    place-items: center;
+    width: 20px;
+    height: 20px;
+    margin: 1px 0 0 6px;
+    padding: 0;
+    border-radius: 50%;
+    border: 1px solid var(--d-line-strong, #C9C0F8);
+    background: var(--card);
+    color: var(--d-link, var(--primary));
+    font: italic 700 12px/1 Georgia, 'Times New Roman', serif;
+    cursor: pointer;
+    vertical-align: 2px;
+    transition: all .2s var(--ease);
+}
+
+.info:hover,
+.infoOn {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: #FFFFFF;
+}
+
+.info:focus-visible {
+    outline: 3px solid #A68FFA;
+    outline-offset: 2px;
+}
+
+.cardHi .info {
+    background: rgb(255 255 255 / .1);
+    border-color: rgb(255 255 255 / .3);
+    color: #FFFFFF;
+}
+
+.pop {
+    position: fixed;
+    z-index: 400;
+    box-sizing: border-box;
+    padding: 16px 18px;
+    border-radius: 16px;
+    background: var(--d-card, #FFFFFF);
+    border: 1px solid var(--d-line-strong, #DCD5FB);
+    box-shadow: 0 20px 50px rgb(var(--d-shadow, 30 20 90) / .22);
+    font-size: 14px;
+    line-height: 1.55;
+    text-align: left;
+    color: var(--d-text, #3A3D57);
+    animation: pop .25s var(--ease);
+}
+
+.pop p {
+    margin: 4px 0 0;
+}
+
+.popTitle {
+    display: block;
+    font-size: 15px;
+    color: var(--d-ink, #0D0E24);
+}
+
+.popLabel {
+    display: block;
+    margin-top: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--d-link, var(--primary));
+}
+
+/* ---------- Mis je een test? (aanklikbare testen) ---------- */
+
+.addGrid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.add,
+.addOn {
+    position: relative;
+    min-width: 0;
+    border-radius: 20px;
+    background: var(--card);
+    border: 1px solid var(--line);
+    transition: all .2s var(--ease);
+}
+
+.add:hover {
+    border-color: var(--d-line-strong, #B9B0F7);
+    transform: translateY(-2px);
+    box-shadow: 0 12px 28px rgb(var(--d-shadow, 60 50 160) / .1);
+}
+
+.addOn {
+    border-color: var(--primary);
+    background: var(--tint);
+    box-shadow: 0 0 0 1px var(--primary) inset;
+}
+
+.addHit {
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    width: 100%;
+    height: 100%;
+    padding: 20px 20px 18px;
+    border: 0;
+    border-radius: 20px;
+    background: none;
+    text-align: left;
+    font: inherit;
+    color: inherit;
+}
+
+button.addHit {
+    cursor: pointer;
+}
+
+button.addHit:focus-visible {
+    outline: 3px solid #A68FFA;
+    outline-offset: 2px;
+}
+
+.addName {
+    padding-right: 28px;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--ink);
+}
+
+.addWhat {
+    flex: 1;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--muted);
+}
+
+.addFoot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.addPrice {
+    white-space: nowrap;
+    font-family: var(--font-inter-tight), var(--font-inter), system-ui, sans-serif;
+    font-size: 20px;
+    font-weight: 800;
+    letter-spacing: -.02em;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+}
+
+.addState {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 12px;
+    border-radius: 999px;
+    background: var(--tint);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--d-link, var(--primary));
+}
+
+.addOn .addState {
+    background: var(--primary);
+    color: #FFFFFF;
+}
+
+.addInfo {
+    position: absolute;
+    top: 18px;
+    right: 16px;
+}
+
+.stepper {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    padding: 3px;
+    border-radius: 999px;
+    background: var(--tint);
+    border: 1px solid var(--line);
+}
+
+.stepper button {
+    width: 28px;
+    height: 28px;
+    border: 0;
+    border-radius: 50%;
+    background: var(--card);
+    color: var(--ink);
+    font: 600 16px/1 var(--font-inter), system-ui, sans-serif;
+    cursor: pointer;
+}
+
+.stepper button:disabled {
+    opacity: .4;
+    cursor: default;
+}
+
+.stepper b {
+    min-width: 22px;
+    text-align: center;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Paneel "Jouw pakket" ---------- */
+
+.cartFab {
+    position: fixed;
+    right: max(20px, env(safe-area-inset-right, 0px));
+    bottom: max(20px, env(safe-area-inset-bottom, 0px));
+    z-index: 250;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 20px;
+    border: 0;
+    border-radius: 999px;
+    background: var(--deep);
+    color: #FFFFFF;
+    font: 600 15px/1 var(--font-inter), system-ui, sans-serif;
+    box-shadow: 0 16px 40px rgb(40 20 140 / .4);
+    cursor: pointer;
+    animation: pop .35s var(--ease);
+}
+
+.cartFab b {
+    padding-left: 10px;
+    border-left: 1px solid rgb(255 255 255 / .25);
+    font-variant-numeric: tabular-nums;
+}
+
+.backdrop,
+.backdropOn {
+    position: fixed;
+    inset: 0;
+    z-index: 300;
+    background: rgb(12 10 32 / .35);
+    backdrop-filter: blur(2px);
+    transition: opacity .3s var(--ease);
+}
+
+.backdrop {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.backdropOn {
+    opacity: 1;
+}
+
+.drawer,
+.drawerOn {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 310;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    width: min(440px, 100vw);
+    padding-top: env(safe-area-inset-top, 0px);
+    background: var(--d-page, #FBFBFE);
+    border-left: 1px solid var(--line);
+    box-shadow: -30px 0 80px rgb(var(--d-shadow, 30 20 90) / .2);
+    transition: transform .4s var(--ease), visibility .4s;
+}
+
+.drawer {
+    transform: translateX(100%);
+    visibility: hidden;
+}
+
+.drawerOn {
+    transform: none;
+    visibility: visible;
+}
+
+.drawerHead {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 26px 28px 18px;
+    border-bottom: 1px solid var(--line);
+}
+
+.drawerEyebrow {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--d-link, #5B4BEA);
+}
+
+.drawerTitle {
+    margin: 4px 0 0;
+    font-family: var(--font-inter-tight), var(--font-inter), system-ui, sans-serif;
+    font-size: 26px;
+    font-weight: 800;
+    letter-spacing: -.02em;
+    color: var(--ink);
+}
+
+.drawerClose {
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    border: 1px solid var(--line);
+    border-radius: 50%;
+    background: var(--card);
+    color: var(--ink);
+    cursor: pointer;
+}
+
+.drawerBody {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+    padding: 22px 28px;
+}
+
+.dGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.dLabel {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--muted);
+}
+
+.dPkgs {
+    display: flex;
+    gap: 6px;
+    padding: 4px;
+    border-radius: 14px;
+    background: var(--tint);
+    border: 1px solid var(--line);
+}
+
+.dPkg,
+.dPkgOn {
+    flex: 1;
+    padding: 10px 8px;
+    border: 0;
+    border-radius: 10px;
+    font: 600 14px/1 var(--font-inter), system-ui, sans-serif;
+    cursor: pointer;
+}
+
+.dPkg {
+    background: transparent;
+    color: var(--muted);
+}
+
+.dPkgOn {
+    background: var(--primary);
+    color: #FFFFFF;
+}
+
+.dSelect {
+    padding: 11px 12px;
+    border-radius: 12px;
+    border: 1px solid var(--line);
+    background: var(--card);
+    color: var(--ink);
+    font: 500 15px/1.2 var(--font-inter), system-ui, sans-serif;
+}
+
+.dLines {
+    display: flex;
+    flex-direction: column;
+    border-radius: 18px;
+    background: var(--card);
+    border: 1px solid var(--line);
+}
+
+.dLine {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 14px 16px;
+    border-top: 1px solid var(--line);
+    font-size: 15px;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+}
+
+.dLine:first-child {
+    border-top: 0;
+}
+
+.dRight {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    white-space: nowrap;
+}
+
+.dRemove {
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    border: 0;
+    border-radius: 50%;
+    background: var(--tint);
+    color: var(--muted);
+    cursor: pointer;
+}
+
+.dRemove svg {
+    width: 14px;
+    height: 14px;
+}
+
+.dIncluded {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin: 0;
+    padding: 0 16px 14px;
+    list-style: none;
+    font-size: 13.5px;
+    color: var(--muted);
+}
+
+.dIncluded li {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+}
+
+.dIncluded svg {
+    flex: none;
+    width: 14px;
+    height: 14px;
+    margin-top: 3px;
+    color: var(--ok);
+}
+
+.dAdd {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.dAddItem {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+}
+
+.dAddBtn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border: 1px dashed var(--d-line-strong, #C9C0F8);
+    border-radius: 12px;
+    background: transparent;
+    color: var(--ink);
+    font: 500 14px/1.3 var(--font-inter), system-ui, sans-serif;
+    text-align: left;
+    cursor: pointer;
+    transition: all .2s var(--ease);
+}
+
+.dAddBtn:hover {
+    border-style: solid;
+    background: var(--tint);
+}
+
+.dAddBtn svg {
+    flex: none;
+    color: var(--d-link, var(--primary));
+}
+
+.dAddPrice {
+    margin-left: auto;
+    font-weight: 600;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+}
+
+.drawerFoot {
+    padding: 18px 28px max(22px, env(safe-area-inset-bottom, 0px));
+    border-top: 1px solid var(--line);
+    background: var(--card);
+}
+
+.dTotal {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    color: var(--ink);
+    font-weight: 600;
+}
+
+.dTotal b {
+    font-family: var(--font-inter-tight), var(--font-inter), system-ui, sans-serif;
+    font-size: 34px;
+    font-weight: 800;
+    letter-spacing: -.03em;
+    font-variant-numeric: tabular-nums;
+    animation: pop .35s var(--ease);
+}
+
+.dVat {
+    margin: 4px 0 14px;
+    font-size: 13px;
+    color: var(--muted);
+}
+
+.dCta,
+.dCta2 {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    height: 50px;
+    border-radius: 999px;
+    font-size: 16px;
+    font-weight: 600;
+    transition: all .2s var(--ease);
+}
+
+.dCta {
+    background: var(--primary);
+    color: #FFFFFF;
+    box-shadow: 0 10px 24px rgb(75 60 240 / .3);
+}
+
+.dCta:hover {
+    background: var(--primary-hover);
+    color: #FFFFFF;
+}
+
+.dCta2 {
+    margin-top: 8px;
+    color: var(--d-link, var(--primary));
+}
+
+.list svg {
+    flex: none;
+    margin-top: 3px;
+    color: var(--d-link, var(--primary));
+}
+
+.cardHi .list svg {
+    color: #A68FFA;
+}
+
+.freeItem b {
+    color: var(--ok);
+}
+
+.cardHi .freeItem b {
+    color: #8EE3B6;
+}
+
+.includedBar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px 12px;
+    margin-top: 28px;
+    padding: 16px 20px;
+    border-radius: 18px;
+    background: var(--tint);
+    border: 1px solid var(--line);
+    font-size: 14px;
+}
+
+.includedTitle {
+    font-weight: 600;
+    color: var(--ink);
+}
+
+.chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: var(--card);
+    border: 1px solid var(--line);
+    color: var(--ink);
+}
+
+.chip svg {
+    color: var(--ok);
+}
+
+.maxNote {
+    margin-left: auto;
+    color: var(--muted);
+}
+
+/* ---------- Koppen van secties ---------- */
+
+.head {
+    max-width: 640px;
+    margin-bottom: 28px;
+}
+
+.h2 {
+    margin: 0;
+    font-family: var(--font-inter-tight), var(--font-inter), system-ui, sans-serif;
+    font-size: clamp(28px, 3.2vw, 40px);
+    font-weight: 800;
+    letter-spacing: -.03em;
+    line-height: 1.1;
+    color: var(--heading);
+    text-wrap: balance;
+}
+
+.sub {
+    margin: 14px 0 0;
+    font-size: 16px;
+    line-height: 1.6;
+    color: var(--muted);
+}
+
+/* ---------- Vergelijkingstabel ---------- */
+
+.tableWrap {
+    overflow-x: auto;
+    border-radius: 22px;
+    border: 1px solid var(--line);
+    background: var(--card);
+}
+
+.table {
+    width: 100%;
+    min-width: 620px;
+    border-collapse: collapse;
+    font-size: 15px;
+}
+
+.table th,
+.table td {
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--line);
+    text-align: left;
+    vertical-align: middle;
+}
+
+.table thead th {
+    position: sticky;
+    top: 0;
+    background: var(--tint);
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--ink);
+}
+
+.table thead th:not(:first-child),
+.cell {
+    width: 140px;
+    text-align: center !important;
+}
+
+.thHi {
+    color: var(--d-link, var(--primary)) !important;
+}
+
+.table tbody tr:last-child td {
+    border-bottom: 0;
+}
+
+.table tbody tr:hover td {
+    background: var(--tint);
+}
+
+.testName {
+    display: block;
+    font-weight: 600;
+    color: var(--ink);
+}
+
+.testWhat {
+    display: block;
+    margin-top: 2px;
+    font-size: 13.5px;
+    color: var(--muted);
+}
+
+.yes {
+    display: inline-grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--tint-2);
+    color: var(--d-link, var(--primary));
+}
+
+.no {
+    color: var(--muted);
+    opacity: .5;
+}
+
+.freeTag {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ok);
+}
+
+/* ---------- Rekenhulp schoolsite ---------- */
+
+.calc {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+    gap: 40px;
+    align-items: center;
+    padding: 40px;
+    border-radius: 28px;
+    background: var(--card);
+    border: 1px solid var(--line);
+}
+
+.calcText {
+    min-width: 0;
+}
+
+.steps {
+    display: grid;
+    gap: 0;
+    margin: 22px 0 0;
+    padding: 0;
+    list-style: none;
+    font-size: 15px;
+}
+
+.steps li {
+    display: flex;
+    justify-content: space-between;
+    padding: 9px 0;
+    border-bottom: 1px solid var(--line);
+    font-variant-numeric: tabular-nums;
+}
+
+.steps b {
+    color: var(--ink);
+}
+
+.calcBox {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    min-width: 0;
+    padding: 30px;
+    border-radius: 22px;
+    background: var(--tint);
+}
+
+.calcLabel {
+    display: flex;
+    justify-content: space-between;
+    font-weight: 600;
+    color: var(--ink);
+}
+
+.calcLabel b {
+    color: var(--d-link, var(--primary));
+    font-variant-numeric: tabular-nums;
+}
+
+.range {
+    width: 100%;
+    accent-color: var(--primary);
+}
+
+.toggle {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 15px;
+    color: var(--body);
+    cursor: pointer;
+}
+
+.toggle input {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--primary);
+}
+
+.calcTotal {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 4px 10px;
+    padding-top: 16px;
+    border-top: 1px solid var(--line);
+}
+
+.calcPrice {
+    font-family: var(--font-inter-tight), var(--font-inter), system-ui, sans-serif;
+    font-size: 48px;
+    font-weight: 800;
+    letter-spacing: -.035em;
+    line-height: 1;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Veelgestelde vragen ---------- */
+
+.faqGrid {
+    display: grid;
+    grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr);
+    gap: 48px;
+    align-items: start;
+}
+
+.faq {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.qa {
+    border-radius: 18px;
+    background: var(--card);
+    border: 1px solid var(--line);
+    transition: border-color .2s;
+}
+
+.qa[open] {
+    border-color: var(--d-line-strong, #B9B0F7);
+}
+
+.qa summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 18px 22px;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--ink);
+    cursor: pointer;
+    list-style: none;
+}
+
+.qa summary::-webkit-details-marker {
+    display: none;
+}
+
+.qa summary:focus-visible {
+    outline: 3px solid #A68FFA;
+    outline-offset: 2px;
+    border-radius: 18px;
+}
+
+.qa p {
+    margin: 0;
+    padding: 0 22px 20px;
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--muted);
+}
+
+.plus {
+    position: relative;
+    flex: none;
+    width: 14px;
+    height: 14px;
+}
+
+.plus::before,
+.plus::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 6px;
+    width: 14px;
+    height: 2px;
+    border-radius: 2px;
+    background: var(--d-link, var(--primary));
+    transition: transform .25s var(--ease);
+}
+
+.plus::after {
+    transform: rotate(90deg);
+}
+
+.qa[open] .plus::after {
+    transform: rotate(0deg);
+}
+
+/* ---------- Kleinere schermen ---------- */
+
+@media (max-width: 1180px) {
+    .addGrid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .cards {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        row-gap: 28px;
+    }
+
+    .cardHi {
+        transform: none;
+    }
+
+    .pitch {
+        min-height: 0;
+    }
+}
+
+@media (max-width: 700px) {
+    .cards {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+@media (max-width: 1000px) {
+
+    .cardHi {
+        transform: none;
+    }
+
+    .pitch {
+        min-height: 0;
+    }
+
+    .addGrid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .calc,
+    .faqGrid {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 28px;
+    }
+
+    .maxNote {
+        margin-left: 0;
+    }
+}
+
+@media (max-width: 560px) {
+    .inner {
+        padding: 0 16px;
+    }
+
+    .segment {
+        width: 100%;
+    }
+
+    .segBtn,
+    .segOn {
+        flex: 1;
+        padding: 11px 10px;
+        font-size: 14px;
+    }
+
+    .addGrid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .calc {
+        padding: 24px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+    .price,
+    .cardHi,
+    .cta,
+    .ctaHi,
+    .tierBtn {
+        animation: none;
+        transition: none;
+    }
+}
+
+/* ---------- Liquid glass ----------
+   Alle kaarten zijn half doorzichtig glas: achtergrondvervaging, een witte lichtrand bovenin, een zachte
+   glans over de bovenkant en een diepe schaduw. Achter de pakketten en de testen zweven paarse lichtvlekken
+   (.orbs), zodat het glas iets heeft om te breken. */
+
+.page {
+    --glass: rgb(var(--d-glass, 255 255 255) / .58);
+    --glass-strong: rgb(var(--d-glass, 255 255 255) / .78);
+    --glass-edge: rgba(255, 255, 255, .85);
+    --glass-edge-soft: rgba(255, 255, 255, .35);
+    --glass-sheen: linear-gradient(180deg, rgba(255, 255, 255, .7) 0%, rgba(255, 255, 255, 0) 100%);
+    --glass-shadow: 0 24px 60px -24px rgb(var(--d-shadow, 70 45 190) / .35), 0 2px 8px rgb(var(--d-shadow, 70 45 190) / .06);
+}
+
+:global(:root[data-theme='dark']) .page {
+    --glass: rgba(30, 25, 64, .55);
+    --glass-strong: rgba(34, 28, 72, .78);
+    --glass-edge: rgba(255, 255, 255, .16);
+    --glass-edge-soft: rgba(255, 255, 255, .06);
+    --glass-sheen: linear-gradient(180deg, rgba(255, 255, 255, .1) 0%, rgba(255, 255, 255, 0) 100%);
+    --glass-shadow: 0 24px 60px -24px rgba(0, 0, 0, .6), 0 2px 8px rgba(0, 0, 0, .2);
+}
+
+.stage {
+    position: relative;
+}
+
+.stage > :not(.orbs) {
+    position: relative;
+    z-index: 1;
+}
+
+.orbs {
+    position: absolute;
+    inset: -40px 0;
+    z-index: 0;
+    pointer-events: none;
+}
+
+.orbs i {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(60px);
+    opacity: .55;
+}
+
+.orbs i:nth-child(1) {
+    left: 4%;
+    top: 18%;
+    width: 340px;
+    height: 340px;
+    background: #B9A3FF;
+}
+
+.orbs i:nth-child(2) {
+    left: 42%;
+    top: 40%;
+    width: 300px;
+    height: 300px;
+    background: #8EC5FF;
+    opacity: .35;
+}
+
+.orbs i:nth-child(3) {
+    right: 2%;
+    top: 6%;
+    width: 380px;
+    height: 380px;
+    background: #D7B8FF;
+}
+
+:global(:root[data-theme='dark']) .orbs i {
+    opacity: .28;
+}
+
+.card,
+.add,
+.addOn,
+.extra,
+.includedBar,
+.tableWrap,
+.calc,
+.qa {
+    background: var(--glass);
+    border: 1px solid var(--glass-edge-soft);
+    box-shadow: var(--glass-shadow), inset 0 1px 0 var(--glass-edge), inset 0 0 0 1px var(--glass-edge-soft);
+    -webkit-backdrop-filter: blur(22px) saturate(180%);
+    backdrop-filter: blur(22px) saturate(180%);
+}
+
+.addOn {
+    background: var(--glass-strong);
+    border-color: var(--primary);
+    box-shadow: var(--glass-shadow), inset 0 1px 0 var(--glass-edge), inset 0 0 0 1px var(--primary);
+}
+
+.qa[open] {
+    border-color: var(--glass-edge);
+}
+
+/* Glans over de bovenkant van de pakketkaarten */
+.card::before,
+.cardHi::before,
+.cardCustom::before {
+    content: "";
+    position: absolute;
+    inset: 1px 1px auto;
+    height: 46%;
+    border-radius: 23px 23px 50% 50% / 23px 23px 18% 18%;
+    background: var(--glass-sheen);
+    opacity: .7;
+    pointer-events: none;
+}
+
+.card > *,
+.cardHi > *,
+.cardCustom > * {
+    position: relative;
+}
+
+.badge {
+    position: absolute !important;
+}
+
+.customWaves {
+    position: absolute !important;
+}
+
+.cardHi {
+    background: linear-gradient(160deg, rgba(58, 32, 160, .82) 0%, rgba(30, 18, 90, .86) 60%, rgba(22, 13, 66, .9) 100%);
+    border: 1px solid rgba(255, 255, 255, .18);
+    box-shadow: 0 30px 70px -20px rgba(40, 20, 140, .55), inset 0 1px 0 rgba(255, 255, 255, .35), inset 0 0 0 1px rgba(255, 255, 255, .08);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    backdrop-filter: blur(24px) saturate(180%);
+}
+
+.cardHi::before {
+    background: linear-gradient(180deg, rgba(255, 255, 255, .22) 0%, rgba(255, 255, 255, 0) 100%);
+}
+
+.cardCustom {
+    background:
+        linear-gradient(165deg, rgba(241, 236, 255, .72) 0%, rgba(228, 218, 255, .6) 60%, rgba(220, 208, 255, .72) 100%);
+    box-shadow: 0 24px 60px -22px rgba(106, 63, 240, .45), inset 0 1px 0 rgba(255, 255, 255, .9);
+    -webkit-backdrop-filter: blur(22px) saturate(180%);
+    backdrop-filter: blur(22px) saturate(180%);
+}
+
+:global(:root[data-theme='dark']) .cardCustom {
+    background: linear-gradient(165deg, rgba(52, 36, 120, .6) 0%, rgba(36, 26, 86, .55) 60%, rgba(48, 32, 112, .62) 100%);
+    box-shadow: 0 24px 60px -22px rgba(0, 0, 0, .6), inset 0 1px 0 rgba(255, 255, 255, .14);
+}
+
+.customPicks,
+.featIcon {
+    background: var(--glass-strong);
+    box-shadow: 0 8px 22px rgb(var(--d-shadow, 60 40 160) / .1), inset 0 1px 0 var(--glass-edge);
+    -webkit-backdrop-filter: blur(14px) saturate(170%);
+    backdrop-filter: blur(14px) saturate(170%);
+}
+
+.cta {
+    background: var(--glass-strong);
+    border: 1px solid var(--glass-edge-soft);
+    box-shadow: inset 0 1px 0 var(--glass-edge), 0 6px 16px -8px rgb(var(--d-shadow, 70 45 190) / .25);
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .card,
+    .add,
+    .addOn,
+    .includedBar,
+    .tableWrap,
+    .calc,
+    .qa {
+        background: var(--card);
+    }
+}
+
+/* Tip in het paneel: een vast pakket is voordeliger dan de losse testen */
+.dDeal {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 0 12px 12px;
+    padding: 14px 16px;
+    border-radius: 14px;
+    background: linear-gradient(160deg, rgba(31, 138, 91, .12), rgba(31, 138, 91, .05));
+    border: 1px solid rgba(31, 138, 91, .3);
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--body);
+}
+
+.dDeal p {
+    margin: 0;
+}
+
+.dDeal b {
+    color: var(--ok);
+}
+
+.dDeal button {
+    align-self: flex-start;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 14px;
+    border: 0;
+    border-radius: 999px;
+    background: var(--ok);
+    color: #FFFFFF;
+    font: 600 14px/1 var(--font-inter), system-ui, sans-serif;
+    cursor: pointer;
+}
+
+:global(:root[data-theme='dark']) .dDeal button {
+    color: #0E0C20;
+}
+
+/* Strook "Alleen Skills nodig?" onder de pakketten: los product, in glas */
+.solo {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto auto;
+    align-items: center;
+    gap: 18px 22px;
+    margin-top: 20px;
+    padding: 18px 22px;
+    border-radius: 22px;
+    background: var(--glass);
+    border: 1px solid var(--glass-edge-soft);
+    box-shadow: var(--glass-shadow), inset 0 1px 0 var(--glass-edge), inset 0 0 0 1px var(--glass-edge-soft);
+    -webkit-backdrop-filter: blur(22px) saturate(180%);
+    backdrop-filter: blur(22px) saturate(180%);
+}
+
+.soloIcon {
+    display: grid;
+    place-items: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    background: linear-gradient(150deg, #8A63F8 0%, #5B30E6 100%);
+    color: #FFFFFF;
+    box-shadow: 0 8px 20px rgb(91 48 230 / .3), inset 0 1px 0 rgb(255 255 255 / .35);
+}
+
+.soloText {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--muted);
+}
+
+.soloText b {
+    display: flex;
+    align-items: center;
+    font-size: 17px;
+    color: var(--ink);
+}
+
+.soloPrice {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    font-size: 13px;
+    color: var(--muted);
+    white-space: nowrap;
+}
+
+.soloPrice b {
+    font-family: var(--font-inter-tight), var(--font-inter), system-ui, sans-serif;
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: -.03em;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+    animation: pop .45s var(--ease);
+}
+
+.soloCta {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 20px;
+    border: 1px solid var(--glass-edge-soft);
+    border-radius: 999px;
+    background: var(--glass-strong);
+    color: var(--d-link, var(--primary));
+    font: 600 15px/1 var(--font-inter), system-ui, sans-serif;
+    box-shadow: inset 0 1px 0 var(--glass-edge), 0 6px 16px -8px rgb(var(--d-shadow, 70 45 190) / .25);
+    white-space: nowrap;
+    cursor: pointer;
+    transition: transform .25s var(--ease);
+}
+
+.soloCta:hover {
+    transform: translateY(-2px);
+}
+
+.soloCta:focus-visible {
+    outline: 3px solid #A68FFA;
+    outline-offset: 2px;
+}
+
+.dNote {
+    margin: 0;
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: var(--tint);
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--muted);
+}
+
+@media (max-width: 760px) {
+    .solo {
+        grid-template-columns: auto minmax(0, 1fr);
+    }
+
+    .soloPrice {
+        align-items: flex-start;
+    }
+}
+
+.personal {
+    margin: -40px auto 0;
+    padding: 0 24px;
+    text-align: center;
+    font-size: 15px;
+    color: var(--muted);
+}

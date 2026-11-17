@@ -1,16 +1,12 @@
 import type { Metadata } from "next";
-import PriceConfigurator from "@/components/PriceConfigurator";
-import PriceTerms from "@/components/PriceTerms";
-import { contactUrl, SIGNUP_URL } from "@/lib/app-links";
-import { getPricing } from "@/lib/pricing";
-import "./prijzen.css";
+import Pricing from "@/components/Pricing";
 
-// Prijzen: een configurator. Vier vragen stellen een pakket uit Helios samen, daarna kies je eventueel een ander pakket
-// en voeg je toe wat je nog nodig hebt (PriceConfigurator). Alle pakketten en prijzen komen uit Helios; lukt het
-// ophalen niet, dan staat er "neem contact op".
+// Prijzen: de pakketten met staffels per aantal cliënten of leerlingen, een eigen pakket, Alleen Skills en wat je
+// erbij koopt. Kies je een pakket, dan opent rechts "Jouw pakket" met het totaal. De prijzen staan in lib/pricing.ts.
 
 const TITLE = "Prijzen – Helios";
-const DESCRIPTION = "Stel je Helios-pakket samen: beantwoord vier vragen, krijg een pakket met prijs en voeg toe wat je nog nodig hebt.";
+const DESCRIPTION =
+  "Bekijk de pakketten en prijzen van Helios voor loopbaan, re-integratie en onderwijs. Kies je aantal cliënten of leerlingen en zie meteen wat het kost.";
 
 export const metadata: Metadata = {
   title: TITLE,
@@ -18,30 +14,6 @@ export const metadata: Metadata = {
   openGraph: { title: TITLE, description: DESCRIPTION },
 };
 
-export default async function PricingPage() {
-  const data = await getPricing();
-
-  return (
-    <main className="prc">
-      {data && data.packages.length > 0 ? (
-        <>
-          <PriceConfigurator data={data} />
-          <PriceTerms data={data} />
-        </>
-      ) : (
-        <header className="prc-head">
-          <h1 className="prc-title">
-            Stel jouw <span>Helios-pakket</span> samen
-          </h1>
-          <p className="prc-empty">
-            De pakketten staan hier binnenkort. Wil je nu al een pakket op maat? <a href={contactUrl("offerte")}>Neem contact op</a>.
-          </p>
-        </header>
-      )}
-
-      <p className="prc-personal">
-        Ben je cliënt of leerling en wil je zelf testen doen? <a href={SIGNUP_URL}>Maak een gratis account</a>.
-      </p>
-    </main>
-  );
+export default function PricingPage() {
+  return <Pricing />;
 }
