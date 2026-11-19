@@ -1,7 +1,8 @@
 import type { ReactNode } from "react";
+import StudiekeuzetestButton from "@/components/StudiekeuzetestButton";
 import Icon from "./Icon";
 
-// Bouwstenen voor Over ons, Voor professionals en Voor scholen (stijlen in app/pages.css).
+// Bouwstenen voor Over ons, Voor professionals, Voor scholen en de productpagina's (stijlen in app/pages.css).
 
 export function Eyebrow({ children, center }: { children: ReactNode; center?: boolean }) {
   return <p className={`pg-eyebrow${center ? " is-center" : ""}`}>{children}</p>;
@@ -17,6 +18,16 @@ export function PrimaryButton({ href, children, arrow = true }: { href: string; 
       {children}
       {arrow && <Icon name="arrow" size={20} stroke={2.2} />}
     </a>
+  );
+}
+
+/** Opent de gratis Studiekeuzetest over het hele scherm (de pagina moet StudiekeuzetestEmbed bevatten). */
+export function TestButton({ children }: { children: ReactNode }) {
+  return (
+    <StudiekeuzetestButton className="pg-btn pg-btn-primary">
+      {children}
+      <Icon name="arrow" size={20} stroke={2.2} />
+    </StudiekeuzetestButton>
   );
 }
 
@@ -65,7 +76,7 @@ export function CtaBand({
   eyebrow: string;
   title: ReactNode;
   text: ReactNode;
-  primary: { label: string; href: string };
+  primary: { label: string; href: string; test?: boolean };
   secondary: { label: string; href: string };
   features?: { icon: string; label: string }[];
   boxed?: boolean;
@@ -93,7 +104,7 @@ export function CtaBand({
           <h2 className="pg-h2 pg-band-title">{title}</h2>
           <p className="pg-lead pg-band-text">{text}</p>
           <div className="pg-actions is-center">
-            <PrimaryButton href={primary.href}>{primary.label}</PrimaryButton>
+            {primary.test ? <TestButton>{primary.label}</TestButton> : <PrimaryButton href={primary.href}>{primary.label}</PrimaryButton>}
             <SecondaryButton href={secondary.href}>{secondary.label}</SecondaryButton>
           </div>
           {features && (

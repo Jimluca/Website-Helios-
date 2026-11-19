@@ -1,0 +1,485 @@
+/* Beelden op Helios Coach (CoachArt.tsx): Helios zelf, dus alleen tinten paars. Licht en donker via de
+   --d-*-variabelen; het glas komt van .glass-card (globals.css). */
+
+/* ---------- Hero ---------- */
+
+/* Onderruimte zo dat de to-do linksonder alleen de onderrand van het venster overlapt */
+.visual {
+    position: relative;
+    padding: 64px 40px 120px 48px;
+}
+
+.glow {
+    position: absolute;
+    inset: 10% 5% 15%;
+    border-radius: 50%;
+    background: radial-gradient(closest-side, rgb(150 125 255 / .3), rgb(123 92 240 / .14) 55%, transparent);
+    filter: blur(30px);
+}
+
+:global(:root[data-theme='dark']) .glow {
+    display: none;
+}
+
+.window {
+    position: relative;
+    padding: 24px 26px 26px;
+    border-radius: 24px;
+}
+
+.window:hover {
+    transform: none;
+}
+
+.head {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.avatar {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    font-size: 15px;
+    font-weight: 700;
+    color: #FFFFFF;
+    background: linear-gradient(180deg, #8C6CF6, #5B2EE0);
+}
+
+.who {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+}
+
+.who b {
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--d-ink, #14152B);
+}
+
+.who span {
+    font-size: 13px;
+    color: var(--d-muted, #6B6E8A);
+}
+
+.status {
+    margin-left: auto;
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--d-link, #4B2BF0);
+    background: rgb(104 76 230 / .12);
+}
+
+:global(:root[data-theme='dark']) .status {
+    color: #D6CCFF;
+    background: rgb(179 166 255 / .16);
+}
+
+.actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 18px;
+}
+
+.btn,
+.btnPrimary {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 14px;
+    border-radius: 999px;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--d-link, #4B2BF0);
+    border: 1px solid rgb(104 76 230 / .3);
+}
+
+.btnPrimary {
+    color: #FFFFFF;
+    background: linear-gradient(180deg, #7A55F0, #5B2EE0);
+    border-color: transparent;
+}
+
+:global(:root[data-theme='dark']) .btn {
+    color: #E4DDFF;
+}
+
+.label {
+    margin: 22px 0 10px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--d-link, #4B2BF0);
+}
+
+.tests {
+    display: grid;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.tests li {
+    display: grid;
+    grid-template-columns: minmax(0, 150px) minmax(0, 1fr) 92px;
+    align-items: center;
+    gap: 14px;
+    padding: 11px 14px;
+    border-radius: 12px;
+    font-size: 14px;
+    background: rgb(104 76 230 / .05);
+}
+
+:global(:root[data-theme='dark']) .tests li {
+    background: rgb(255 255 255 / .04);
+}
+
+.testName {
+    font-weight: 600;
+    color: var(--d-ink, #14152B);
+}
+
+.bar {
+    height: 7px;
+    border-radius: 999px;
+    overflow: hidden;
+    background: rgb(104 76 230 / .14);
+}
+
+.bar > span {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #A68FFA, #5B2EE0);
+}
+
+.state,
+.done {
+    font-size: 12.5px;
+    font-weight: 600;
+    text-align: right;
+    color: var(--d-muted, #6B6E8A);
+}
+
+.done {
+    color: var(--d-link, #4B2BF0);
+}
+
+.feedback {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 14px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-intro);
+    border: 1px dashed rgb(104 76 230 / .3);
+}
+
+.feedback svg {
+    color: var(--d-link, #4B2BF0);
+}
+
+.feedback b {
+    margin-left: auto;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--d-ink, #14152B);
+}
+
+/* Zwevende kaarten in Helios-glas */
+.float {
+    position: absolute;
+    box-sizing: border-box;
+    padding: 16px 18px;
+    border-radius: 20px;
+    background: linear-gradient(180deg, rgb(var(--d-glass, 255 255 255) / .9) 0%, rgb(var(--d-glass, 255 255 255) / .76) 100%);
+    border: 1px solid var(--d-glass-line, rgba(255, 255, 255, .95));
+    box-shadow: inset 0 1px 1px rgb(255 255 255 / .7), 0 24px 50px -22px rgb(60 30 170 / .45);
+    -webkit-backdrop-filter: blur(18px) saturate(170%);
+    backdrop-filter: blur(18px) saturate(170%);
+    animation: float 7s ease-in-out infinite;
+}
+
+:global(:root[data-theme='dark']) .float {
+    background: linear-gradient(180deg, rgb(40 34 82 / .9) 0%, rgb(27 23 54 / .84) 100%);
+    border-color: rgb(255 255 255 / .12);
+    box-shadow: none;
+}
+
+@keyframes float {
+    50% {
+        transform: translateY(-8px);
+    }
+}
+
+.matches {
+    top: 0;
+    right: 0;
+    width: 260px;
+}
+
+.todo {
+    bottom: 24px;
+    left: 0;
+    width: 290px;
+    animation-delay: -3.5s;
+}
+
+.floatHead {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0 0 12px;
+    font-size: 14.5px;
+    font-weight: 600;
+    color: var(--d-ink, #14152B);
+}
+
+.floatIcon {
+    display: grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 10px;
+    color: #FFFFFF;
+    background: linear-gradient(180deg, #7A55F0, #5B2EE0);
+}
+
+.count {
+    margin-left: auto;
+    display: grid;
+    place-items: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    font-size: 12px;
+    font-weight: 700;
+    color: #FFFFFF;
+    background: #6639EC;
+}
+
+.matchList,
+.todoList {
+    display: grid;
+    gap: 9px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.matchList li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    font-size: 13.5px;
+    color: var(--text-intro);
+}
+
+.matchList b {
+    font-weight: 700;
+    color: var(--d-link, #4B2BF0);
+}
+
+:global(:root[data-theme='dark']) .matchList b {
+    color: #C4B5FD;
+}
+
+.todoList li {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    font-size: 13px;
+    color: var(--text-intro);
+}
+
+.todoList svg {
+    flex: none;
+    color: var(--d-link, #4B2BF0);
+}
+
+/* ---------- Beroep uit de uitslag ---------- */
+
+.panel {
+    padding: 26px 28px 28px;
+    border-radius: 28px;
+}
+
+.panelHead {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.panelHead > span:nth-child(2) {
+    display: grid;
+    gap: 2px;
+}
+
+.panelHead b {
+    font-family: var(--font-inter-tight), sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--d-ink, #14152B);
+}
+
+.panelHead > span:nth-child(2) span {
+    font-size: 13.5px;
+    color: var(--d-muted, #6B6E8A);
+}
+
+.panelIcon {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 15px;
+    color: #FFFFFF;
+    background: linear-gradient(180deg, #8C6CF6, #5B2EE0);
+}
+
+.pct {
+    margin-left: auto;
+    font-family: var(--font-inter-tight), sans-serif;
+    font-size: 26px;
+    font-weight: 800;
+    color: var(--d-link, #4B2BF0);
+}
+
+:global(:root[data-theme='dark']) .pct {
+    color: #C4B5FD;
+}
+
+.why {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin: 18px 0 0;
+    padding: 12px 14px;
+    border-radius: 12px;
+    font-size: 14px;
+    line-height: 1.45;
+    color: var(--text-intro);
+    background: rgb(104 76 230 / .06);
+}
+
+:global(:root[data-theme='dark']) .why {
+    background: rgb(255 255 255 / .05);
+}
+
+.why svg {
+    flex: none;
+    margin-top: 2px;
+    color: var(--d-link, #4B2BF0);
+}
+
+.facts {
+    display: grid;
+    margin: 14px 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.facts li {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 11px 2px;
+    font-size: 14.5px;
+    color: var(--text-intro);
+    border-top: 1px solid var(--d-line, #E7E4F5);
+}
+
+.facts svg {
+    flex: none;
+    color: var(--d-link, #4B2BF0);
+}
+
+.facts b {
+    margin-left: auto;
+    font-weight: 600;
+    text-align: right;
+    color: var(--d-ink, #14152B);
+}
+
+.compare {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 14px;
+    padding: 11px;
+    border-radius: 999px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--d-link, #4B2BF0);
+    border: 1px solid rgb(104 76 230 / .3);
+}
+
+:global(:root[data-theme='dark']) .compare {
+    color: #E4DDFF;
+}
+
+/* ---------- Kleinere schermen ---------- */
+
+@media (max-width: 1099px) {
+    .visual {
+        width: 100%;
+        max-width: 640px;
+        margin: 0 auto;
+        box-sizing: border-box;
+    }
+}
+
+@media (max-width: 640px) {
+    /* Op een telefoon staan de kaarten onder elkaar in plaats van over het venster */
+    .visual {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        padding: 0;
+    }
+
+    .float {
+        position: static;
+        width: 100%;
+        animation: none;
+    }
+
+    .window {
+        padding: 20px 18px 20px;
+    }
+
+    .tests li {
+        grid-template-columns: minmax(0, 1fr) 80px;
+    }
+
+    .bar {
+        grid-column: 1 / -1;
+        grid-row: 2;
+    }
+
+    .panel {
+        padding: 22px 18px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .float {
+        animation: none;
+    }
+}

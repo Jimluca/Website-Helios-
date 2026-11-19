@@ -2,18 +2,17 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { CONTACT_URL, LOGIN_URL } from "@/lib/app-links";
 import ThemeToggle from "./ThemeToggle";
 
 type Item = { label: string; href: string; menu?: boolean; wide?: boolean; devOnly?: boolean };
 
 const ALL_ITEMS: Item[] = [
-  // Product (met het uitklapmenu PRODUCTS) staat er voorlopig niet in; terugzetten met deze regel.
-  // { label: "Product", href: "/#producten", menu: true },
+  // Opent het uitklapmenu met de vier instrumenten (PRODUCTS); de link zelf gaat naar de productkaarten op de home.
+  { label: "Instrumenten", href: "/#producten", menu: true },
   { label: "Voor scholen", href: "/voor-scholen" },
   { label: "Voor professionals", href: "/voor-professionals" },
-  { label: "Helios Connect", href: "/helios-connect" },
   { label: "Over Helios", href: "/over-ons" },
   { label: "Prijzen", href: "/prijzen" },
   { label: "Contact", href: CONTACT_URL },
@@ -25,8 +24,8 @@ const HAS_MENU = ITEMS.some((it) => it.menu);
 const PRODUCTS = [
   {
     title: "Helios Coach",
-    sub: "Voor loopbaanprofessionals en re-integratie",
-    href: "/#product-coach",
+    sub: "Loopbaanbegeleiding voor leerlingen, studenten en volwassenen",
+    href: "/helios-coach",
     tint: "#3E17B4",
     icon: (
       <>
@@ -37,8 +36,8 @@ const PRODUCTS = [
   },
   {
     title: "Helios Next",
-    sub: "Voor studiekeuze in vo, mbo en hbo",
-    href: "/#product-next",
+    sub: "De gratis studiekeuzetest: welke opleiding past bij jou?",
+    href: "/helios-next",
     tint: "#5A2FE4",
     icon: (
       <>
@@ -49,7 +48,7 @@ const PRODUCTS = [
   },
   {
     title: "Helios Horizon",
-    sub: "Voor LOB en burgerschap",
+    sub: "LOB en burgerschap in de klas, met een doorlopende leerlijn",
     href: "/#product-horizon",
     tint: "#7B5CF0",
     icon: (
@@ -62,7 +61,7 @@ const PRODUCTS = [
   },
   {
     title: "Helios Connect",
-    sub: "Voor werving in mbo, hbo en wo",
+    sub: "De studiekeuzetest op je eigen website, met leads in je CRM",
     href: "/helios-connect",
     tint: "#977EF6",
     icon: (
@@ -73,6 +72,14 @@ const PRODUCTS = [
     ),
   },
 ];
+
+function ProductIcon({ icon }: { icon: ReactNode }) {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      {icon}
+    </svg>
+  );
+}
 
 function Arrow({ size }: { size: number }) {
   return (
@@ -94,7 +101,8 @@ function Arrow({ size }: { size: number }) {
 }
 
 // Menubalk in liquid glass-stijl: vast bovenaan, wordt compacter bij scrollen. Een glijdende pil volgt
-// het menu-item onder de muis; een item met menu (Product, nu uit) opent een uitklapmenu. Onder 1200px een hamburgermenu.
+// het menu-item onder de muis; Instrumenten opent een uitklapmenu met de vier instrumenten. Onder 1200px een
+// hamburgermenu, met de instrumenten als groep bovenaan.
 export default function Header() {
   const [scrolled, setScrolled] = useState(false);
   const [hover, setHover] = useState(-1);
@@ -194,18 +202,7 @@ export default function Header() {
               {PRODUCTS.map((p) => (
                 <a key={p.title} className="hdr-product" href={p.href} tabIndex={menuOpen ? 0 : -1}>
                   <span className="hdr-product-tile" style={{ "--tint": p.tint } as CSSProperties} aria-hidden="true">
-                    <svg
-                      width="22"
-                      height="22"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      {p.icon}
-                    </svg>
+                    <ProductIcon icon={p.icon} />
                   </span>
                   <span className="hdr-product-text">
                     <span className="hdr-product-title">{p.title}</span>
@@ -245,11 +242,28 @@ export default function Header() {
           </svg>
         </button>
         <div className={`hdr-mobile${mobileOpen ? " is-open" : ""}`}>
-          {ITEMS.map((it) => (
-            <a key={it.label} className="hdr-mobile-link" href={it.href} tabIndex={mobileOpen ? 0 : -1} onClick={() => setMobileOpen(false)}>
-              {it.label}
-            </a>
-          ))}
+          {ITEMS.map((it) =>
+            it.menu ? (
+              <div key={it.label} className="hdr-mobile-group">
+                <span className="hdr-mobile-heading">{it.label}</span>
+                {PRODUCTS.map((p) => (
+                  <a key={p.title} className="hdr-mobile-product" href={p.href} tabIndex={mobileOpen ? 0 : -1} onClick={() => setMobileOpen(false)}>
+                    <span className="hdr-product-tile" style={{ "--tint": p.tint } as CSSProperties} aria-hidden="true">
+                      <ProductIcon icon={p.icon} />
+                    </span>
+                    <span className="hdr-product-text">
+                      <span className="hdr-product-title">{p.title}</span>
+                      <span className="hdr-product-sub">{p.sub}</span>
+                    </span>
+                  </a>
+                ))}
+              </div>
+            ) : (
+              <a key={it.label} className="hdr-mobile-link" href={it.href} tabIndex={mobileOpen ? 0 : -1} onClick={() => setMobileOpen(false)}>
+                {it.label}
+              </a>
+            ),
+          )}
           <div className="hdr-mobile-actions">
             <a className="hdr-mobile-login" href={LOGIN_URL} tabIndex={mobileOpen ? 0 : -1}>
               Inloggen

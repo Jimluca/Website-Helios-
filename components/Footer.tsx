@@ -10,10 +10,10 @@ const COLUMNS = [
     links: [
       { label: "Hoe het werkt", href: "/#hoe-het-werkt" },
       { label: "Testen", href: "/voor-scholen#testen" },
-      { label: "Resultaten", href: "/#resultaat" },
-      { label: "Begeleiding", href: "/voor-professionals" },
       { label: "Voor scholen", href: "/voor-scholen" },
       { label: "Voor organisaties", href: "/voor-professionals" },
+      { label: "Helios Next", href: "/helios-next" },
+      { label: "Helios Coach", href: "/helios-coach" },
       { label: "Helios Connect", href: "/helios-connect" },
       { label: "Prijzen", href: "/prijzen" },
     ],

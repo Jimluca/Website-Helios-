@@ -22,8 +22,22 @@ const HERO_CHECKS = [
 ];
 
 const PRODUCTS = [
-  { icon: "compass", title: "Helios Coach", sub: ["Inzicht in talenten,", "interesses en drijfveren."], items: ["Talenten- en interessetesten", "Loopbaanwaarden", "Persoonlijk advies"] },
-  { icon: "cap", title: "Helios Next", sub: ["Oriëntatie op opleidingen", "en vervolgonderwijs."], items: ["Opleidingen swiper", "Zoek per school", "Filter op sector"] },
+  {
+    icon: "compass",
+    title: "Helios Coach",
+    sub: ["Inzicht in talenten,", "interesses en drijfveren."],
+    items: ["Talenten- en interessetesten", "Loopbaanwaarden", "Persoonlijk advies"],
+    href: "/helios-coach",
+    link: "Bekijk Helios Coach",
+  },
+  {
+    icon: "cap",
+    title: "Helios Next",
+    sub: ["Oriëntatie op opleidingen", "en vervolgonderwijs."],
+    items: ["Opleidingen swiper", "Zoek per school", "Filter op sector"],
+    href: "/helios-next",
+    link: "Bekijk Helios Next",
+  },
   { icon: "chart", title: "Helios Horizon", sub: ["Verken beroepen", "en arbeidsmarkt."], items: ["Beroepen explorer", "Sectoren en trends", "Koppeling met vaardigheden"] },
   {
     icon: "link",

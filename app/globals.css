@@ -3481,7 +3481,7 @@ a:hover {
 /* Net boven het hamburgermenu: de items iets dichter op elkaar, zodat de balk niet tegen de rand komt. */
 @media (min-width: 1200px) and (max-width: 1299px) {
     .hdr-link {
-        padding: 0 12px;
+        padding: 0 10px;
     }
 }
 
@@ -3531,6 +3531,9 @@ a:hover {
         right: 0;
         top: calc(100% + 10px);
         box-sizing: border-box;
+        /* Past altijd op het scherm; anders scrolt het menu zelf. */
+        max-height: calc(100dvh - 110px);
+        overflow-y: auto;
         padding: 10px;
         border-radius: 26px;
         display: flex;
@@ -3567,6 +3570,52 @@ a:hover {
     .hdr-mobile-link:hover {
         background: rgb(var(--d-glass, 255 255 255) / .9);
         color: var(--d-ink, #1C1A4A);
+    }
+
+    /* Instrumenten: kopje met de vier instrumenten, met een lijn eronder */
+    .hdr-mobile-group {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        margin-bottom: 6px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid var(--d-line, #ECEAF7);
+    }
+
+    .hdr-mobile-heading {
+        padding: 8px 16px 4px;
+        font-size: 12.5px;
+        font-weight: 700;
+        letter-spacing: .14em;
+        text-transform: uppercase;
+        color: var(--d-link, #4B2BF0);
+    }
+
+    .hdr-mobile-product {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 9px 12px;
+        border-radius: 14px;
+    }
+
+    .hdr-mobile-product:hover {
+        background: rgb(var(--d-glass, 255 255 255) / .9);
+    }
+
+    .hdr-mobile-product .hdr-product-tile {
+        width: 38px;
+        height: 38px;
+        border-radius: 11px;
+    }
+
+    .hdr-mobile-product .hdr-product-title {
+        font-size: 15.5px;
+    }
+
+    .hdr-mobile-product .hdr-product-sub {
+        font-size: 13px;
+        line-height: 17px;
     }
 
     .hdr-mobile-actions {

@@ -31,5 +31,6 @@ export function contactUrl(topic?: ContactTopic, about?: string, message?: strin
 export const CONTACT_URL = contactUrl("vraag");
 export const DEMO_URL = contactUrl("demo");
 export const CONNECT_DEMO_URL = contactUrl("demo", "Helios Connect");
+export const COACH_DEMO_URL = contactUrl("demo", "Helios Coach");
 // Meer informatie over een onderdeel, bijv. moreInfoUrl("Beroepentest").
 export const moreInfoUrl = (topic: string) => contactUrl("info", topic);

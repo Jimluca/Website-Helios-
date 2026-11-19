@@ -411,17 +411,15 @@ export default function HeliosConnectPage() {
               </article>
             ))}
           </div>
-          <ul className="cn-more">
+          <div className="cn-insights">
             {MORE.map((m) => (
-              <li key={m.title}>
-                <IconBadge name={m.icon} size="sm" />
-                <span>
-                  <span className="pg-card-title">{m.title}</span>
-                  <span className="pg-card-text">{m.text}</span>
-                </span>
-              </li>
+              <article key={m.title} className="cn-insight glass-card">
+                <IconBadge name={m.icon} size="lg" />
+                <h3 className="pg-card-title">{m.title}</h3>
+                <p className="pg-card-text">{m.text}</p>
+              </article>
             ))}
-          </ul>
+          </div>
         </div>
       </section>
 
@@ -436,17 +434,15 @@ export default function HeliosConnectPage() {
             Jullie zijn verantwoordelijk voor de gegevens van studiekiezers, Helios verwerkt ze in jullie opdracht. Daar hoort een test bij die het jullie
             makkelijk maakt.
           </p>
-          <ul className="cn-more cn-facts">
+          <div className="cn-cards-3">
             {PRIVACY.map((m) => (
-              <li key={m.title}>
-                <IconBadge name={m.icon} size="sm" />
-                <span>
-                  <span className="pg-card-title">{m.title}</span>
-                  <span className="pg-card-text">{m.text}</span>
-                </span>
-              </li>
+              <article key={m.title} className="cn-insight glass-card">
+                <IconBadge name={m.icon} size="lg" />
+                <h3 className="pg-card-title">{m.title}</h3>
+                <p className="pg-card-text">{m.text}</p>
+              </article>
             ))}
-          </ul>
+          </div>
         </div>
       </section>
 

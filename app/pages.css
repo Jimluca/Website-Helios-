@@ -2577,7 +2577,7 @@
 
 /* ---------- Helios Connect (app/helios-connect) ----------
    Zelfde bouwstenen als Voor scholen: glazen kaarten, .pg-icon-tegels, .pg-checks en de fase-nummers. De
-   voorbeeldbeelden hebben eigen CSS-modules (components/connect). */
+   voorbeeldbeelden hebben eigen CSS-modules (components/connect). Helios Coach gebruikt de "cn-"-blokken ook. */
 
 @media (min-width: 1100px) {
     .cn-hero .pg-hero-grid {
@@ -2784,45 +2784,12 @@
     font-size: 15.5px;
 }
 
-.cn-more {
+/* Drie kaarten naast elkaar (privacy, begeleiden); vier kaarten: .cn-insights */
+.cn-cards-3 {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 28px;
-    margin: 48px 0 0;
-    padding: 36px 0 0;
-    border-top: 1px solid var(--d-line, #E7E4F5);
-    list-style: none;
-}
-
-.cn-more li {
-    display: flex;
-    align-items: flex-start;
-    gap: 14px;
-}
-
-.cn-more .pg-card-title,
-.cn-more .pg-card-text {
-    display: block;
-}
-
-.cn-more .pg-card-title {
-    font-size: 16.5px;
-}
-
-/* Privacy: zes punten in drie kolommen, zonder lijn erboven */
-.cn-facts {
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 36px 40px;
-    max-width: 1180px;
-    margin: 52px auto 0;
-    padding: 0;
-    border-top: 0;
-}
-
-.cn-faq a {
-    color: var(--d-link, #4B2BF0);
-    text-decoration: underline;
-    text-underline-offset: 2px;
+    gap: 24px;
+    margin-top: 52px;
 }
 
 /* Veelgestelde vragen: uitklapbare glazen kaarten (tillen niet op bij hover) */
@@ -2899,8 +2866,7 @@
         margin-right: auto;
     }
 
-    .cn-more,
-    .cn-facts {
+    .cn-cards-3 {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 }
@@ -2929,8 +2895,7 @@
 
     .cn-insights,
     .cn-integrations,
-    .cn-more,
-    .cn-facts {
+    .cn-cards-3 {
         grid-template-columns: minmax(0, 1fr);
         gap: 20px;
     }
@@ -2946,6 +2911,75 @@
 
     .cn-faq-item summary {
         font-size: 16.5px;
+    }
+}
+
+/* ---------- Helios Coach (app/helios-coach) ----------
+   Gebruikt ook de gedeelde "cn-"-blokken hierboven (stappen, kaarten, punten, vragen). */
+
+/* Voor wie: drie kaarten (decaan, loopbaanbegeleider, loopbaancoach) */
+.co-audiences {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 30px;
+    margin-top: 52px;
+}
+
+/* Testen: drie groepen (studie, beroep, persoon en werk) */
+.co-tests {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 30px;
+    margin-top: 52px;
+}
+
+.co-test-group {
+    padding: 28px 30px 30px;
+    border-radius: 28px;
+}
+
+.co-test-head {
+    margin: 0;
+}
+
+.co-test-list {
+    display: grid;
+    gap: 16px;
+    margin: 22px 0 0;
+    padding: 22px 0 0;
+    border-top: 1px solid var(--d-line, #E7E4F5);
+    list-style: none;
+}
+
+.co-test-list li {
+    display: grid;
+    gap: 2px;
+}
+
+.co-test-name {
+    font-size: 15.5px;
+    font-weight: 600;
+    color: var(--d-ink, #14152B);
+}
+
+.co-test-list .pg-card-text {
+    margin: 0;
+}
+
+@media (max-width: 1099px) {
+    .co-audiences,
+    .co-tests {
+        grid-template-columns: minmax(0, 1fr);
+        max-width: 620px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+}
+
+@media (max-width: 699px) {
+    .co-test-group {
+        padding: 24px 22px 26px;
     }
 }
 
