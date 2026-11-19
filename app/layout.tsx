@@ -27,7 +27,7 @@ export const metadata: Metadata = {
 };
 
 // Licht of donker al vóór de eerste weergave: de eigen keuze (localStorage), anders die van het apparaat.
-const THEME_SCRIPT = `(function(){try{var t=localStorage.getItem("helios-theme");if(t!=="dark"&&t!=="light")t=matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";document.documentElement.setAttribute("data-theme",t)}catch(e){}})()`;
+const THEME_SCRIPT = `(function(){try{localStorage.removeItem("helios-theme");document.documentElement.setAttribute("data-theme",sessionStorage.getItem("helios-theme")==="dark"?"dark":"light")}catch(e){}})()`;
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (

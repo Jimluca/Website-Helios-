@@ -1,0 +1,328 @@
+/* Voorbeelden op Helios Connect (ConnectArt.tsx). Alleen tinten paars; licht en donker via de --d-*-variabelen. */
+
+/* ---------- Gegevens en toestemming (glazen kaart naast de tekst) ---------- */
+
+.panel {
+    padding: 26px 28px 28px;
+    border-radius: 28px;
+}
+
+.panelHead {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0 0 16px;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--d-ink, #14152B);
+}
+
+.panelIcon {
+    display: grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 10px;
+    color: #FFFFFF;
+    background: linear-gradient(180deg, #7A55F0, #5B2EE0);
+    box-shadow: inset 0 1px 1px rgb(255 255 255 / .5);
+}
+
+.fields {
+    display: grid;
+    gap: 2px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.fields li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 9px 12px;
+    border-radius: 10px;
+    font-size: 14.5px;
+    color: var(--text-intro);
+}
+
+.fields li:nth-child(odd) {
+    background: rgb(104 76 230 / .05);
+}
+
+:global(:root[data-theme='dark']) .fields li:nth-child(odd) {
+    background: rgb(255 255 255 / .04);
+}
+
+.fields b {
+    flex: none;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: #FFFFFF;
+    background: #6639EC;
+}
+
+.fields b.soft {
+    color: var(--d-link, #4B2BF0);
+    background: rgb(104 76 230 / .12);
+}
+
+:global(:root[data-theme='dark']) .fields b.soft {
+    color: #D6CCFF;
+    background: rgb(179 166 255 / .16);
+}
+
+.subHead {
+    margin: 20px 0 10px;
+    font-size: 12.5px;
+    font-weight: 700;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--d-link, #4B2BF0);
+}
+
+.moments {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.moment,
+.momentOn {
+    padding: 7px 12px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-intro);
+    border: 1px solid var(--d-line, #E3DEF7);
+}
+
+.momentOn {
+    color: #FFFFFF;
+    background: #6639EC;
+    border-color: #6639EC;
+}
+
+.consent {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-top: 20px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    font-size: 13.5px;
+    line-height: 1.45;
+    color: var(--text-intro);
+    border: 1px dashed rgb(104 76 230 / .3);
+}
+
+.box {
+    flex: none;
+    width: 17px;
+    height: 17px;
+    margin-top: 1px;
+    border-radius: 5px;
+    border: 1.5px solid rgb(104 76 230 / .5);
+    background: rgb(var(--d-glass, 255 255 255) / .9);
+}
+
+/* ---------- Beelden boven de kaarten van "Alles instelbaar" ---------- */
+
+.art {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    height: 150px;
+    box-sizing: border-box;
+    padding: 18px;
+    border-radius: 18px;
+    background:
+        radial-gradient(260px 140px at 50% 0%, rgb(255 255 255 / .9) 0%, transparent 70%),
+        linear-gradient(180deg, #F3EFFF 0%, #EAE3FF 100%);
+    border: 1px solid #E4DCFD;
+}
+
+:global(:root[data-theme='dark']) .art {
+    background: linear-gradient(180deg, rgb(74 50 170 / .35) 0%, rgb(40 28 100 / .35) 100%);
+    border-color: rgb(179 166 255 / .16);
+}
+
+.artCol {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 7px;
+}
+
+.row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 6px 12px;
+    border-radius: 10px;
+    font-size: 13.5px;
+    font-weight: 500;
+    color: var(--d-ink, #2A1B7A);
+    background: rgb(var(--d-glass, 255 255 255) / .9);
+}
+
+.add {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 2px;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--d-link, #4B2BF0);
+}
+
+.switch,
+.switchOn {
+    flex: none;
+    position: relative;
+    width: 28px;
+    height: 16px;
+    border-radius: 999px;
+    background: #CFC8E8;
+}
+
+.switchOn {
+    background: #6639EC;
+}
+
+.switch::after,
+.switchOn::after {
+    content: "";
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #FFFFFF;
+}
+
+.switchOn::after {
+    left: auto;
+    right: 2px;
+}
+
+.swatches {
+    display: grid;
+    gap: 6px;
+}
+
+.swatches i {
+    width: 34px;
+    height: 22px;
+    border-radius: 7px;
+    background: #6639EC;
+    box-shadow: inset 0 0 0 1px rgb(0 0 0 / .06);
+}
+
+.swatches i:nth-child(2) {
+    background: #2A1B7A;
+}
+
+.swatches i:nth-child(3) {
+    background: #EDE7FF;
+}
+
+:global(:root[data-theme='dark']) .swatches i {
+    box-shadow: inset 0 0 0 1px rgb(255 255 255 / .25);
+}
+
+.font {
+    display: grid;
+    place-items: center;
+    width: 64px;
+    height: 76px;
+    border-radius: 14px;
+    font-family: Georgia, serif;
+    font-size: 34px;
+    color: var(--d-ink, #2A1B7A);
+    background: rgb(var(--d-glass, 255 255 255) / .9);
+}
+
+.brandCol {
+    display: grid;
+    gap: 8px;
+}
+
+.chip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: #FFFFFF;
+    background: #6639EC;
+}
+
+.map {
+    width: 100%;
+    max-width: 220px;
+    height: 100%;
+}
+
+.ring {
+    fill: rgb(123 92 240 / .1);
+    stroke: rgb(123 92 240 / .45);
+    stroke-width: 1.2;
+    stroke-dasharray: 3 4;
+}
+
+.ringInner {
+    fill: rgb(123 92 240 / .12);
+    stroke: none;
+}
+
+.home {
+    fill: #A68FFA;
+    stroke: #FFFFFF;
+    stroke-width: 2;
+}
+
+.pin {
+    fill: #5B2EE0;
+    stroke: #FFFFFF;
+    stroke-width: 1.5;
+}
+
+.pinOff {
+    fill: #BDB3E6;
+}
+
+:global(:root[data-theme='dark']) .pinOff {
+    fill: rgb(179 166 255 / .3);
+}
+
+.radiusLabel {
+    position: absolute;
+    right: 16px;
+    bottom: 12px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: #FFFFFF;
+    background: #5B2EE0;
+}
+
+@media (max-width: 699px) {
+    .panel {
+        padding: 22px 18px 22px;
+    }
+
+    .fields li {
+        font-size: 14px;
+    }
+}

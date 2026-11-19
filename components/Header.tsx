@@ -6,14 +6,21 @@ import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { CONTACT_URL, LOGIN_URL } from "@/lib/app-links";
 import ThemeToggle from "./ThemeToggle";
 
-const ITEMS = [
-  { label: "Product", href: "/#producten", menu: true },
+type Item = { label: string; href: string; menu?: boolean; wide?: boolean; devOnly?: boolean };
+
+const ALL_ITEMS: Item[] = [
+  // Product (met het uitklapmenu PRODUCTS) staat er voorlopig niet in; terugzetten met deze regel.
+  // { label: "Product", href: "/#producten", menu: true },
   { label: "Voor scholen", href: "/voor-scholen" },
   { label: "Voor professionals", href: "/voor-professionals" },
+  { label: "Helios Connect", href: "/helios-connect" },
   { label: "Over Helios", href: "/over-ons" },
   { label: "Prijzen", href: "/prijzen" },
   { label: "Contact", href: CONTACT_URL },
 ];
+
+const ITEMS = ALL_ITEMS.filter((it) => !it.devOnly || process.env.NODE_ENV !== "production");
+const HAS_MENU = ITEMS.some((it) => it.menu);
 
 const PRODUCTS = [
   {
@@ -55,8 +62,8 @@ const PRODUCTS = [
   },
   {
     title: "Helios Connect",
-    sub: "Voor koppeling met je eigen systemen",
-    href: "/#product-connect",
+    sub: "Voor werving in mbo, hbo en wo",
+    href: "/helios-connect",
     tint: "#977EF6",
     icon: (
       <>
@@ -69,7 +76,17 @@ const PRODUCTS = [
 
 function Arrow({ size }: { size: number }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
       <path d="M5 12h14" />
       <path d="m13 6 6 6-6 6" />
     </svg>
@@ -77,7 +94,7 @@ function Arrow({ size }: { size: number }) {
 }
 
 // Menubalk in liquid glass-stijl: vast bovenaan, wordt compacter bij scrollen. Een glijdende pil volgt
-// het menu-item onder de muis; "Product" opent een uitklapmenu. Onder 1000px een hamburgermenu.
+// het menu-item onder de muis; een item met menu (Product, nu uit) opent een uitklapmenu. Onder 1200px een hamburgermenu.
 export default function Header() {
   const [scrolled, setScrolled] = useState(false);
   const [hover, setHover] = useState(-1);
@@ -115,7 +132,7 @@ export default function Header() {
     const el = listRef.current?.querySelector<HTMLElement>(`[data-nav="${i}"]`);
     if (el) setPill({ x: el.offsetLeft, w: el.offsetWidth });
     setHover(i);
-    setMenuOpen(i === 0);
+    setMenuOpen(!!ITEMS[i]?.menu);
   };
 
   // Sluit 120ms na het verlaten, zodat je de muis naar het uitklapmenu kunt bewegen.
@@ -144,7 +161,7 @@ export default function Header() {
           {ITEMS.map((it, i) => (
             <a
               key={it.label}
-              className={`hdr-link${hover === i ? " is-hover" : ""}`}
+              className={`hdr-link${hover === i ? " is-hover" : ""}${it.wide ? " is-wide-only" : ""}`}
               href={it.href}
               data-nav={i}
               onMouseEnter={() => enter(i)}
@@ -154,28 +171,50 @@ export default function Header() {
             >
               <span>{it.label}</span>
               {it.menu && (
-                <svg className={`hdr-chevron${menuOpen ? " is-open" : ""}`} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <svg
+                  className={`hdr-chevron${menuOpen ? " is-open" : ""}`}
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.4"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
                   <path d="m6 9 6 6 6-6" />
                 </svg>
               )}
             </a>
           ))}
 
-          <div className={`hdr-menu${menuOpen ? " is-open" : ""}`} onMouseEnter={() => clearTimeout(closeTimer.current)}>
-            {PRODUCTS.map((p) => (
-              <a key={p.title} className="hdr-product" href={p.href} tabIndex={menuOpen ? 0 : -1}>
-                <span className="hdr-product-tile" style={{ "--tint": p.tint } as CSSProperties} aria-hidden="true">
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    {p.icon}
-                  </svg>
-                </span>
-                <span className="hdr-product-text">
-                  <span className="hdr-product-title">{p.title}</span>
-                  <span className="hdr-product-sub">{p.sub}</span>
-                </span>
-              </a>
-            ))}
-          </div>
+          {HAS_MENU && (
+            <div className={`hdr-menu${menuOpen ? " is-open" : ""}`} onMouseEnter={() => clearTimeout(closeTimer.current)}>
+              {PRODUCTS.map((p) => (
+                <a key={p.title} className="hdr-product" href={p.href} tabIndex={menuOpen ? 0 : -1}>
+                  <span className="hdr-product-tile" style={{ "--tint": p.tint } as CSSProperties} aria-hidden="true">
+                    <svg
+                      width="22"
+                      height="22"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      {p.icon}
+                    </svg>
+                  </span>
+                  <span className="hdr-product-text">
+                    <span className="hdr-product-title">{p.title}</span>
+                    <span className="hdr-product-sub">{p.sub}</span>
+                  </span>
+                </a>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="hdr-actions">
@@ -193,7 +232,13 @@ export default function Header() {
         {/* Mobiel */}
         <span className="hdr-spacer" />
         <ThemeToggle className="theme-toggle-mobile" />
-        <button type="button" className={`hdr-burger${mobileOpen ? " is-open" : ""}`} aria-label="Menu" aria-expanded={mobileOpen} onClick={() => setMobileOpen((o) => !o)}>
+        <button
+          type="button"
+          className={`hdr-burger${mobileOpen ? " is-open" : ""}`}
+          aria-label="Menu"
+          aria-expanded={mobileOpen}
+          onClick={() => setMobileOpen((o) => !o)}
+        >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true">
             <path d={mobileOpen ? "M6 6l12 12" : "M4 9h16"} />
             <path d={mobileOpen ? "M18 6 6 18" : "M4 15h16"} />

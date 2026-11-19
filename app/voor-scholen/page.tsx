@@ -25,7 +25,14 @@ const PRODUCTS = [
   { icon: "compass", title: "Helios Coach", sub: ["Inzicht in talenten,", "interesses en drijfveren."], items: ["Talenten- en interessetesten", "Loopbaanwaarden", "Persoonlijk advies"] },
   { icon: "cap", title: "Helios Next", sub: ["Oriëntatie op opleidingen", "en vervolgonderwijs."], items: ["Opleidingen swiper", "Zoek per school", "Filter op sector"] },
   { icon: "chart", title: "Helios Horizon", sub: ["Verken beroepen", "en arbeidsmarkt."], items: ["Beroepen explorer", "Sectoren en trends", "Koppeling met vaardigheden"] },
-  { icon: "group", title: "Helios Connect", sub: ["Samenwerken tussen", "leerling, mentor en ouders."], items: ["Voortgang en rapportages", "Gespreksondersteuning", "Betrokkenheid ouders"] },
+  {
+    icon: "link",
+    title: "Helios Connect",
+    sub: ["De API-koppeling voor", "jullie eigen website."],
+    items: ["Studiekeuzetest in huisstijl", "Leads met opt-in", "Rechtstreeks in jullie CRM"],
+    href: "/helios-connect",
+    link: "Bekijk de API-koppeling",
+  },
 ];
 
 const TESTS = [
@@ -132,6 +139,11 @@ export default function VoorScholenPage() {
                     </li>
                   ))}
                 </ul>
+                {p.href && (
+                  <a className="pg-more lob-more" href={p.href}>
+                    {p.link} <Icon name="arrow" size={17} stroke={2.4} />
+                  </a>
+                )}
               </div>
             ))}
           </div>

@@ -45,7 +45,7 @@ function CookieTable({ rows }: { rows: Row[] }) {
 
 const NECESSARY: Row[] = [
   { name: "helios-consent", by: "Helios", purpose: "Onthoudt je keuze in de cookiemelding", duration: "12 maanden" },
-  { name: "helios-theme", by: "Helios", purpose: "Onthoudt of je de site licht of donker wilt zien", duration: "Tot je het wist" },
+  { name: "helios-theme", by: "Helios", purpose: "Onthoudt tijdens je bezoek of je de site licht of donker wilt zien", duration: "Tot je het tabblad sluit" },
   { name: "helios-prijscalculator", by: "Helios", purpose: "Onthoudt een samenstelling die je in de prijscalculator opslaat", duration: "Tot je het wist" },
 ];
 

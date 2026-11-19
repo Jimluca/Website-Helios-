@@ -1,9 +1,11 @@
 "use client";
 
-import { useLayoutEffect, useState } from "react";
+import { useLayoutEffect, useSyncExternalStore } from "react";
 
-// Licht/donker. De keuze staat in localStorage; zonder keuze volgt de site het apparaat.
-// Het inline script in app/layout.tsx zet het thema al vóór de eerste weergave (geen flits).
+// Licht/donker. De site begint altijd licht, ook als het apparaat op donker staat (wens van Helios). Een keuze met
+// deze knop geldt alleen voor het bezoek (sessionStorage, per tabblad). Het inline script in app/layout.tsx zet het
+// thema al vóór de eerste weergave (geen flits) en ruimt de oude keuze in localStorage op. De knop leest het thema
+// van het data-theme-attribuut op <html>.
 export const THEME_KEY = "helios-theme";
 
 type Theme = "light" | "dark";
@@ -12,37 +14,34 @@ function current(): Theme {
   return document.documentElement.dataset.theme === "dark" ? "dark" : "light";
 }
 
-export default function ThemeToggle({ className = "" }: { className?: string }) {
-  const [theme, setTheme] = useState<Theme>("light");
+function subscribe(onChange: () => void) {
+  const observer = new MutationObserver(onChange);
+  observer.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+  return () => observer.disconnect();
+}
 
+function stored(): Theme {
+  try {
+    return sessionStorage.getItem(THEME_KEY) === "dark" ? "dark" : "light";
+  } catch {
+    return "light";
+  }
+}
+
+export default function ThemeToggle({ className = "" }: { className?: string }) {
+  const theme = useSyncExternalStore(subscribe, current, (): Theme => "light");
+
+  // In development haalt React het attribuut bij de tweede mount weg; zet het opnieuw.
   useLayoutEffect(() => {
-    // In development haalt React het attribuut bij de tweede mount weg; zet het opnieuw.
-    let stored: string | null = null;
-    try {
-      stored = localStorage.getItem(THEME_KEY);
-    } catch {}
-    const media = window.matchMedia("(prefers-color-scheme: dark)");
-    const apply = () => {
-      const next: Theme = stored === "dark" || stored === "light" ? stored : media.matches ? "dark" : "light";
-      document.documentElement.dataset.theme = next;
-      setTheme(next);
-    };
-    apply();
-    // Zonder eigen keuze meewisselen met het apparaat.
-    const follow = () => {
-      if (!stored) apply();
-    };
-    media.addEventListener("change", follow);
-    return () => media.removeEventListener("change", follow);
+    document.documentElement.dataset.theme = stored();
   }, []);
 
   function toggle() {
     const next: Theme = current() === "dark" ? "light" : "dark";
     document.documentElement.dataset.theme = next;
     try {
-      localStorage.setItem(THEME_KEY, next);
+      sessionStorage.setItem(THEME_KEY, next);
     } catch {}
-    setTheme(next);
   }
 
   const dark = theme === "dark";

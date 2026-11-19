@@ -2234,6 +2234,11 @@
     display: flex;
     align-items: center;
     gap: 14px;
+    text-wrap: balance;
+}
+
+.lob-more {
+    margin-top: 24px;
 }
 
 .lob-check {
@@ -2567,6 +2572,380 @@
     .pg-lead br,
     .pg-h2 br {
         display: none;
+    }
+}
+
+/* ---------- Helios Connect (app/helios-connect) ----------
+   Zelfde bouwstenen als Voor scholen: glazen kaarten, .pg-icon-tegels, .pg-checks en de fase-nummers. De
+   voorbeeldbeelden hebben eigen CSS-modules (components/connect). */
+
+@media (min-width: 1100px) {
+    .cn-hero .pg-hero-grid {
+        grid-template-columns: minmax(0, 46fr) minmax(0, 54fr);
+        gap: 48px;
+    }
+}
+
+/* Klein label in hoofdletters boven een kaarttitel (kleiner broertje van .pg-eyebrow) */
+.cn-label {
+    margin: 0;
+    font-size: 12.5px;
+    font-weight: 700;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    color: var(--d-link, #4B2BF0);
+}
+
+/* Tekst links, beeld rechts */
+.cn-split {
+    align-items: center;
+}
+
+/* Zo werkt het: drie genummerde kaarten */
+.cn-steps {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 30px;
+    margin: 52px 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.cn-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 34px 32px 36px;
+    border-radius: 28px;
+    text-align: center;
+}
+
+.cn-step-icon {
+    position: relative;
+    display: inline-flex;
+}
+
+.cn-step-icon .phase-num {
+    position: absolute;
+    top: -4px;
+    right: -10px;
+}
+
+.cn-step .pg-card-text {
+    margin-top: 10px;
+    font-size: 15.5px;
+}
+
+/* Eén test, twee kanten: twee kaarten met Helios Connect als brug ertussen */
+.cn-sides {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 64px;
+    max-width: 1180px;
+    margin: 52px auto 0;
+}
+
+.cn-side {
+    padding: 34px 38px 36px;
+    border-radius: 28px;
+}
+
+.cn-side-head {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.cn-side-title {
+    margin: 6px 0 0;
+    font-family: var(--font-inter-tight), sans-serif;
+    font-size: 23px;
+    line-height: 1.2;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--d-ink, #14152B);
+}
+
+.cn-side-points {
+    margin-top: 28px;
+    padding-top: 26px;
+    border-top: 1px solid var(--d-line, #E7E4F5);
+}
+
+.cn-side-points li,
+.cn-split .pg-checks li {
+    align-items: flex-start;
+}
+
+/* Rond Connect-icoon midden in de tussenruimte (gevuld glas, zoals .pg-check) */
+.cn-bridge {
+    position: absolute;
+    z-index: 2;
+    top: 50%;
+    right: -32px;
+    transform: translate(50%, -50%);
+    width: 56px;
+    height: 56px;
+}
+
+/* Inzicht: vier kaarten en de drie downloads eronder */
+.cn-insights {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 24px;
+    margin-top: 52px;
+}
+
+.cn-insight {
+    padding: 30px 28px 32px;
+    border-radius: 26px;
+}
+
+.cn-insight .pg-card-title {
+    margin-top: 22px;
+    font-size: 19px;
+}
+
+.cn-insight .pg-card-text {
+    margin-top: 8px;
+    font-size: 15px;
+}
+
+.cn-downloads {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 14px 40px;
+    margin: 40px 0 0;
+    padding: 0;
+    list-style: none;
+    font-size: 16px;
+    color: var(--text-intro);
+}
+
+.cn-downloads li {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+/* Koppelingen: zes tegels naast de tekst */
+.cn-integrations {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+}
+
+.cn-integration {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 22px 22px 24px;
+    border-radius: 22px;
+}
+
+.cn-integration .pg-card-title,
+.cn-integration .pg-card-text {
+    display: block;
+}
+
+.cn-integration .pg-card-text {
+    margin-top: 4px;
+}
+
+/* Alles naar wens: drie grote kaarten met een voorbeeld en een rij met vier kleinere punten */
+.cn-config {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 30px;
+    margin-top: 52px;
+}
+
+.cn-config-card {
+    display: flex;
+    flex-direction: column;
+    padding: 18px 18px 30px;
+    border-radius: 28px;
+}
+
+.cn-config-head {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin: 24px 12px 0;
+}
+
+.cn-config-head .pg-card-title {
+    font-size: 20px;
+}
+
+.cn-config-card > .pg-card-text {
+    margin: 12px 12px 0;
+    font-size: 15.5px;
+}
+
+.cn-more {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 28px;
+    margin: 48px 0 0;
+    padding: 36px 0 0;
+    border-top: 1px solid var(--d-line, #E7E4F5);
+    list-style: none;
+}
+
+.cn-more li {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+}
+
+.cn-more .pg-card-title,
+.cn-more .pg-card-text {
+    display: block;
+}
+
+.cn-more .pg-card-title {
+    font-size: 16.5px;
+}
+
+/* Privacy: zes punten in drie kolommen, zonder lijn erboven */
+.cn-facts {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 36px 40px;
+    max-width: 1180px;
+    margin: 52px auto 0;
+    padding: 0;
+    border-top: 0;
+}
+
+.cn-faq a {
+    color: var(--d-link, #4B2BF0);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+/* Veelgestelde vragen: uitklapbare glazen kaarten (tillen niet op bij hover) */
+.cn-faq {
+    display: grid;
+    gap: 14px;
+    max-width: 880px;
+    margin: 44px auto 0;
+}
+
+.cn-faq-item {
+    padding: 0 26px;
+    border-radius: 20px;
+}
+
+.cn-faq-item:hover {
+    transform: none;
+}
+
+.cn-faq-item summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 20px 0;
+    font-family: var(--font-inter-tight), sans-serif;
+    font-size: 17.5px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--d-ink, #14152B);
+    list-style: none;
+    cursor: pointer;
+}
+
+.cn-faq-item summary::-webkit-details-marker {
+    display: none;
+}
+
+.cn-faq-item summary:focus-visible {
+    outline: 2px solid var(--d-link, #4B2BF0);
+    outline-offset: 4px;
+    border-radius: 8px;
+}
+
+.cn-faq-chevron {
+    flex: none;
+    color: var(--d-link, #4B2BF0);
+    transition: transform .3s var(--ease);
+}
+
+.cn-faq-item[open] .cn-faq-chevron {
+    transform: rotate(180deg);
+}
+
+.cn-faq-item .pg-card-text {
+    margin: 0;
+    padding: 0 0 22px;
+    font-size: 15.5px;
+    line-height: 1.6;
+}
+
+@media (max-width: 1299px) {
+    .cn-insights {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 1099px) {
+    .cn-steps,
+    .cn-config {
+        grid-template-columns: minmax(0, 1fr);
+        max-width: 620px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .cn-more,
+    .cn-facts {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 899px) {
+    .cn-sides {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .cn-bridge {
+        top: auto;
+        bottom: -32px;
+        right: 50%;
+        transform: translate(50%, 50%);
+    }
+}
+
+@media (max-width: 699px) {
+    .cn-side {
+        padding: 26px 22px 28px;
+    }
+
+    .cn-side-title {
+        font-size: 21px;
+    }
+
+    .cn-insights,
+    .cn-integrations,
+    .cn-more,
+    .cn-facts {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 20px;
+    }
+
+    .cn-downloads {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .cn-faq-item {
+        padding: 0 20px;
+    }
+
+    .cn-faq-item summary {
+        font-size: 16.5px;
     }
 }
 

@@ -1,5 +1,4 @@
 import type { CSSProperties } from "react";
-import { moreInfoUrl } from "@/lib/app-links";
 import ProductArt from "./ProductArt";
 
 type Product = {
@@ -63,10 +62,10 @@ const PRODUCTS: Product[] = [
   {
     id: "connect",
     title: "Helios Connect",
-    sub: ["Voor koppeling met je eigen", "systemen"],
-    body: ["Zet de testen van Helios in je eigen", "website, portaal of leerlingvolgsysteem.", "Via een API, in je eigen huisstijl, zonder", "dat gebruikers apart hoeven in te", "loggen."],
+    sub: ["Voor werving en marketing", "in mbo, hbo en wo"],
+    body: ["De studiekeuzetest op jullie eigen", "website. Studiekiezers zien welke", "opleidingen passen, jullie krijgen", "leads met toestemming, rechtstreeks", "in jullie CRM."],
     cta: "Ontdek Helios Connect",
-    href: moreInfoUrl("Helios Connect"),
+    href: "/helios-connect",
     rgb: "166, 143, 250",
     tile: ["#B8A6FF", "#977EF6"],
     tint: ["#F9F7FF", "#F2EDFF"],

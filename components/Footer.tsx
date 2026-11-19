@@ -14,6 +14,7 @@ const COLUMNS = [
       { label: "Begeleiding", href: "/voor-professionals" },
       { label: "Voor scholen", href: "/voor-scholen" },
       { label: "Voor organisaties", href: "/voor-professionals" },
+      { label: "Helios Connect", href: "/helios-connect" },
       { label: "Prijzen", href: "/prijzen" },
     ],
   },
